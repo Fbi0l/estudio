@@ -96,6 +96,7 @@ input.sw:disabled{opacity:.4}
 .list .row-i+.row-i{border-top:1px solid var(--line)}
 .row-i>span{display:flex;flex-direction:column;font-size:14px}
 .row-i small{color:var(--mute);font-size:12px}
+.row-i small.lat.ok{color:var(--ok)}.row-i small.lat.mid{color:var(--warn)}.row-i small.lat.bad{color:#ff6b62}
 .row-i select{max-width:55%;min-height:36px;font-size:16px}
 .cap{font-size:12px;color:var(--mute);margin:4px 2px -4px;font-weight:600}
 .verd{display:flex;flex-direction:column;gap:6px;font-size:13px}
@@ -286,15 +287,18 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
         <button class="go wide" id="test"><svg class="i"><use href="#i-check"/></svg>Testar microfone</button>
         <div class="verd" id="verd"></div>
       </div>
+      <div class="card" id="gear" hidden><h2 id="gearT"></h2><span class="hint" id="gearL"></span><div class="verd" id="gearV"></div></div>
       <div class="cap">Durante a gravação</div>
       <div class="list">
         <label class="row-i"><span>Contagem 3-2-1<small>Tempo para se preparar</small></span><input type="checkbox" class="sw" id="count" checked></label>
-        <label class="row-i"><span>Me ouvir no fone<small>Já com o tratamento. Use fone de ouvido</small></span><input type="checkbox" class="sw" id="mon"></label>
+        <label class="row-i"><span>Me ouvir no fone<small id="monSub">Já com o tratamento. Use fone de ouvido</small></span><input type="checkbox" class="sw" id="mon"></label>
         <label class="row-i"><span>Novo áudio<small>Onde a gravação entra</small></span><select id="place"><option value="replace">Substitui tudo</option><option value="insert" selected>No cursor</option><option value="end">No final</option><option value="punch">Regrava a seleção</option></select></label>
       </div>
       <div class="cap">Entrada</div>
       <div class="list">
-        <label class="row-i"><span>Microfone</span><select id="dev"><option value="">Padrão</option></select></label>
+        <label class="row-i"><span>Microfone ou placa</span><select id="dev"><option value="">Padrão do sistema</option></select></label>
+        <label class="row-i"><span>Fonte<small>Voz, instrumento direto ou pedaleira</small></span><select id="srcType"><option value="voz" selected>Voz</option><option value="inst">Instrumento</option><option value="pedal">Pedaleira</option></select></label>
+        <label class="row-i"><span>Canal<small>Para placas com 2 entradas</small></span><select id="chan"><option value="auto" selected>Automático</option><option value="1">Entrada 1</option><option value="2">Entrada 2</option><option value="st">Estéreo (1 e 2)</option></select></label>
         <label class="row-i"><span>Supressão de ruído<small>Do navegador. Pode abafar a voz</small></span><input type="checkbox" class="sw" id="ns"></label>
       </div>
       <p class="keys"><span class="kb">Atalhos: <kbd>Espaço</kbd> tocar · <kbd>R</kbd> gravar · <kbd>L</kbd> repetir · <kbd>Ctrl+Z</kbd> desfazer · <kbd>Ctrl+X/C/V</kbd> · <kbd>Delete</kbd> · <kbd>Ctrl+A</kbd> · <kbd>+</kbd>/<kbd>−</kbd> zoom · <kbd>Ctrl</kbd>+roda dá zoom · <kbd>Shift</kbd>+clique estende a seleção.<br></span>Tudo roda no seu aparelho; nada é enviado para a internet.</p>
@@ -502,7 +506,7 @@ const fxClick=e=>{const b=e.target.closest('button');if(!b)return;const card=b.c
 $('#racks').addEventListener('click',fxClick);$('#p-fin').addEventListener('click',fxClick);
 const roomThr=()=>Math.max(-70,Math.min(-30,Math.round(room+8)));
 function master(pi,whole){
-  if(pi!=null){preset=pi;document.querySelectorAll('.preset').forEach((x,i)=>x.classList.toggle('on',i===pi))}
+  if(pi!=null){preset=pi;document.querySelectorAll('.preset').forEach((x,i)=>x.classList.toggle('on',i===pi));$('#target').value=String(presets[pi].t)}
   const p=presets[preset],t=+$('#target').value;
   process('Masterização '+p.n,async x=>{
     // com o teste da sala feito, o limiar do redutor sai da medição real em vez de um chute
@@ -543,15 +547,47 @@ function pos(){if(!play)return cursor;let t=play.off+(AC().currentTime-play.t0);
 function toggle(){if(rec)return stopRec();if(play){const t=pos();stopPlay();cursor=t;refresh()}else startPlay()}
 
 /* ---------- gravação (PCM sem perdas) ---------- */
+/* ---------- entrada: placas, pedaleiras e canais ---------- */
+const srcType=()=>$('#srcType').value,chanSel=()=>$('#chan').value,isVoz=()=>srcType()==='voz';
 async function openMic(){
   if(!navigator.mediaDevices?.getUserMedia)throw new Error('Este navegador não libera o microfone aqui. Abra o arquivo no Chrome ou Edge.');
   await AC().resume();const dev=$('#dev').value;
-  try{return await navigator.mediaDevices.getUserMedia({audio:{deviceId:dev?{exact:dev}:undefined,echoCancellation:false,noiseSuppression:$('#ns').checked,autoGainControl:false}})}
-  catch(e){throw new Error(e.name==='NotAllowedError'?'Microfone não autorizado. Libere o acesso no cadeado da barra de endereço.':'Não consegui abrir o microfone: '+e.message)}
+  try{return await navigator.mediaDevices.getUserMedia({audio:{deviceId:dev?{exact:dev}:undefined,echoCancellation:false,noiseSuppression:isVoz()&&$('#ns').checked,autoGainControl:false,channelCount:{ideal:2},latency:{ideal:0}}})}
+  catch(e){throw new Error(e.name==='NotAllowedError'?'Microfone não autorizado. Libere o acesso no cadeado da barra de endereço.':'Não consegui abrir a entrada de áudio: '+e.message)}
 }
-/* retorno no fone: a mesma cadeia leve da predefinição Natural; a gravação continua crua */
-function monitor(s){if(!$('#mon').checked)return null;const c=AC(),n=[bq(c,'highpass',80,null,.7),bq(c,'peaking',450,-2,.9),bq(c,'peaking',3200,2,1),compNode(c,-24,2.5)];series(s.src,n).connect(c.destination);return n}
+/* retorno no fone pelo canal escolhido; voz ganha a cadeia leve da predefinição Natural, instrumento vai direto.
+   A gravação continua crua. */
+function monitor(s){
+  if(!$('#mon').checked){latInfo(null);return null}
+  const c=AC(),ch=chanSel(),n=[];
+  if(ch==='st')n.push(c.createGain());
+  else{const sp=c.createChannelSplitter(2),m=c.createGain();m.channelCount=1;m.channelCountMode='explicit';
+    if(ch==='1')sp.connect(m,0);else if(ch==='2')sp.connect(m,1);else{sp.connect(m,0);sp.connect(m,1);m.gain.value=.5}
+    n.push(sp,m)}
+  if(isVoz())n.push(bq(c,'highpass',80,null,.7),bq(c,'peaking',450,-2,.9),bq(c,'peaking',3200,2,1),compNode(c,-24,2.5));
+  s.src.connect(n[0]);for(let i=1;i<n.length;i++)if(!(n[i-1] instanceof ChannelSplitterNode))n[i-1].connect(n[i]);
+  n[n.length-1].connect(c.destination);latInfo(s);return n;
+}
 function unmonitor(s){if(s&&s.mon){try{s.src.disconnect(s.mon[0])}catch(e){}s.mon.forEach(x=>x.disconnect());s.mon=null}}
+const monDefault=()=>isVoz()?'Já com o tratamento. Use fone de ouvido':'Som direto, sem efeitos do app. Use fone de ouvido';
+function latInfo(s){const el=$('#monSub');if(!s){if(!el.classList.contains('lat'))el.textContent=monDefault();return}
+  const c=AC(),st=s.stream.getAudioTracks()[0].getSettings(),inp=typeof st.latency==='number'?st.latency:.01;
+  const ms=Math.round((inp+(c.baseLatency||0)+(c.outputLatency||0))*1000);
+  const [k,t]=ms<=15?['ok','ótimo, quase imperceptível']:ms<=30?['mid','perceptível. Para cantar ou tocar, prefira o retorno direto da placa']:['bad','alto. Use o retorno direto da placa ou pedaleira e desligue esta opção'];
+  el.textContent=`Atraso estimado ~${ms} ms: ${t}`;el.className='lat '+k}
+/* separa os canais: no automático, descobre se o sinal veio só de uma entrada */
+function pickChannels(b){
+  if(b.numberOfChannels<2)return{b,msg:''};
+  const mode=chanSel(),L=b.getChannelData(0),R=b.getChannelData(1),mono=d=>{const o=mk(1,d.length,b.sampleRate);o.copyToChannel(d,0);return o};
+  if(mode==='1')return{b:mono(L),msg:'Entrada 1 gravada em mono.'};
+  if(mode==='2')return{b:mono(R),msg:'Entrada 2 gravada em mono.'};
+  if(mode==='st')return{b,msg:'Gravado em estéreo (entradas 1 e 2).'};
+  let pl=0,pr=0,df=0;for(let i=0;i<L.length;i++){const a=L[i]<0?-L[i]:L[i],c=R[i]<0?-R[i]:R[i],d=Math.abs(L[i]-R[i]);if(a>pl)pl=a;if(c>pr)pr=c;if(d>df)df=d}
+  if(pr<pl*.03)return{b:mono(L),msg:'Só a entrada 1 tinha sinal: gravei em mono, no volume certo.'};
+  if(pl<pr*.03)return{b:mono(R),msg:'Só a entrada 2 tinha sinal: gravei em mono, no volume certo.'};
+  if(df<=Math.max(pl,pr)*.01)return{b:mono(L),msg:'As duas entradas eram iguais: gravei em mono.'};
+  return{b,msg:'Sinal diferente nas duas entradas: mantive em estéreo.'};
+}
 function closeMic(s){unmonitor(s);s.proc.disconnect();s.src.disconnect();s.z.disconnect();s.stream.getTracks().forEach(t=>t.stop())}
 async function startRec(){
   if(rec)return stopRec();if(test)return toast('Espere o teste do microfone terminar');
@@ -576,42 +612,75 @@ async function startRec(){
 function stopRec(){
   if(!rec)return;const r=rec;rec=null;closeMic(r);keepAwake(false);navigator.vibrate?.([8,40,8]);$('#rec').classList.remove('live');$('#test').disabled=false;
   if(!r.len){refresh();return toast('Nada foi gravado')}
-  const b=mk(r.nch,r.len);for(let ch=0;ch<r.nch;ch++){const o=b.getChannelData(ch);let off=0;for(const d of r.data[ch]){o.set(d,off);off+=d.length}}
+  const raw=mk(r.nch,r.len);for(let ch=0;ch<r.nch;ch++){const o=raw.getChannelData(ch);let off=0;for(const d of r.data[ch]){o.set(d,off);off+=d.length}}
+  const pc=pickChannels(raw),b=pc.b;
   const at=place(b,null,r.punch);markers=r.clips.length?{buf,t:r.clips.map(t=>t+at)}:null;refresh();
   // resumo franco do que foi gravado
-  const pk=Math.min(0,dB(r.max)),v=[['', 'Última gravação', fmt(b.duration)+' · pico '+dBs(pk)]];
+  const pk=Math.min(0,dB(peak(b))),v=[['', 'Última gravação', fmt(b.duration)+' · pico '+dBs(pk)+(b.numberOfChannels>1?' · estéreo':' · mono')]];
+  if(pc.msg)v.push(['','Canais',pc.msg]);
   if(r.clips.length)v.push(['bad',r.clips.length+(r.clips.length>1?' estouros':' estouro'),'marcados em vermelho na onda. Estouro não tem conserto: selecione o trecho e regrave (Novo áudio → Regrava a seleção).']);
-  else if(pk<-24)v.push(['mid','Ficou baixa','o tratamento sobe o volume, mas o ruído de fundo sobe junto. Na próxima, chegue mais perto do microfone.']);
-  else v.push(['good','Sem estouros','nível bom. Quando terminar, vá em Finalizar → Acabamento natural.']);
+  else if(pk<-24)v.push(['mid','Ficou baixa',isVoz()?'o tratamento sobe o volume, mas o ruído de fundo sobe junto. Na próxima, chegue mais perto do microfone.':'suba o volume da pedaleira ou o ganho da placa na próxima. Subir depois aumenta o chiado junto.']);
+  else v.push(['good','Sem estouros','nível bom. Quando terminar, vá em Finalizar → '+$('#finish').textContent.trim()+'.']);
   verd(v);tab('rec');$('#side').scrollTop=0;toast(r.clips.length?'Gravação com estouros: veja as marcas vermelhas':'Gravação adicionada',3500);
 }
 
-/* ---------- teste do microfone: 4 s de silêncio + 6 s de fala ---------- */
+/* ---------- teste: 4 s de silêncio + 6 s de fala ou toque ---------- */
 async function micTest(){
   if(rec||test)return;stopPlay();let stream;try{stream=await openMic()}catch(e){return toast(e.message,5000)}
-  const c=AC(),src=c.createMediaStreamSource(stream),proc=c.createScriptProcessor(2048,1,1),z=c.createGain();z.gain.value=0;
+  const c=AC(),src=c.createMediaStreamSource(stream),proc=c.createScriptProcessor(2048,2,2),z=c.createGain();z.gain.value=0;
   test={stream,src,proc,z,t0:performance.now(),noise:[],voice:[],lvl:0,peak:0};test.mon=monitor(test);
-  proc.onaudioprocess=e=>{const t=test;if(!t)return;const d=e.inputBuffer.getChannelData(0);let s=0,m=0;for(let i=0;i<d.length;i++){const v=d[i];s+=v*v;const a=v<0?-v:v;if(a>m)m=a}
-    const r=Math.sqrt(s/d.length),el=(performance.now()-t.t0)/1000;t.lvl=Math.max(m,t.lvl*.85);
+  proc.onaudioprocess=e=>{const t=test;if(!t)return;const ib=e.inputBuffer,ch=chanSel(),cs=ch==='1'?[0]:ch==='2'?[1]:[0,1];let s=0,m=0;
+    for(const k of cs){const d=ib.getChannelData(k);let q=0;for(let i=0;i<d.length;i++){const v=d[i];q+=v*v;const a=v<0?-v:v;if(a>m)m=a}if(q>s)s=q}
+    const r=Math.sqrt(s/ib.length),el=(performance.now()-t.t0)/1000;t.lvl=Math.max(m,t.lvl*.85);
     if(el>.6&&el<4)t.noise.push(r);else if(el>=4.6&&el<10){t.voice.push(r);if(m>t.peak)t.peak=m}else if(el>=10)finishTest()};
   src.connect(proc);proc.connect(z);z.connect(c.destination);$('#test').disabled=true;$('#rec').disabled=true;listDevs();
 }
 function finishTest(){
   const t=test;if(!t)return;test=null;closeMic(t);$('#test').disabled=false;$('#rec').disabled=false;
+  const vz=isVoz(),V=vz?'Voz':'Sinal';
   const med=a=>{const s=[...a].sort((x,y)=>x-y);return s[s.length>>1]||0};
   const top=[...t.voice].sort((a,b)=>b-a),k=Math.max(1,Math.floor(top.length*.3)),vr=dB(top.slice(0,k).reduce((a,b)=>a+b,0)/k);
   const nz=Math.max(-90,dB(med(t.noise))),pk=dB(t.peak),snr=vr-nz,f=x=>Math.round(x)+' dB',out=[];
-  if(!(pk>-45)){verd([['bad','Quase não ouvi sua voz','confira se o microfone certo está escolhido em Entrada e se ele não está mudo. Depois teste de novo.']]);return}
+  if(!(pk>-45)){verd([['bad',vz?'Quase não ouvi sua voz':'Quase não chegou sinal',vz?'confira se o microfone certo está escolhido em Entrada e se ele não está mudo. Depois teste de novo.':'confira se a placa ou pedaleira está escolhida em Entrada, o cabo e o volume dela. Em placas de 2 entradas, veja também o Canal.']]);return}
   room=nz;
-  out.push(nz<=-60?['good','Sala: ótima',f(nz)+' de ruído, bem silenciosa.']:nz<=-48?['mid','Sala: aceitável',f(nz)+'. A redução de ruído resolve nas pausas.']:['bad','Sala: barulhenta',f(nz)+'. Desligue ventilador ou ar, feche a janela ou fale mais perto do microfone.']);
-  out.push(pk>-1?['bad','Voz: estourando','pico '+f(pk)+'. Afaste-se um palmo ou baixe o volume do microfone nas configurações do sistema.']:pk>-6?['mid','Voz: no limite','pico '+f(pk)+'. Risadas e ênfases vão estourar; afaste-se um pouco.']:pk>=-24?['good','Voz: bom nível','pico '+f(pk)+'.']:['mid','Voz: baixa','pico '+f(pk)+'. Aproxime-se ou suba o volume do microfone no sistema.']);
-  out.push(snr>=30?['good','Voz × ruído: excelente',f(snr)+' de folga.']:snr>=20?['good','Voz × ruído: boa',f(snr)+'. O fundo some com o acabamento.']:snr>=12?['mid','Voz × ruído: razoável',f(snr)+'. O fundo vai aparecer nas pausas; o acabamento ameniza, mas não apaga.']:['bad','Voz × ruído: fraca',f(snr)+'. O ruído compete com a voz e nenhum filtro conserta isso bem. Vale mudar o ambiente ou a posição.']);
-  out.push(['','Redutor de ruído calibrado','limiar em '+roomThr()+' dB, a partir da sua sala.']);
+  out.push(vz?(nz<=-60?['good','Sala: ótima',f(nz)+' de ruído, bem silenciosa.']:nz<=-48?['mid','Sala: aceitável',f(nz)+'. A redução de ruído resolve nas pausas.']:['bad','Sala: barulhenta',f(nz)+'. Desligue ventilador ou ar, feche a janela ou fale mais perto do microfone.'])
+    :(nz<=-62?['good','Ruído de fundo: baixo',f(nz)+'.']:nz<=-50?['mid','Ruído de fundo: aceitável',f(nz)+'. Normal com drive alto.']:['bad','Chiado ou zumbido alto',f(nz)+'. Abaixe ganho/drive, afaste o cabo de fontes e carregadores, ou ligue o noise gate da pedaleira.']));
+  out.push(pk>-1?['bad',V+': estourando','pico '+f(pk)+'. '+(vz?'Afaste-se um palmo ou baixe o volume do microfone nas configurações do sistema.':'Baixe o volume master da pedaleira ou o ganho da placa.')]
+    :pk>-6?['mid',V+': no limite','pico '+f(pk)+'. '+(vz?'Risadas e ênfases vão estourar; afaste-se um pouco.':'Ataques fortes vão estourar; baixe um pouco o volume da pedaleira ou da placa.')]
+    :pk>=-24?['good',V+': bom nível','pico '+f(pk)+'.']
+    :['mid',V+': baixo','pico '+f(pk)+'. '+(vz?'Aproxime-se ou suba o volume do microfone no sistema.':'Suba o volume da pedaleira ou o ganho da placa.')]);
+  out.push(snr>=30?['good',V+' × ruído: excelente',f(snr)+' de folga.']:snr>=20?['good',V+' × ruído: boa',f(snr)+'. O fundo some com o acabamento.']:snr>=12?['mid',V+' × ruído: razoável',f(snr)+'. O fundo vai aparecer nas pausas; o acabamento ameniza, mas não apaga.']:['bad',V+' × ruído: fraca',f(snr)+'. O ruído compete com o sinal e nenhum filtro conserta isso bem.'+(vz?' Vale mudar o ambiente ou a posição.':' Ajuste ganho e cabos antes de gravar.')]);
+  if(vz)out.push(['','Redutor de ruído calibrado','limiar em '+roomThr()+' dB, a partir da sua sala.']);
   verd(out);$('#side').scrollTop=0;
   const g=document.querySelector('.card[data-k="4"] input[data-id="thr"]');if(g){g.value=roomThr();g.nextElementSibling.textContent=g.value+' dB'}
 }
-async function listDevs(){try{const ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audioinput');const cur=$('#dev').value;
-  $('#dev').innerHTML='<option value="">Microfone padrão</option>'+ds.filter(d=>d.deviceId&&d.deviceId!=='default').map((d,i)=>`<option value="${d.deviceId}">${(d.label||'Entrada '+(i+1)).replace(/[<>&"]/g,'')}</option>`).join('');$('#dev').value=cur}catch(e){}}
+
+/* ---------- reconhece o equipamento pelo nome ---------- */
+const GEAR=[
+ {re:/cuvave|m-?vave|cube ?baby|tank-?[gb]/i,n:'Pedaleira Cuvave / M-Vave',src:'pedal',tip:'O som já sai com amp e efeitos da pedaleira. Para se ouvir sem atraso, ligue o fone na própria pedaleira e deixe “Me ouvir no fone” desligado. O volume gravado é o master da pedaleira: no teste, deixe o pico entre −12 e −6 dB.'},
+ {re:/joyo|momix/i,n:'Interface Joyo',src:'pedal',tip:'Ligue o fone na saída da própria Joyo para se ouvir sem atraso e deixe “Me ouvir no fone” desligado. Se o som do computador aparecer na gravação, desligue a chave de monitor/loopback da Joyo. Alguns modelos gravam em 16 bits, o que é suficiente para MP3 e WAV 16.'},
+ {re:/valeton|mooer|nux|sonicake|hotone|ammoon|lekato|flamma|donner|headrush|ampero|gp-?\d00/i,n:'Pedaleira / processador',src:'pedal',tip:'O som já sai processado. Ouça pelo fone ligado na pedaleira (atraso zero) e deixe “Me ouvir no fone” desligado. Ajuste o nível pelo master da pedaleira.'},
+ {re:/scarlett|focusrite|umc|behringer|m-?track|m-?audio|audiobox|presonus|steinberg|\bur ?\d|minifuse|arturia|tascam|rubix|roland|motu|audient|\bevo\b|\bssl\b|yamaha|irig|line ?6|pod |esi |icon |solo|vocaster|go:?xlr|rodecaster|universal audio|volt/i,n:'Interface de áudio',src:null,tip:'Para se ouvir sem atraso, use o “Direct Monitor” da interface e deixe “Me ouvir no fone” desligado. Microfone numa entrada e instrumento na outra? Escolha o Canal abaixo ou deixe no automático.'},
+ {re:/usb|codec|pnp/i,n:'Dispositivo de áudio USB',src:null,tip:'Se for uma placa, pedaleira ou mesa, prefira ouvir pelo fone ligado nela (atraso zero).'}
+];
+let devs=[],srcTouched=false;
+async function listDevs(){try{const all=await navigator.mediaDevices.enumerateDevices(),ds=all.filter(d=>d.kind==='audioinput');const cur=$('#dev').value;devs=all;
+  $('#dev').innerHTML='<option value="">Padrão do sistema</option>'+ds.filter(d=>d.deviceId&&d.deviceId!=='default').map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'Entrada '+(i+1))}</option>`).join('');$('#dev').value=cur;gear()}catch(e){}}
+function devLabel(kind,id){const d=devs.find(d=>d.kind===kind&&(id?d.deviceId===id:d.deviceId==='default'))||devs.find(d=>d.kind===kind);return d?.label||''}
+function gear(){
+  const inL=devLabel('audioinput',$('#dev').value),outL=devLabel('audiooutput',''),bt=/bluetooth|airpods|buds|hands-?free|\bbt\b/i,g=GEAR.find(x=>x.re.test(inL)),w=[];
+  if(bt.test(outL))w.push(['bad','Fone Bluetooth','“'+outL+'”: o retorno chega com 150 a 300 ms de atraso. Para se ouvir enquanto grava, use fone com fio ou o fone ligado na placa.']);
+  if(bt.test(inL))w.push(['bad','Microfone Bluetooth','grava com qualidade de telefone. Prefira um microfone com fio ou a placa de áudio.']);
+  const box=$('#gear');box.hidden=!g&&!w.length;if(box.hidden){gearSrc(null);return}
+  box.hidden=false;$('#gearT').textContent=g?g.n:'Atenção ao fone';$('#gearL').textContent=g?inL:'';
+  $('#gearV').innerHTML=(g?`<span class="v">${esc(g.tip)}</span>`:'')+w.map(x=>`<span class="v ${x[0]}"><b>${esc(x[1])}</b>${esc(x[2])}</span>`).join('');
+  gearSrc(g)}
+function gearSrc(g){
+  const want=g&&g.src||'voz';if(!srcTouched&&srcType()!==want){$('#srcType').value=want;srcChanged();if(g&&g.src)toast('Detectei '+g.n+': ajustei a fonte para '+$('#srcType').selectedOptions[0].text,4000)}
+}
+function srcChanged(){const vz=isVoz(),ns=$('#ns');ns.disabled=!vz;if(!vz)ns.checked=false;
+  $('#finish').lastChild.textContent=vz?'Acabamento natural':'Acabamento para música';
+  const ms=$('#monSub');ms.classList.remove('lat','ok','mid','bad');ms.textContent=monDefault()}
 
 /* ---------- importação / exportação ---------- */
 async function importFile(f){
@@ -707,7 +776,7 @@ function frame(){
   let lv=0;if(rec)lv=rec.lvl;else if(test)lv=test.lvl;else if(play&&outAn){const a=new Float32Array(outAn.fftSize);outAn.getFloatTimeDomainData(a);for(const v of a)lv=Math.max(lv,Math.abs(v))}
   const d=dB(lv),now=performance.now();if(lv>=.995&&(rec||test))clipHold=now;const clipped=now-clipHold<1500;
   $('#lvl').style.width=Math.max(0,Math.min(100,(d+60)/60*100))+'%';$('#lvlTxt').textContent=clipped?'ESTOUROU':dBs(d);$('.meter').classList.toggle('clip',clipped);
-  if(test){const el=(now-test.t0)/1000;verd([el<4?`Fique em silêncio… medindo o ruído da sala (${Math.ceil(4-el)} s)`:`Agora fale normalmente, como vai gravar (${Math.max(1,Math.ceil(10-el))} s)`])}
+  if(test){const el=(now-test.t0)/1000;verd([el<4?`${isVoz()?'Fique em silêncio… medindo o ruído da sala':'Não toque… medindo o ruído de fundo'} (${Math.ceil(4-el)} s)`:`${isVoz()?'Agora fale normalmente, como vai gravar':'Agora toque como vai gravar'} (${Math.max(1,Math.ceil(10-el))} s)`])}
   if(play&&!rec){const p=pos();if(p>view.s+view.d||p<view.s){view.s=p;clampAll()}}
   if(play||rec)refresh();requestAnimationFrame(frame);
 }
@@ -730,8 +799,11 @@ window.addEventListener('dragover',e=>e.preventDefault());window.addEventListene
 
 /* ---------- botões e atalhos ---------- */
 const on=(id,f)=>$(id).addEventListener('click',f);
-on('#test',micTest);on('#finish',()=>{sel=null;master(3,true)});
-$('#mon').addEventListener('change',e=>{if(e.target.checked)toast('Use fone de ouvido: em caixa de som dá microfonia. O navegador tem um pequeno atraso no retorno.',5000);const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
+on('#test',micTest);on('#finish',()=>{sel=null;master(isVoz()?3:2,true)});
+$('#srcType').addEventListener('change',()=>{srcTouched=true;srcChanged()});$('#dev').addEventListener('change',gear);
+$('#chan').addEventListener('change',()=>{const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
+navigator.mediaDevices?.addEventListener?.('devicechange',listDevs);listDevs();
+$('#mon').addEventListener('change',e=>{if(e.target.checked)toast(isVoz()?'Use fone de ouvido: em caixa de som dá microfonia. O navegador tem um pequeno atraso no retorno.':'Dica: sua pedaleira ou placa tem saída de fone sem atraso. Prefira ouvir por ela.',5000);const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
 on('#rec',startRec);on('#play',toggle);on('#stop',()=>{stopRec();stopPlay();cursor=sel?sel.a:0;refresh()});on('#loop',()=>{loop=!loop;if(play){const t=pos();stopPlay();cursor=t;startPlay()}ui()});
 on('#zin',()=>zoom(.5));on('#zout',()=>zoom(2));on('#zfit',fit);on('#zsel',()=>sel?zoomTo(sel.a-(sel.b-sel.a)*.05,(sel.b-sel.a)*1.1):toast('Selecione um trecho primeiro'));
 $('#scroll').addEventListener('input',e=>{if(buf){view.s=e.target.value/1000*(buf.duration-view.d);draw()}});
@@ -780,7 +852,7 @@ on('#expOpen',openExp);on('#expOpen2',openExp);on('#expCancel',()=>$('#expDlg').
 $('#expDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 on('#rec2',startRec);
 $('#fname').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
-window.__studio={get buf(){return buf},set sel(v){sel=v},master,process,lufs,exportF,wav,place:b=>place(b,'teste'),presets,fx};
+window.__studio={pickChannels,setDevs:d=>{devs=d;gear()},get buf(){return buf},set sel(v){sel=v},master,process,lufs,exportF,wav,place:b=>place(b,'teste'),presets,fx};
 refresh();measure();requestAnimationFrame(frame);
 }
 </script>
