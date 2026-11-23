@@ -24,6 +24,7 @@
            celular = barra de título, onda, painel, transporte, abas na base */
 :root{--bg:#141518;--panel:#1c1d21;--panel2:#25272c;--hover:#2d2f35;--line:#30323a;--ink:#eceae5;--mute:#9a9ca4;--wave:#e6e0d2;--selb:#78aaff;--rec:#ff453a;--ok:#34c759;--warn:#ffb340;--r:12px;color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
 html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:15px/1.45 Manrope,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 button,select,input{font:inherit;color:inherit}
 svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
@@ -158,6 +159,8 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
 .dlg .fld{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mute)}
 .dlg .fld input,.dlg .fld select{color:var(--ink)}
 .dlg .list{background:var(--panel2)}
+#aboutBtn{position:relative}#aboutBtn.upd::after{content:"";position:absolute;top:7px;right:7px;width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px var(--panel)}
+.about-h{display:flex;gap:12px;align-items:center}.about-h .logo{width:44px;height:44px;border-radius:12px}
 #expName{font:500 13px 'JetBrains Mono',monospace;color:var(--mute);word-break:break-all}
 .dlg .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
 .toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,10px);background:var(--ink);color:#141518;padding:10px 16px;border-radius:12px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:min(90vw,520px);z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.4)}
@@ -221,6 +224,7 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
  <symbol id="i-zsel" viewBox="0 0 24 24"><path d="M8 5H4v14h4M16 5h4v14h-4M10 12h4"/></symbol>
  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
  <symbol id="i-wand" viewBox="0 0 24 24"><path d="m3 21 12-12M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8 19 13M17.8 6.2 19 5M12.2 6.2 11 5"/></symbol>
+ <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
  <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></symbol>
 </defs></svg>
 
@@ -233,6 +237,7 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
       <button class="ib" id="undo" aria-label="Desfazer" title="Desfazer (Ctrl+Z)"><svg class="i"><use href="#i-undo"/></svg></button>
       <button class="ib" id="redo" aria-label="Refazer" title="Refazer (Ctrl+Shift+Z)"><svg class="i"><use href="#i-redo"/></svg></button>
       <button id="install" hidden>Instalar app</button>
+      <button class="ib" id="aboutBtn" aria-label="Sobre e atualizações" title="Sobre e atualizações"><svg class="i"><use href="#i-info"/></svg></button>
       <button class="pri" id="expOpen" aria-label="Exportar" title="Exportar"><svg class="i"><use href="#i-share"/></svg><span>Exportar</span></button>
     </div>
   </header>
@@ -296,7 +301,7 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
       </div>
       <div class="cap">Entrada</div>
       <div class="list">
-        <label class="row-i"><span>Microfone ou placa</span><select id="dev"><option value="">Padrão do sistema</option></select></label>
+        <label class="row-i"><span>Microfone ou placa</span><select id="dev"><option value="">Padrão</option></select></label>
         <label class="row-i"><span>Fonte<small>Voz, instrumento direto ou pedaleira</small></span><select id="srcType"><option value="voz" selected>Voz</option><option value="inst">Instrumento</option><option value="pedal">Pedaleira</option></select></label>
         <label class="row-i"><span>Canal<small>Para placas com 2 entradas</small></span><select id="chan"><option value="auto" selected>Automático</option><option value="1">Entrada 1</option><option value="2">Entrada 2</option><option value="st">Estéreo (1 e 2)</option></select></label>
         <label class="row-i"><span>Supressão de ruído<small>Do navegador. Pode abafar a voz</small></span><input type="checkbox" class="sw" id="ns"></label>
@@ -351,6 +356,18 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
     <div class="list"><label class="row-i"><span>Só o trecho selecionado<small id="selHint">Sem seleção no momento</small></span><input type="checkbox" class="sw" id="expSel"></label></div>
     <span id="expName"></span>
     <div class="acts"><button id="expCancel">Cancelar</button><button class="pri" id="export"><svg class="i"><use href="#i-share"/></svg>Exportar</button></div>
+  </div>
+</dialog>
+<dialog id="aboutDlg" aria-labelledby="aboutT">
+  <div class="dlg">
+    <div class="about-h"><div class="logo" aria-hidden="true"><svg class="i"><use href="#i-mic"/></svg></div><div><h2 id="aboutT">Estúdio</h2><span class="hint" id="verTxt">Versão —</span></div></div>
+    <div class="list">
+      <div class="row-i"><span>Atualizações<small id="updTxt">Procura e instala a versão mais nova</small></span><button id="updBtn" class="go">Buscar atualização</button></div>
+      <div class="row-i" id="instRow" hidden><span>Instalar como app<small>Ícone próprio, janela própria e funciona offline</small></span><button id="install2">Instalar</button></div>
+      <div class="row-i"><span>Modo<small id="modeTxt">—</small></span></div>
+    </div>
+    <p class="hint">Grave, edite e finalize áudio. Tudo roda no seu aparelho; nada é enviado para a internet.</p>
+    <div class="acts"><button id="aboutClose">Fechar</button></div>
   </div>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -665,7 +682,7 @@ const GEAR=[
 ];
 let devs=[],srcTouched=false;
 async function listDevs(){try{const all=await navigator.mediaDevices.enumerateDevices(),ds=all.filter(d=>d.kind==='audioinput');const cur=$('#dev').value;devs=all;
-  $('#dev').innerHTML='<option value="">Padrão do sistema</option>'+ds.filter(d=>d.deviceId&&d.deviceId!=='default').map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'Entrada '+(i+1))}</option>`).join('');$('#dev').value=cur;gear()}catch(e){}}
+  $('#dev').innerHTML='<option value="">Padrão</option>'+ds.filter(d=>d.deviceId&&d.deviceId!=='default').map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'Entrada '+(i+1))}</option>`).join('');$('#dev').value=cur;gear()}catch(e){}}
 function devLabel(kind,id){const d=devs.find(d=>d.kind===kind&&(id?d.deviceId===id:d.deviceId==='default'))||devs.find(d=>d.kind===kind);return d?.label||''}
 function gear(){
   const inL=devLabel('audioinput',$('#dev').value),outL=devLabel('audiooutput',''),bt=/bluetooth|airpods|buds|hands-?free|\bbt\b/i,g=GEAR.find(x=>x.re.test(inL)),w=[];
@@ -810,7 +827,7 @@ $('#scroll').addEventListener('input',e=>{if(buf){view.s=e.target.value/1000*(bu
 on('#open',()=>$('#file').click());on('#open2',()=>$('#file').click());$('#file').addEventListener('change',e=>{importFile(e.target.files[0]);e.target.value=''});
 on('#undo',undo);on('#redo',redoF);on('#cut',cutF);on('#copy',copy);on('#paste',paste);on('#del',()=>del());on('#trim',trim);on('#mute',muteF);on('#addsil',addSil);on('#selall',()=>{if(buf){sel={a:0,b:buf.duration};refresh()}});on('#export',exportF);
 document.addEventListener('keydown',e=>{
-  if(e.target.matches('input[type=text],select')||$('#busy').classList.contains('show')||$('#expDlg').open)return;
+  if(e.target.matches('input[type=text],select')||$('#busy').classList.contains('show')||$('#expDlg').open||$('#aboutDlg').open)return;
   const k=e.key.toLowerCase(),m=e.ctrlKey||e.metaKey;
   if(e.target.matches('input[type=range]')&&!m&&k!==' ')return;
   if(k===' '){e.preventDefault();toggle()}
@@ -823,20 +840,56 @@ document.addEventListener('keydown',e=>{
   else if(k==='home'){cursor=0;view.s=0;clampAll();refresh()}else if(k==='end'&&buf){cursor=buf.duration;view.s=buf.duration;clampAll();refresh()}
   else if(k==='escape'){sel=null;refresh()}
 });
-window.addEventListener('beforeunload',e=>{if(buf&&hist.length){e.preventDefault();e.returnValue=''}});
+let leaving=false;
+window.addEventListener('beforeunload',e=>{if(buf&&hist.length&&!leaving){e.preventDefault();e.returnValue=''}});
 /* ---------- PWA ---------- */
 let wl=null;
 async function keepAwake(on){try{if(on&&'wakeLock'in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}else if(!on&&wl){await wl.release();wl=null}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&rec)keepAwake(true)});
 if('serviceWorker'in navigator&&location.protocol!=='file:'){
-  const had=!!navigator.serviceWorker.controller;
-  navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had)toast('Nova versão instalada. Ela vale a partir da próxima vez que abrir o app.',5000)});
+  navigator.serviceWorker.register('sw.js').then(r=>{reg=r;
+    r.addEventListener('updatefound',()=>{const w=r.installing;if(!w||!navigator.serviceWorker.controller)return;w.addEventListener('statechange',()=>{if(w.state==='activated')updReady(true)})})
+  }).catch(e=>console.warn('SW',e));
 }
-let installEv=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEv=e;$('#install').hidden=false});
-on('#install',async()=>{if(!installEv)return;installEv.prompt();const r=await installEv.userChoice;installEv=null;$('#install').hidden=true;if(r.outcome==='accepted')toast('Estúdio instalado')});
-window.addEventListener('appinstalled',()=>{$('#install').hidden=true});
+/* atualização: busca, instala e reinicia quando a pessoa quiser */
+let reg=null,newReady=false,armed=false,checking=false,runVer=null;
+async function vers(){try{const k=(await caches.keys()).map(x=>+(x.match(/^estudio-v(\d+)$/)||[])[1]).filter(Boolean);return k.length?Math.max(...k):null}catch(e){return null}}
+vers().then(v=>{runVer=v});
+async function showVer(){const v=await vers(),r=runVer||v;$('#verTxt').textContent=r?'Versão '+r+(v&&v>r?' · versão '+v+' pronta para usar':''):'Versão do navegador (sem cache offline)'}
+function updReady(auto){newReady=true;armed=false;$('#aboutBtn').classList.add('upd');$('#updTxt').textContent='Nova versão baixada. Reinicie para usar.';$('#updBtn').textContent='Reiniciar agora';$('#updBtn').disabled=false;showVer();
+  if(auto&&!checking&&!$('#aboutDlg').open)toast('Há uma versão nova do Estúdio. Toque em ⓘ para reiniciar.',5000)}
+async function checkUpdate(){
+  const b=$('#updBtn'),t=$('#updTxt');
+  if(newReady)return restart();
+  if(!reg){t.textContent='Atualização indisponível aqui. Abra o app pelo endereço publicado.';return}
+  if(!navigator.onLine){t.textContent='Sem internet. Conecte e tente de novo.';return}
+  checking=true;b.disabled=true;b.textContent='Procurando…';t.textContent='Verificando se há versão nova…';
+  try{await reg.update()}catch(e){checking=false;b.disabled=false;b.textContent='Buscar atualização';t.textContent='Não consegui verificar agora. Tente de novo em instantes.';return}
+  const w=reg.installing||reg.waiting;
+  if(!w){checking=false;b.disabled=false;b.textContent='Buscar de novo';t.textContent='Você já está na versão mais recente. ✓';return}
+  b.textContent='Baixando…';t.textContent='Baixando e instalando a versão nova…';
+  await new Promise(res=>{if(w.state==='activated')return res();w.addEventListener('statechange',()=>{if(w.state==='activated'||w.state==='redundant')res()})});
+  updReady(false);checking=false;
+}
+function restart(){
+  if(rec||test)return $('#updTxt').textContent='Termine a gravação antes de reiniciar.';
+  if(buf&&!armed){armed=true;$('#updTxt').textContent='O áudio aberto não fica salvo ao reiniciar. Exporte antes, ou toque de novo para reiniciar assim mesmo.';$('#updBtn').textContent='Reiniciar assim mesmo';return}
+  leaving=true;$('#updTxt').textContent='Reiniciando…';location.reload();
+}
+function openAbout(){showVer();$('#modeTxt').textContent=isApp()?'App instalado':'No navegador'+(installEv&&!installed?' · pode instalar':'');showInstall();$('#aboutDlg').showModal()}
+on('#aboutBtn',openAbout);on('#aboutClose',()=>$('#aboutDlg').close());on('#updBtn',checkUpdate);
+$('#aboutDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
+// botão Instalar só aparece no navegador, quando o app ainda não está instalado
+let installEv=null,installed=false;
+const appMode=matchMedia('(display-mode: standalone), (display-mode: window-controls-overlay), (display-mode: minimal-ui), (display-mode: fullscreen)');
+const isApp=()=>appMode.matches||navigator.standalone===true;
+const showInstall=()=>{const h=!installEv||installed||isApp();$('#install').hidden=h;$('#instRow').hidden=h};
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEv=e;showInstall()});
+appMode.addEventListener?.('change',showInstall);
+on('#install2',()=>$('#install').click());
+on('#install',async()=>{if(!installEv)return;installEv.prompt();const r=await installEv.userChoice;installEv=null;showInstall();if(r.outcome==='accepted')toast('Estúdio instalado')});
+window.addEventListener('appinstalled',()=>{installed=true;installEv=null;showInstall()});
+navigator.getInstalledRelatedApps?.().then(a=>{if(a&&a.length){installed=true;showInstall()}}).catch(()=>{});
 const net=()=>{$('#offline').hidden=navigator.onLine};addEventListener('online',net);addEventListener('offline',net);net();
 // abrir áudio pelo sistema ("Abrir com > Estúdio")
 if('launchQueue'in window)launchQueue.setConsumer(async p=>{for(const h of p.files||[]){const f=await h.getFile();await importFile(f)}});
