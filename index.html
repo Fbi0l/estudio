@@ -30,7 +30,21 @@ button:disabled{opacity:.4;cursor:default}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--selb);outline-offset:2px}
 button.pri{background:var(--ink);color:#16171a;border-color:var(--ink);font-weight:700}
 button.on{background:#2c3a55;border-color:var(--selb)}
-select,input[type=text]{background:var(--panel2);border:1px solid var(--line);border-radius:8px;min-height:40px;padding:0 10px;font-size:15px}
+select,input[type=text]{background:var(--panel2);border:1px solid var(--line);border-radius:8px;min-height:40px;padding:0 10px;font-size:16px}
+button{touch-action:manipulation}
+.chk{min-height:40px}.chk input,.inputs input[type=checkbox]{width:18px;height:18px;accent-color:var(--selb)}
+input[type=range]{height:32px}
+.exp{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.exph{display:none}
+.brand #install{margin-left:8px;font-size:14px}
+.cfg summary,.card summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;min-height:40px}
+.cfg summary::-webkit-details-marker,.card summary::-webkit-details-marker{display:none}
+.cfg summary{font-size:13px;color:var(--mute);width:max-content}
+.cfg summary::after,.card summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--mute);border-bottom:2px solid var(--mute);transform:rotate(45deg) translateY(-3px);margin-left:auto;transition:transform .15s}
+.cfg[open] summary::after,.card[open] summary::after{transform:rotate(225deg) translateY(-1px)}
+.cfg summary::after{margin-left:6px}
+.cfg .inputs{margin:4px 0 0}
+.card summary{margin:-14px;padding:14px}.card[open] summary{padding-bottom:4px}
+.cb{display:flex;flex-direction:column;gap:10px;margin-top:10px;flex:1}
 .wrap{max-width:1320px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) max(2vw,12px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(2vw,12px,env(safe-area-inset-left))}
 #offline{font-size:12px;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
 header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
@@ -51,7 +65,7 @@ header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14p
 .meter{width:150px;height:14px;background:#0e0f11;border-radius:4px;overflow:hidden;position:relative}
 .meter b{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,var(--ok) 0 70%,var(--warn) 70% 88%,var(--rec) 88%)}
 .meter span{position:absolute;right:4px;top:-1px;font-size:11px;color:var(--mute)}
-.inputs{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-left:auto}
+.inputs{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
 .inputs label{font-size:13px;color:var(--mute);display:flex;gap:6px;align-items:center}
 #dev{max-width:220px}
 .assist{background:#1b1c20;border:1px solid var(--line);border-top:0;padding:10px 12px;display:grid;gap:8px}
@@ -78,6 +92,7 @@ header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14p
 .card h3{margin:0;font-size:16px}
 .card p{margin:0;color:var(--mute);font-size:13px}
 .card .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.card.fx{display:block}
 .sl{display:grid;grid-template-columns:7.5em minmax(0,1fr) 4.6em;gap:8px;align-items:center;font-size:13px}
 .sl input{accent-color:var(--ink);width:100%}
 .sl output{text-align:right;font-variant-numeric:tabular-nums;color:var(--mute);white-space:nowrap}
@@ -96,35 +111,59 @@ header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14p
 .busy.show{display:grid}
 .keys{color:var(--mute);font-size:12px;margin-top:18px}
 kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:11px}
-@media(max-width:800px){.prod{grid-template-columns:1fr}.inputs{margin-left:0}.clock{font-size:22px}}
+@media(max-width:800px){.prod{grid-template-columns:1fr}.clock{font-size:22px}}
+/* celular: onda no topo, transporte fixo no polegar, exportar no fim do fluxo */
+@media(max-width:640px){
+ .wrap{display:flex;flex-direction:column;gap:12px;padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+ header{display:contents}
+ .brand{order:0;margin:0;width:100%}.brand #install{margin-left:auto}
+ .stage{order:1;border-top:1px solid var(--line);border-radius:14px 14px 0 0;height:clamp(200px,34vh,300px);overflow:hidden}
+ .nav{order:2;margin-top:-12px}
+ .assist{order:3;border:1px solid var(--line);border-radius:14px}
+ .atop>b{width:100%}
+ .edit{order:4;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .edit .sep{display:none}
+ .edit button{padding:4px 6px;white-space:normal;line-height:1.2;min-height:44px;font-size:14px}
+ #racks{order:5}#racks .prod{order:-1}
+ .exp{order:6;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+ .exph{display:block;grid-column:1/-1;font-size:16px}#fname{grid-column:1/-1;width:100%}#fmt{width:100%}
+ .exp .pri{grid-column:1/-1;min-height:48px}
+ .keys{order:7;margin-top:4px}.kb{display:none}
+ .transport{position:fixed;left:0;right:0;bottom:0;z-index:6;border-radius:18px 18px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,.45);
+   display:grid;grid-template-columns:minmax(0,1fr) auto auto auto minmax(0,1fr);grid-template-areas:"clock clock clock meter meter" "loop stop rec play .";
+   gap:8px 14px;align-items:center;padding:10px 16px calc(12px + env(safe-area-inset-bottom))}
+ .clock{grid-area:clock;font-size:20px;padding:0}.clock small{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .meter{grid-area:meter;width:100%;height:12px}
+ #rec{grid-area:rec;width:64px;height:64px}#rec i{width:24px;height:24px}
+ #play{grid-area:play}#stop{grid-area:stop}#loop{grid-area:loop;justify-self:start}
+ .tbtn{width:52px;min-height:52px;border-radius:50%}
+ .toast{bottom:calc(150px + env(safe-area-inset-bottom))}
+ .stats b{font-size:15px}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
 <header>
-  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></svg>Estúdio <span id="offline" hidden>offline</span></div>
-  <button id="install" hidden>Instalar app</button>
-  <input type="text" id="fname" value="gravacao" aria-label="Nome do arquivo">
-  <select id="fmt" aria-label="Formato de exportação">
-    <option value="wav16">WAV 16-bit</option><option value="wav24">WAV 24-bit</option>
-    <option value="mp3-320">MP3 320 kbps</option><option value="mp3-192" selected>MP3 192 kbps</option><option value="mp3-128">MP3 128 kbps</option>
-  </select>
-  <label class="chk"><input type="checkbox" id="expSel"> Só a seleção</label>
-  <button class="pri" id="export">Exportar</button>
+  <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></svg>Estúdio <span id="offline" hidden>offline</span><button id="install" hidden>Instalar app</button></div>
+  <div class="exp" aria-label="Exportação"><b class="exph">Exportar</b>
+    <input type="text" id="fname" value="gravacao" aria-label="Nome do arquivo">
+    <select id="fmt" aria-label="Formato de exportação">
+      <option value="wav16">WAV 16-bit</option><option value="wav24">WAV 24-bit</option>
+      <option value="mp3-320">MP3 320 kbps</option><option value="mp3-192" selected>MP3 192 kbps</option><option value="mp3-128">MP3 128 kbps</option>
+    </select>
+    <label class="chk"><input type="checkbox" id="expSel"> Só a seleção</label>
+    <button class="pri" id="export">Exportar</button>
+  </div>
 </header>
 
-<section class="transport">
+<section class="transport" aria-label="Transporte">
   <button id="rec" title="Gravar (R)" aria-label="Gravar"><i></i></button>
   <button class="tbtn" id="play" title="Tocar / pausar (Espaço)" aria-label="Tocar"><svg viewBox="0 0 24 24"><path id="playIco" d="M7 4l13 8-13 8z"/></svg></button>
   <button class="tbtn" id="stop" title="Parar e voltar ao início (Home)" aria-label="Parar"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></button>
   <button class="tbtn" id="loop" title="Repetir (L)" aria-label="Repetir"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2z"/></svg></button>
   <div class="clock" id="clock">00:00.000<small id="selInfo">Sem seleção</small></div>
   <div class="meter" title="Nível"><b id="lvl"></b><span id="lvlTxt">-∞ dB</span></div>
-  <div class="inputs">
-    <label>Entrada <select id="dev"><option value="">Microfone padrão</option></select></label>
-    <label><input type="checkbox" id="ns"> Supressão de ruído do navegador</label>
-    <label>Novo áudio <select id="place"><option value="replace">Substitui tudo</option><option value="insert" selected>Entra no cursor</option><option value="end">Vai pro final</option><option value="punch">Regrava a seleção</option></select></label>
-  </div>
 </section>
 <section class="assist" aria-label="Assistente de gravação">
   <div class="atop"><b>Assistente de gravação</b>
@@ -133,11 +172,18 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
     <label class="chk"><input type="checkbox" id="mon"> Me ouvir no fone com o tratamento</label>
     <button id="finish" title="Aplica a predefinição Natural, calibrada pelo teste da sala">Acabamento natural</button>
   </div>
+  <details class="cfg" id="cfg"><summary>Ajustes de entrada</summary>
+    <div class="inputs">
+      <label>Entrada <select id="dev"><option value="">Microfone padrão</option></select></label>
+      <label class="chk"><input type="checkbox" id="ns"> Supressão de ruído do navegador</label>
+      <label>Novo áudio <select id="place"><option value="replace">Substitui tudo</option><option value="insert" selected>Entra no cursor</option><option value="end">Vai pro final</option><option value="punch">Regrava a seleção</option></select></label>
+    </div>
+  </details>
   <div class="verd" id="verd"><span class="v">Antes de gravar, faça o teste: ele mede o ruído da sala e o volume da sua voz e diz com franqueza o que ajustar.</span></div>
 </section>
 <section class="stage" id="stage">
   <canvas id="wave"></canvas>
-  <div class="empty" id="empty"><b>Grave ou traga um áudio</b>Clique no botão vermelho, arraste um arquivo para cá ou abra um do seu computador.<div class="acts"><button id="open2">Abrir arquivo</button></div></div>
+  <div class="empty" id="empty"><b>Grave ou traga um áudio</b>Use o botão vermelho para gravar, arraste um arquivo para cá ou abra um do seu computador.<div class="acts"><button id="open2">Abrir arquivo</button></div></div>
 </section>
 <section class="nav">
   <button id="zout" title="Afastar (-)">−</button><button id="zin" title="Aproximar (+)">+</button>
@@ -154,7 +200,7 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padd
 
 <section class="grid" id="racks"></section>
 
-<p class="keys">Atalhos: <kbd>Espaço</kbd> tocar/pausar · <kbd>R</kbd> gravar · <kbd>L</kbd> repetir · <kbd>Ctrl+Z</kbd> desfazer · <kbd>Ctrl+X/C/V</kbd> recortar/copiar/colar · <kbd>Delete</kbd> excluir · <kbd>Ctrl+A</kbd> tudo · <kbd>+</kbd>/<kbd>−</kbd> zoom · <kbd>Ctrl</kbd>+roda do mouse dá zoom, roda rola · <kbd>Shift</kbd>+clique estende a seleção. Os efeitos agem na seleção; sem seleção, no áudio todo. Tudo roda no seu computador e nada é enviado para a internet. Depois de aberto uma vez, o app funciona offline.</p>
+<p class="keys"><span class="kb">Atalhos: <kbd>Espaço</kbd> tocar/pausar · <kbd>R</kbd> gravar · <kbd>L</kbd> repetir · <kbd>Ctrl+Z</kbd> desfazer · <kbd>Ctrl+X/C/V</kbd> recortar/copiar/colar · <kbd>Delete</kbd> excluir · <kbd>Ctrl+A</kbd> tudo · <kbd>+</kbd>/<kbd>−</kbd> zoom · <kbd>Ctrl</kbd>+roda do mouse dá zoom, roda rola · <kbd>Shift</kbd>+clique estende a seleção. </span>Os efeitos agem na seleção; sem seleção, no áudio todo. Tudo roda no seu computador e nada é enviado para a internet. Depois de aberto uma vez, o app funciona offline.</p>
 </div>
 <div class="toast" id="toast"></div>
 <div class="busy" id="busy">Processando…</div>
@@ -165,7 +211,7 @@ const $=s=>document.querySelector(s);
 let ac=null;
 const AC=()=>ac||(ac=new (window.AudioContext||window.webkitAudioContext)());
 let buf=null,hist=[],redo=[],clip=null,sel=null,cursor=0,view={s:0,d:10},play=null,loop=false,rec=null,outAn=null;
-let room=null,test=null,markers=null,clipHold=0;
+let room=null,test=null,markers=null,clipHold=-1e9;
 
 /* ---------- utilidades ---------- */
 const fmt=t=>{t=Math.max(0,t||0);const m=Math.floor(t/60);return String(m).padStart(2,'0')+':'+(t-m*60).toFixed(3).padStart(6,'0')};
@@ -295,10 +341,10 @@ const presets=[
 let preset=0;
 
 /* monta os racks */
-$('#racks').innerHTML=fx.map((f,k)=>`<article class="card" data-k="${k}"><h3>${f.t}</h3><p>${f.d}</p>${
+$('#racks').innerHTML=fx.map((f,k)=>`<details class="card fx" data-k="${k}" open><summary><h3>${f.t}</h3></summary><div class="cb"><p>${f.d}</p>${
   f.s.map(s=>`<label class="sl"><span>${s.label}</span><input type="range" data-id="${s.id}" min="${s.min}" max="${s.max}" step="${s.step}" value="${s.val}"><output>${s.val} ${s.unit}</output></label>`).join('')}${
   (f.c||[]).map(c=>`<label class="chk"><input type="checkbox" data-id="${c[0]}" ${c[2]?'checked':''}> ${c[1]}</label>`).join('')}<div class="row">${
-  f.b.map((b,j)=>`<button data-j="${j}">${b[0]}</button>`).join('')}</div></article>`).join('')+
+  f.b.map((b,j)=>`<button data-j="${j}">${b[0]}</button>`).join('')}</div></div></details>`).join('')+
  `<article class="card prod"><div><h3>Produção final</h3><p>Masterização em um clique: corta graves de ruído, equaliza, reduz ruído nas pausas, comprime, acerta o loudness para o alvo e limita os picos a −1 dB. Funciona na seleção ou no áudio todo.</p>
   <div class="presets" style="margin-top:12px">${presets.map((p,i)=>`<button class="preset${i?'':' on'}" data-p="${i}"><b>${p.n}</b><small>${p.d}</small></button>`).join('')}</div>
   <div class="row" style="margin-top:12px"><label class="chk">Alvo <select id="target"><option value="-14">−14 LUFS · Spotify, YouTube</option><option value="-16" selected>−16 LUFS · podcast</option><option value="-19">−19 LUFS · voz mono</option><option value="-23">−23 LUFS · TV / broadcast</option></select></label><button class="pri" id="master">Masterizar</button></div></div>
@@ -574,6 +620,7 @@ const net=()=>{$('#offline').hidden=navigator.onLine};addEventListener('online',
 // abrir áudio pelo sistema ("Abrir com > Estúdio")
 if('launchQueue'in window)launchQueue.setConsumer(async p=>{for(const h of p.files||[]){const f=await h.getFile();await importFile(f)}});
 if(new URLSearchParams(location.search).get('acao')==='gravar')verd(['Atalho “Gravar agora”: aperte o botão vermelho ou a tecla R para começar.']);
+const mq=matchMedia('(max-width:640px)');function compact(){const m=mq.matches;document.querySelectorAll('details.fx,#cfg').forEach(d=>d.open=!m)}compact();mq.addEventListener('change',compact);
 window.__studio={get buf(){return buf},set sel(v){sel=v},master,process,lufs,exportF,wav,place:b=>place(b,'teste'),presets,fx};
 refresh();measure();requestAnimationFrame(frame);
 }
