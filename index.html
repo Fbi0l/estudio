@@ -72,7 +72,7 @@ input.sw:disabled{opacity:.4}
 .stage{position:relative;flex:1;min-height:0;touch-action:none}
 #wave{position:absolute;inset:0;width:100%;height:100%;cursor:text}
 .stage.drag::after{content:"Solte para abrir";position:absolute;inset:10px;border:2px dashed var(--selb);border-radius:14px;display:grid;place-items:center;font-weight:700;color:var(--selb);background:rgba(15,16,18,.7)}
-.empty{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;text-align:center;gap:10px;padding:20px;color:var(--mute)}
+.empty{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;text-align:center;gap:10px;padding:20px;color:var(--mute);overflow:hidden}
 .empty .big{width:72px;height:72px;border-radius:50%;background:#1e1f24;display:grid;place-items:center;margin-bottom:4px}
 .empty .big svg{width:32px;height:32px}
 .empty b{font-size:20px;color:var(--ink)}
@@ -219,12 +219,13 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
  .tabs button.on{background:transparent;color:var(--ink)}
  .tabs button.on svg{color:var(--rec)}
  .transport{padding:8px 14px;gap:8px;box-shadow:0 -8px 20px rgba(0,0,0,.3)}
- .right{gap:8px}.meter{width:100%;max-width:64px;height:6px}
+ .right{gap:8px}.meter{position:absolute;left:0;right:0;top:0;width:auto;max-width:none;height:3px;border-radius:0;background:#26282e}
+ .empty{gap:6px;padding:10px 16px}.empty .big{width:44px;height:44px;margin:0}.empty .big svg{width:22px;height:22px}.empty b{font-size:17px}.empty .dica{display:none}.empty .acts{margin-top:2px}.empty .acts button{min-height:40px}
  #lvlTxt{display:none}
  .clock{font-size:16px}.clock small{font-size:11px}
  .btns{gap:10px}.tbtn{width:44px;height:44px;min-height:44px}
  #rec{width:58px;height:58px}#rec i{width:22px;height:22px}
- .toast{bottom:calc(190px + env(safe-area-inset-bottom))}
+ .toast{bottom:auto;top:calc(64px + env(safe-area-inset-top))}
  .scrollbar{height:30px}
  dialog{margin:auto auto 0;width:100%;max-width:100%;border-radius:18px 18px 0 0;border-bottom:0}
  .dlg{padding-bottom:max(20px,env(safe-area-inset-bottom))}
@@ -304,7 +305,7 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
       <div class="empty" id="empty">
         <div class="big"><svg class="i"><use href="#i-mic"/></svg></div>
         <b>Vamos gravar?</b>
-        <span>Toque em Gravar ou traga um arquivo de áudio.<br>Dica: faça o teste do microfone antes.</span>
+        <span>Toque em Gravar ou traga um arquivo de áudio.<span class="dica"><br>Dica: faça o teste do microfone antes.</span></span>
         <div class="acts"><button class="recb" id="rec2">Gravar</button><button id="open2"><svg class="i"><use href="#i-folder"/></svg>Abrir arquivo</button></div>
       </div>
     </section>
@@ -326,19 +327,19 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
         <button class="go wide" id="test"><svg class="i"><use href="#i-check"/></svg>Testar microfone</button>
         <div class="verd" id="verd"></div>
       </div>
-      <div class="card" id="gear" hidden><h2 id="gearT"></h2><span class="hint" id="gearL"></span><div class="verd" id="gearV"></div></div>
-      <div class="cap">Durante a gravação</div>
-      <div class="list">
-        <label class="row-i"><span>Contagem 3-2-1<small>Tempo para se preparar</small></span><input type="checkbox" class="sw" id="count" checked></label>
-        <label class="row-i"><span>Me ouvir no fone<small id="monSub">Já com o tratamento. Use fone de ouvido</small></span><input type="checkbox" class="sw" id="mon"></label>
-        <label class="row-i"><span>Novo áudio<small>Onde a gravação entra</small></span><select id="place"><option value="replace">Substitui tudo</option><option value="insert" selected>No cursor</option><option value="end">No final</option><option value="punch">Regrava a seleção</option></select></label>
-      </div>
       <div class="cap">Entrada</div>
       <div class="list">
         <label class="row-i"><span>Microfone ou placa</span><select id="dev"><option value="">Padrão</option></select></label>
         <label class="row-i"><span>Fonte<small>Voz, instrumento direto ou pedaleira</small></span><select id="srcType"><option value="voz" selected>Voz</option><option value="inst">Instrumento</option><option value="pedal">Pedaleira</option></select></label>
         <label class="row-i"><span>Canal<small>Para placas com 2 entradas</small></span><select id="chan"><option value="auto" selected>Automático</option><option value="1">Entrada 1</option><option value="2">Entrada 2</option><option value="st">Estéreo (1 e 2)</option></select></label>
         <label class="row-i"><span>Supressão de ruído<small>Do navegador. Pode abafar a voz</small></span><input type="checkbox" class="sw" id="ns"></label>
+      </div>
+      <div class="card" id="gear" hidden><h2 id="gearT"></h2><span class="hint" id="gearL"></span><div class="verd" id="gearV"></div></div>
+      <div class="cap">Durante a gravação</div>
+      <div class="list">
+        <label class="row-i"><span>Contagem 3-2-1<small>Tempo para se preparar</small></span><input type="checkbox" class="sw" id="count" checked></label>
+        <label class="row-i"><span>Me ouvir no fone<small id="monSub">Já com o tratamento. Use fone de ouvido</small></span><input type="checkbox" class="sw" id="mon"></label>
+        <label class="row-i"><span>Novo áudio<small>Onde a gravação entra</small></span><select id="place"><option value="replace">Substitui tudo</option><option value="insert" selected>No cursor</option><option value="end">No final</option><option value="punch">Regrava a seleção</option></select></label>
       </div>
       <p class="keys"><span class="kb">Atalhos: <kbd>Espaço</kbd> tocar · <kbd>R</kbd> gravar · <kbd>L</kbd> repetir · <kbd>Ctrl+Z</kbd> desfazer · <kbd>Ctrl+X/C/V</kbd> · <kbd>Delete</kbd> · <kbd>Ctrl+A</kbd> · <kbd>+</kbd>/<kbd>−</kbd> zoom · <kbd>Ctrl</kbd>+roda dá zoom · <kbd>Shift</kbd>+clique estende a seleção.<br></span>Tudo roda no seu aparelho; nada é enviado para a internet.</p>
       <p class="rodape">© 2026 Fbiol · Versão <span class="appver"></span> · <button class="link" type="button" data-sobre>Sobre o app</button> · <button class="link" type="button" data-guia>Como usar</button></p>
@@ -882,7 +883,7 @@ function ui(){
   ['#cut','#copy','#del','#trim','#mute','#zsel'].forEach(i=>$(i).disabled=!hs);$('#paste').disabled=!clip||!!rec;
   ['#addsil','#selall','#zin','#zout','#zfit','#play','#stop'].forEach(i=>$(i).disabled=!hb&&!rec);$('#play').disabled=!hb||!!rec;
   $('#sub').textContent=rec?(rec.armed?'Prepare-se…':'● Gravando'):hb?fmt(buf.duration)+' · '+(buf.sampleRate/1000).toLocaleString('pt-BR')+' kHz · '+(buf.numberOfChannels>1?'estéreo':'mono'):'Nenhum áudio ainda';
-  const sc=$('#scroll');sc.disabled=!buf||view.d>=buf.duration;if(buf&&buf.duration>view.d)sc.value=Math.round(view.s/(buf.duration-view.d)*1000);
+  $('.scrollbar').style.visibility=hb?'visible':'hidden';const sc=$('#scroll');sc.disabled=!buf||view.d>=buf.duration;if(buf&&buf.duration>view.d)sc.value=Math.round(view.s/(buf.duration-view.d)*1000);
 }
 function refresh(){ui();draw()}
 function frame(){
