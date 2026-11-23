@@ -1,0 +1,35 @@
+# Estúdio
+
+App para gravar, editar e finalizar áudio: locução, podcast, voz ou instrumento, inclusive por placa de áudio ou pedaleira de guitarra. Tem assistente de gravação (teste da sala e do nível, avisos de estouro, regravar trecho), edição, efeitos, acabamento no volume das plataformas (LUFS) e exportação em MP3 ou WAV. Site estático (HTML, CSS e JavaScript, sem etapa de build), instalável como app (PWA) e funciona offline. Tudo roda no aparelho: nenhum áudio é enviado para a internet.
+
+No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instalar: `LEIA-ME.md`.
+
+**Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
+
+## Versão 1.5.0 — Guia de uso e Sobre o app
+
+- **Como usar o app** (botão "?" no topo): guia em 9 passos com todas as funções. Abre sozinho no primeiro acesso; depois, pelo "?", pelo ⓘ ou pelo rodapé.
+- **Sobre o app**: por que o app foi criado, para que serve, como funciona, os benefícios, a privacidade e os custos, no padrão de numeração da ABNT.
+- Versão e "Sobre o app" no rodapé do painel Gravar e na janela ⓘ.
+
+## Versão 1.4.0 — Atualização pelo app
+
+- Janela ⓘ: versão em uso, **Buscar atualização** (baixa e oferece Reiniciar, com aviso se houver áudio aberto) e instalação. Bolinha no ⓘ quando há versão nova.
+- Corrigido: o botão "Instalar app" aparecia mesmo com o app instalado.
+
+## Versão 1.3.0 — Placas de áudio e pedaleiras
+
+- Reconhece o equipamento pelo nome (Cuvave/M-Vave, Joyo, outras pedaleiras e interfaces) e mostra dicas para cada um.
+- Fonte (voz, instrumento ou pedaleira), Canal (automático, entrada 1, entrada 2 ou estéreo), retorno no fone pelo canal certo com atraso estimado, alerta de Bluetooth.
+
+## Versão 1.2.0 — Visual de app
+
+- Tela cheia com barra de título, ferramentas, onda central, painel com abas e transporte embaixo (PC); abas na base e exportação em folha (celular).
+
+## Versão 1.1.0 — Celular
+
+- Layout para celular, transporte fixo ao alcance do polegar.
+
+## Versão 1.0.0 — Primeira versão
+
+- Gravação sem perdas com assistente, edição, efeitos, masterização por LUFS, exportação WAV/MP3, instalável e offline.
