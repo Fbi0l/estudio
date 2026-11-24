@@ -40,7 +40,7 @@ jobs:
         run: |
           $exe = "build\EstudioDesktop_artefacts\Release\Stumix.exe"
           $p = Start-Process $exe -ArgumentList "--autoteste=$pwd\desktop\autoteste.js" -PassThru
-          if (-not $p.WaitForExit(120000)) { $p.Kill(); Write-Host "tempo esgotado" }
+          if (-not $p.WaitForExit(180000)) { $p.Kill(); Write-Host "tempo esgotado" }
           Get-Content autoteste.log -Encoding utf8
           if (-not (Select-String -Path autoteste.log -Pattern "TODOS OS TESTES PASSARAM" -Quiet)) { exit 1 }
 

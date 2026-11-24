@@ -6,6 +6,10 @@
   let falhas = 0; const ok = (c, m) => { log((c ? '[ok]    ' : '[FALHA] ') + m); if (!c) falhas++; };
   try {
     ok(!!(window.__JUCE__ && window.__JUCE__.backend), 'ponte JUCE presente');
+    // o WebView2 pode demorar para carregar a página na primeira abertura: espera a interface (até 60 s)
+    for (let i = 0; i < 120 && !(document.readyState === 'complete' && $('#projBtn') && window.__studio); i++) await espera(500);
+    log('   página: ' + location.href + ' | estado ' + document.readyState);
+    ok(!!$('#projBtn'), 'interface carregada');
     try { localStorage.setItem('estudio:guiaVisto', '1.7.0') } catch (e) {}
     const dlg = document.querySelector('dialog[open]'); if (dlg) dlg.close();
     $('#projBtn').click(); await espera(400); $('#projNovo').click(); await espera(400);
