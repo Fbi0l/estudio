@@ -176,7 +176,7 @@ class JanelaPrincipal : public DocumentWindow
 {
 public:
     JanelaPrincipal (AudioEngine& e, const String& roteiro)
-        : DocumentWindow ("Estúdio", Colour (0xff141518), DocumentWindow::allButtons)
+        : DocumentWindow (String (CharPointer_UTF8 ("Est\xc3\xba" "dio")), Colour (0xff141518), DocumentWindow::allButtons)
     {
         setUsingNativeTitleBar (true);
         setContentOwned (new EstudioView (e, roteiro), false);
@@ -192,7 +192,7 @@ public:
 class EstudioApp : public JUCEApplication
 {
 public:
-    const String getApplicationName() override    { return "Estúdio"; }
+    const String getApplicationName() override    { return String (CharPointer_UTF8 ("Est\xc3\xba" "dio")); }
     const String getApplicationVersion() override { return JUCE_APPLICATION_VERSION_STRING; }
     bool moreThanOneInstanceAllowed() override    { return false; }
 
