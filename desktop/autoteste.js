@@ -30,6 +30,8 @@
     const b = window.__studio.buf, x = b.getChannelData(0); let mx = 0; for (let i = 0; i < x.length; i++) mx = Math.max(mx, Math.abs(x[i]));
     ok(Math.abs(mx - 0.3) < 0.01, 'amplitude preservada (pico ' + mx.toFixed(3) + ')');
     ok(b.sampleRate === 48000, 'taxa do projeto = taxa do motor (' + b.sampleRate + ')');
+    const at = await new Promise(res => { const id = 8e6 + 1; window.__JUCE__.backend.addEventListener('__juce__complete', ({ promiseId, result }) => { if (promiseId === id) res(result) }); window.__JUCE__.backend.emitEvent('__juce__invoke', { name: 'estudioVerificarAtualizacao', params: [], resultId: id }) });
+    log('   atualização: versão do app ' + at.atual + ' | publicada ' + (at.versao || '—') + ' | nova: ' + !!at.nova + (at.erro ? ' | ' + at.erro : ''));
   } catch (e) { log('[FALHA] erro: ' + e.message); falhas++; }
   log(falhas ? 'HOUVE FALHAS' : 'TODOS OS TESTES PASSARAM');
   window.__JUCE__.backend.emitEvent('__juce__invoke', { name: 'estudioSair', params: [], resultId: 9e6 + 99999 });

@@ -48,7 +48,8 @@ jobs:
         shell: pwsh
         run: |
           choco install innosetup -y --no-progress | Out-Null
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DFonte="$pwd\build\EstudioDesktop_artefacts\Release" /O"$pwd\saida" desktop\instalador\estudio.iss
+          $v = ([regex]::Match((Get-Content desktop\CMakeLists.txt -Raw), 'VERSION (\d+\.\d+\.\d+)')).Groups[1].Value
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DVersao="$v" /DFonte="$pwd\build\EstudioDesktop_artefacts\Release" /O"$pwd\saida" desktop\instalador\estudio.iss
           Compress-Archive -Path build\EstudioDesktop_artefacts\Release\Estudio.exe -DestinationPath saida\Estudio-portatil.zip
 
       - uses: actions/upload-artifact@v4

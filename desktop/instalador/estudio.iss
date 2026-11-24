@@ -1,11 +1,16 @@
 ﻿; Instalador do Estúdio Desktop (Inno Setup). Licença GPLv3.
+#ifndef Versao
+  #define Versao "0.0.0"
+#endif
 #ifndef Fonte
   #define Fonte "..\..\build\EstudioDesktop_artefacts\Release"
 #endif
 [Setup]
 AppId={{FA86CBEC-9E78-406C-8C70-E1777177F877}
 AppName=Estúdio
-AppVersion=0.1.0
+AppVersion={#Versao}
+CloseApplications=yes
+RestartApplications=no
 AppPublisher=Fbiol
 AppPublisherURL=https://github.com/Fbi0l/estudio
 DefaultDirName={autopf}\Estudio
@@ -29,3 +34,4 @@ Name: "{group}\Estúdio"; Filename: "{app}\Estudio.exe"
 Name: "{autodesktop}\Estúdio"; Filename: "{app}\Estudio.exe"; Tasks: atalho
 [Run]
 Filename: "{app}\Estudio.exe"; Description: "Abrir o Estúdio"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Estudio.exe"; Flags: nowait; Check: WizardSilent

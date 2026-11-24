@@ -69,6 +69,7 @@ App instalável para Windows com a mesma interface do Estúdio e um **motor de �
 
 - Código em `desktop/`: `Source/AudioEngine.*` (motor), `Source/Main.cpp` (janela, interface embutida e ponte JS ↔ C++), `Source/EngineTest.cpp` (teste do motor sem placa), `autoteste.js` (teste de ponta a ponta com placa simulada), `gerar_web.py` (cópia da interface com acentos em códigos ASCII).
 - Compilação e instalador: GitHub Actions (`.github/workflows/desktop.yml`), que também roda os dois testes no Windows. Tag `desktop-vX.Y.Z` publica o instalador em Releases.
+- Atualização: ⓘ → Buscar atualização consulta a última versão `desktop-v*` em Releases, baixa o instalador e o roda em modo silencioso; o app fecha, atualiza e reabre.
 - Fases: **A** motor nativo (esta) · **B** plugins VST3 · **C** multipista no motor nativo.
 
 **Licenças:** o Estúdio é GPLv3 (`LICENSE`). Usa JUCE 8 (AGPLv3/licença Starter), VST3 SDK (MIT), ASIO SDK (GPLv3) e lamejs (LGPL-3.0).

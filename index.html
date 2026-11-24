@@ -1053,7 +1053,7 @@ function updReady(auto){newReady=true;armed=false;$('#aboutBtn').classList.add('
   if(auto&&!checking&&!$('#aboutDlg').open)toast('Há uma versão nova do Estúdio. Toque em ⓘ para reiniciar.',5000)}
 async function checkUpdate(){
   const b=$('#updBtn'),t=$('#updTxt');
-  if(NATIVO)return nat('estudioAbrirLink','https://github.com/Fbi0l/estudio/releases');
+  if(NATIVO)return natAtualizacao(false);
   if(newReady)return restart();
   if(!reg){t.textContent='Atualização indisponível aqui. Abra o app pelo endereço publicado.';return}
   if(!navigator.onLine){t.textContent='Sem internet. Conecte e tente de novo.';return}
@@ -1071,7 +1071,7 @@ async function restart(){
   if(!ok&&buf&&!armed){armed=true;$('#updTxt').textContent='Não consegui salvar o projeto. Exporte antes, ou toque de novo para reiniciar assim mesmo.';$('#updBtn').textContent='Reiniciar assim mesmo';return}
   leaving=true;$('#updTxt').textContent='Reiniciando…';location.reload();
 }
-function openAbout(){showVer();$('#modeTxt').textContent=(isApp()?'App instalado':'No navegador'+(installEv&&!installed?' · pode instalar':''))+' · captura: '+(motor==='—'?(window.AudioWorkletNode?'AudioWorklet':'ScriptProcessor (reserva)'):motor);showInstall();if(NATIVO){$('#modeTxt').textContent='App para Windows · motor nativo: '+(NOMES_DRIVER[natEst?.tipo]||natEst?.tipo||'—');$('#updTxt').textContent='Versões novas do app saem como instalador.';$('#updBtn').textContent='Ver versões';$('#instRow').hidden=true}$('#aboutDlg').showModal()}
+function openAbout(){showVer();$('#modeTxt').textContent=(isApp()?'App instalado':'No navegador'+(installEv&&!installed?' · pode instalar':''))+' · captura: '+(motor==='—'?(window.AudioWorkletNode?'AudioWorklet':'ScriptProcessor (reserva)'):motor);showInstall();if(NATIVO){$('#modeTxt').textContent='App para Windows · motor nativo: '+(NOMES_DRIVER[natEst?.tipo]||natEst?.tipo||'—');$('#verTxt').textContent='Versão '+(natVersao||'—')+' · interface '+APP_VERSION;if(!natNova){$('#updTxt').textContent='Procura, baixa e instala a versão mais nova';$('#updBtn').textContent='Buscar atualização'}$('#instRow').hidden=true}$('#aboutDlg').showModal()}
 on('#aboutBtn',openAbout);on('#aboutClose',()=>$('#aboutDlg').close());on('#updBtn',checkUpdate);
 $('#aboutDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 // botão Instalar só aparece no navegador, quando o app ainda não está instalado
@@ -1136,7 +1136,26 @@ async function natConfigura(mudouTipo){
   await natAtualiza();natMonitor();
 }
 function natMonitor(){if(NATIVO)nat('estudioMonitor',$('#mon').checked,canalNat(),1)}
+let natVersao='',natNova=null;
+async function natAtualizacao(silencioso){
+  const b=$('#updBtn'),t=$('#updTxt');
+  if(natNova&&!silencioso){
+    if(rec||test){t.textContent='Termine a gravação antes de atualizar.';return}
+    b.disabled=true;t.textContent='Salvando o projeto e baixando a versão '+natNova.versao+'…';await saveNow();
+    const r=await nat('estudioInstalarAtualizacao',natNova.url);
+    if(!r||!r.ok){b.disabled=false;t.textContent='Não consegui atualizar: '+(r&&r.erro||'erro desconhecido')+'. Tente de novo.';return}
+    leaving=true;t.textContent='Instalando… o Estúdio vai fechar e abrir de novo sozinho.';return;
+  }
+  if(!silencioso){b.disabled=true;b.textContent='Procurando…';t.textContent='Verificando se há versão nova…'}
+  const r=await nat('estudioVerificarAtualizacao').catch(()=>({erro:'falha'}));
+  if(!silencioso)b.disabled=false;
+  if(r.erro){if(!silencioso){t.textContent='Não consegui verificar agora ('+r.erro+'). Tente de novo.';b.textContent='Tentar de novo'}return}
+  if(r.nova){natNova=r;$('#aboutBtn').classList.add('upd');t.textContent=`Versão ${r.versao} disponível (você tem a ${r.atual}). Seus projetos continuam salvos.`;b.textContent='Atualizar agora';
+    if(silencioso)toast('Há uma versão nova do Estúdio. Toque em ⓘ para atualizar.',5000)}
+  else if(!silencioso){t.textContent='Você já está na versão mais recente ('+r.atual+'). ✓';b.textContent='Buscar de novo'}
+}
 async function natInicia(){
+  natVersao=await nat('estudioVersao').catch(()=>'');setTimeout(()=>natAtualizacao(true),6000);
   document.querySelectorAll('.so-web').forEach(e=>e.hidden=true);$('#natRows').hidden=false;
   let salvo=null;try{salvo=JSON.parse(localStorage.getItem('estudio:natcfg')||'null')}catch(e){}
   natTipos=await nat('estudioListar').catch(()=>[]);

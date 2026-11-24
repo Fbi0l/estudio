@@ -9,6 +9,75 @@ using namespace juce;
 using Opcoes = WebBrowserComponent::Options;
 
 //==============================================================================
+/** Atualização pelo próprio app: consulta a última versão no GitHub, baixa o instalador
+    e o executa em modo silencioso; o instalador fecha o app, troca os arquivos e o reabre. */
+namespace Atualizador
+{
+    static const char* api = "https://api.github.com/repos/Fbi0l/estudio/releases/latest";
+
+    static int comparar (const String& a, const String& b)   // -1, 0, 1 (versões x.y.z)
+    {
+        auto pa = StringArray::fromTokens (a, ".", ""), pb = StringArray::fromTokens (b, ".", "");
+        for (int i = 0; i < 3; ++i)
+        {
+            const int x = pa[i].getIntValue(), y = pb[i].getIntValue();
+            if (x != y) return x < y ? -1 : 1;
+        }
+        return 0;
+    }
+
+    static var verificar()
+    {
+        auto* r = new DynamicObject();
+        r->setProperty ("atual", JUCE_APPLICATION_VERSION_STRING);
+        auto opcoes = URL::InputStreamOptions (URL::ParameterHandling::inAddress)
+                          .withExtraHeaders ("User-Agent: Estudio-Desktop\r\nAccept: application/vnd.github+json")
+                          .withConnectionTimeoutMs (15000);
+        std::unique_ptr<InputStream> in (URL (api).createInputStream (opcoes));
+        if (in == nullptr) { r->setProperty ("erro", "sem conexão com o GitHub"); return var (r); }
+        auto json = JSON::parse (in->readEntireStreamAsString());
+        const String tag = json["tag_name"].toString();
+        if (! tag.startsWith ("desktop-v")) { r->setProperty ("erro", "nenhuma versão publicada ainda"); return var (r); }
+        const String versao = tag.fromFirstOccurrenceOf ("desktop-v", false, false);
+        String url;
+        if (auto* assets = json["assets"].getArray())
+            for (auto& a : *assets)
+                if (a["name"].toString().endsWith ("Instalador.exe")) url = a["browser_download_url"].toString();
+        r->setProperty ("versao", versao);
+        r->setProperty ("url", url);
+        r->setProperty ("notas", json["body"].toString());
+        r->setProperty ("nova", url.isNotEmpty() && comparar (JUCE_APPLICATION_VERSION_STRING, versao) < 0);
+        return var (r);
+    }
+
+    static var instalar (const String& url)
+    {
+        auto* r = new DynamicObject();
+        if (! url.startsWith ("https://github.com/Fbi0l/estudio/releases/download/"))
+        { r->setProperty ("ok", false); r->setProperty ("erro", "endereço inesperado"); return var (r); }
+        auto destino = File::getSpecialLocation (File::tempDirectory).getChildFile ("Estudio-Atualizacao.exe");
+        destino.deleteFile();
+        auto opcoes = URL::InputStreamOptions (URL::ParameterHandling::inAddress)
+                          .withExtraHeaders ("User-Agent: Estudio-Desktop").withConnectionTimeoutMs (30000);
+        std::unique_ptr<InputStream> in (URL (url).createInputStream (opcoes));
+        bool ok = false;
+        if (in != nullptr)
+        {
+            FileOutputStream out (destino);
+            ok = out.openedOk() && out.writeFromInputStream (*in, -1) > 100000;
+            out.flush();
+        }
+        if (! ok) { r->setProperty ("ok", false); r->setProperty ("erro", "o download não terminou"); return var (r); }
+       #if JUCE_WINDOWS
+        ok = destino.startAsProcess ("/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS");
+       #endif
+        r->setProperty ("ok", ok);
+        if (! ok) r->setProperty ("erro", "não consegui abrir o instalador");
+        return var (r);
+    }
+}
+
+//==============================================================================
 /** A interface do Estúdio (a mesma do PWA) rodando dentro do app, falando com o motor nativo. */
 /** Só para o teste automático: faz o papel da placa, mandando um tom ao motor em tempo real. */
 class PlacaDeTeste : public HighResolutionTimer
@@ -86,6 +155,22 @@ private:
             })
             .withNativeFunction ("estudioMedirInicio", [this] (const Array<var>&, auto done) { engine.iniciarMedicao(); done (true); })
             .withNativeFunction ("estudioMedirFim", [this] (const Array<var>&, auto done) { done (engine.pararMedicao()); })
+            .withNativeFunction ("estudioVersao", [] (const Array<var>&, auto done) { done (String (JUCE_APPLICATION_VERSION_STRING)); })
+            .withNativeFunction ("estudioVerificarAtualizacao", [] (const Array<var>&, auto done)
+            {
+                Thread::launch ([done] { done (Atualizador::verificar()); });
+            })
+            .withNativeFunction ("estudioInstalarAtualizacao", [] (const Array<var>& a, auto done)
+            {
+                const String url = a.isEmpty() ? String() : a[0].toString();
+                Thread::launch ([done, url]
+                {
+                    auto r = Atualizador::instalar (url);
+                    done (r);
+                    if ((bool) r["ok"])   // o instalador assume daqui: fecha o app, instala e reabre
+                        MessageManager::callAsync ([] { JUCEApplication::getInstance()->systemRequestedQuit(); });
+                });
+            })
             .withNativeFunction ("estudioEco", [] (const Array<var>& a, auto done)
             {
                 // teste de acentos nos dois sentidos: devolve o que chegou e um texto nativo
