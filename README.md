@@ -6,6 +6,11 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.6.2 — Novo motor de captura
+
+- A gravação e o teste do microfone usam **AudioWorklet**, que roda numa linha de áudio própria, separada da tela. Com a tela sobrecarregada, o teste caiu de 35 cortes (motor antigo) para nenhum além do início.
+- Navegadores sem AudioWorklet continuam gravando pelo motor antigo, automaticamente. A janela ⓘ mostra qual está em uso.
+
 ## Versão 1.6.1 — Gravação crua protegida
 
 - O teste do microfone avisa quando um noise gate fora do app (Windows ou pedaleira) zera o som nas pausas; a gravação avisa quando houve cortes entre as notas ou palavras.
