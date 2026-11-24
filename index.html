@@ -25,6 +25,7 @@
 :root{--bg:#141518;--panel:#1c1d21;--panel2:#25272c;--hover:#2d2f35;--line:#30323a;--ink:#eceae5;--mute:#9a9ca4;--wave:#e6e0d2;--selb:#78aaff;--rec:#ff453a;--ok:#34c759;--warn:#ffb340;--r:12px;color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 [hidden]{display:none!important}
+#natRows:not([hidden]){display:contents}
 html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:15px/1.45 Manrope,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 button,select,input{font:inherit;color:inherit}
 svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
@@ -98,7 +99,7 @@ button.logo{width:40px;height:40px}button.logo:hover{border-color:var(--line);ba
 .list .row-i+.row-i{border-top:1px solid var(--line)}
 .row-i>span{display:flex;flex-direction:column;font-size:14px}
 .row-i small{color:var(--mute);font-size:12px}
-.row-i small.lat.ok{color:var(--ok)}.row-i small.lat.mid{color:var(--warn)}.row-i small.lat.bad{color:#ff6b62}
+.row-i small.lat.ok{color:var(--ok)}#natLat.ok{color:var(--ok)}#natLat.mid{color:var(--warn)}#natLat.bad{color:#ff6b62}.row-i small.lat.mid{color:var(--warn)}.row-i small.lat.bad{color:#ff6b62}
 .row-i select{max-width:55%;min-height:36px;font-size:16px}
 .cap{font-size:12px;color:var(--mute);margin:4px 2px -4px;font-weight:600}
 .verd{display:flex;flex-direction:column;gap:6px;font-size:13px}
@@ -335,10 +336,17 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
       </div>
       <div class="cap">Entrada</div>
       <div class="list">
-        <label class="row-i"><span>Microfone ou placa</span><select id="dev"><option value="">Padrão</option></select></label>
+        <div id="natRows" hidden style="display:contents">
+          <label class="row-i"><span>Driver<small id="natDrvHint">Como o app fala com a placa</small></span><select id="natTipo"></select></label>
+          <label class="row-i"><span>Entrada</span><select id="natIn"></select></label>
+          <label class="row-i"><span>Saída (fone)</span><select id="natOut"></select></label>
+          <label class="row-i"><span>Taxa</span><select id="natTaxa"></select></label>
+          <label class="row-i"><span>Buffer<small id="natLat" class="lat">—</small></span><select id="natBuf"></select></label>
+        </div>
+        <label class="row-i so-web"><span>Microfone ou placa</span><select id="dev"><option value="">Padrão</option></select></label>
         <label class="row-i"><span>Fonte<small>Voz, instrumento direto ou pedaleira</small></span><select id="srcType"><option value="voz" selected>Voz</option><option value="inst">Instrumento</option><option value="pedal">Pedaleira</option></select></label>
         <label class="row-i"><span>Canal<small>Para placas com 2 entradas</small></span><select id="chan"><option value="auto" selected>Automático</option><option value="1">Entrada 1</option><option value="2">Entrada 2</option><option value="st">Estéreo (1 e 2)</option></select></label>
-        <label class="row-i"><span>Supressão de ruído<small>Do navegador. Pode abafar a voz</small></span><input type="checkbox" class="sw" id="ns"></label>
+        <label class="row-i so-web"><span>Supressão de ruído<small>Do navegador. Pode abafar a voz</small></span><input type="checkbox" class="sw" id="ns"></label>
       </div>
       <div class="card" id="gear" hidden><h2 id="gearT"></h2><span class="hint" id="gearL"></span><div class="verd" id="gearV"></div></div>
       <div class="cap">Durante a gravação</div>
@@ -490,7 +498,11 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
 {
 const $=s=>document.querySelector(s);
 let ac=null;
-const AC=()=>ac||(ac=new (window.AudioContext||window.webkitAudioContext)());
+// ponte com o motor nativo (só existe dentro do Estúdio Desktop)
+const NATIVO=!!(window.__JUCE__&&window.__JUCE__.backend);let natId=7e5,natTaxaPref=0,natPronto=Promise.resolve(),natLibera=null;if(NATIVO)natPronto=new Promise(r=>natLibera=r);const natP=new Map();
+if(NATIVO)window.__JUCE__.backend.addEventListener('__juce__complete',({promiseId,result})=>{const f=natP.get(promiseId);if(f){natP.delete(promiseId);f(result)}});
+const nat=(name,...params)=>new Promise(res=>{const id=natId++;natP.set(id,res);window.__JUCE__.backend.emitEvent('__juce__invoke',{name,params,resultId:id})});
+const AC=()=>ac||(ac=new (window.AudioContext||window.webkitAudioContext)(natTaxaPref?{sampleRate:natTaxaPref}:undefined));
 let buf=null,hist=[],redo=[],clip=null,sel=null,cursor=0,view={s:0,d:10},play=null,loop=false,rec=null,outAn=null;
 let room=null,test=null,markers=null,clipHold=-1e9;
 
@@ -765,6 +777,7 @@ async function captura(c,aoPedaco){
 }
 function closeMic(s){unmonitor(s);s.cap?.fechar();try{s.an?.disconnect()}catch(e){}s.proc.disconnect();s.src.disconnect();s.z.disconnect();s.stream.getTracks().forEach(t=>t.stop())}
 async function startRec(){
+  if(NATIVO)return startRecNative();
   if(rec)return stopRec();if(test)return toast('Espere o teste do microfone terminar');
   stopPlay();let stream;try{stream=await openMic()}catch(e){return toast(e.message,5000)}
   const c=AC(),sr=c.sampleRate,nch=Math.min(2,stream.getAudioTracks()[0].getSettings().channelCount||1);
@@ -787,15 +800,20 @@ async function startRec(){
   $('#rec').classList.add('live');$('#test').disabled=true;$('#empty').style.display='none';listDevs();ui();
 }
 async function stopRec(){
+  if(rec&&rec.nat)return stopRecNative();
   if(!rec)return;const r=rec;rec=null;$('#rec').classList.remove('live');ui();
   await r.cap.parar();r.done=true;closeMic(r);keepAwake(false);navigator.vibrate?.([8,40,8]);$('#test').disabled=false;
   if(!r.len){refresh();return toast('Nada foi gravado')}
   const raw=mk(r.nch,r.len);for(let ch=0;ch<r.nch;ch++){const o=raw.getChannelData(ch);let off=0;for(const d of r.data[ch]){o.set(d.subarray(0,Math.min(d.length,r.len-off)),off);off+=d.length;if(off>=r.len)break}}
+  finishRec(r,raw);
+}
+function finishRec(r,raw){
   const pc=pickChannels(raw),b=pc.b;
   const at=place(b,null,r.punch);markers=r.clips.length?{buf,t:r.clips.map(t=>t+at)}:null;refresh();
   // resumo franco do que foi gravado
   const pk=Math.min(0,dB(peak(b))),v=[['', 'Última gravação', fmt(b.duration)+' · pico '+dBs(pk)+(b.numberOfChannels>1?' · estéreo':' · mono')]];
   if(pc.msg)v.push(['','Canais',pc.msg]);
+  if(r.perdidas)v.push(['bad','O computador não deu conta',r.perdidas+' amostras se perderam durante a gravação. Aumente o buffer em Entrada.']);
   const gp=findGaps(b);
   if(gp.longos.length){const[t0,du]=gp.longos[0];v.push(['bad','O som parou de chegar',`por ${du.toFixed(1).replace('.',',')} s a partir de ${fmt(t0).slice(0,5)}${gp.longos.length>1?' (e mais '+(gp.longos.length-1)+(gp.longos.length>2?' vezes)':' vez)'):''}${r.mutes.length?'; o sistema avisou que a entrada foi interrompida':''}. Não é gate: é a ligação entre a placa ou pedaleira e o computador. Troque a porta USB (de preferência direto no computador, sem hub), confira o cabo ou ligue o equipamento direto, sem intermediários.`])}
   if(gp.n>=2)v.push(['bad','Cortes no som','o sinal sumiu por completo '+gp.n+' vezes (até '+gp.max+' ms) '+(isVoz()?'entre as palavras':'entre as notas')+'. Isso é um noise gate fora do app cortando o fim do som: nas “Melhorias de áudio” do Windows (Configurações → Sistema → Som → o seu microfone) ou na redução de ruído da '+(isVoz()?'placa':'pedaleira ou placa')+'. Desligue para gravar cru e limpe depois, em Efeitos.']);
@@ -807,6 +825,7 @@ async function stopRec(){
 
 /* ---------- teste: 4 s de silêncio + 6 s de fala ou toque ---------- */
 async function micTest(){
+  if(NATIVO)return micTestNative();
   if(rec||test)return;stopPlay();let stream;try{stream=await openMic()}catch(e){return toast(e.message,5000)}
   const c=AC(),src=c.createMediaStreamSource(stream),z=c.createGain();z.gain.value=0;
   const t={stream,src,proc:null,z,t0:performance.now(),noise:[],voice:[],lvl:0,peak:0,zeros:0,tot:0};
@@ -819,7 +838,7 @@ async function micTest(){
   src.connect(t.proc);t.proc.connect(z);z.connect(c.destination);$('#test').disabled=true;$('#rec').disabled=true;listDevs();
 }
 function finishTest(){
-  const t=test;if(!t)return;test=null;closeMic(t);$('#test').disabled=false;$('#rec').disabled=false;
+  const t=test;if(!t)return;test=null;if(!t.nat)closeMic(t);$('#test').disabled=false;$('#rec').disabled=false;
   const vz=isVoz(),V=vz?'Voz':'Sinal';
   const med=a=>{const s=[...a].sort((x,y)=>x-y);return s[s.length>>1]||0};
   const top=[...t.voice].sort((a,b)=>b-a),k=Math.max(1,Math.floor(top.length*.3)),vr=dB(top.slice(0,k).reduce((a,b)=>a+b,0)/k);
@@ -835,7 +854,7 @@ function finishTest(){
   out.push(snr>=30?['good',V+' × ruído: excelente',f(snr)+' de folga.']:snr>=20?['good',V+' × ruído: boa',f(snr)+'. O fundo some com o acabamento.']:snr>=12?['mid',V+' × ruído: razoável',f(snr)+'. O fundo vai aparecer nas pausas; o acabamento ameniza, mas não apaga.']:['bad',V+' × ruído: fraca',f(snr)+'. O ruído compete com o sinal e nenhum filtro conserta isso bem.'+(vz?' Vale mudar o ambiente ou a posição.':' Ajuste ganho e cabos antes de gravar.')]);
   if(gate){out[0]=['','Ruído de fundo: não medido','com o gate ligado, o chiado real fica escondido; ele vai aparecer quando o gate for desligado.'];out.pop()}
   if(gate)out.unshift(['mid','Silêncio absoluto na pausa','algo fora do app está cortando o som quando ele fica baixo (noise gate). Isso corta o fim das '+(vz?'palavras':'notas')+'. Desligue as “Melhorias de áudio” do Windows para este dispositivo e a redução de ruído da '+(vz?'placa':'pedaleira')+', se houver. O app grava cru, e a limpeza se faz depois, em Efeitos.']);
-  if(t.specN){const sp=Array.from(t.spec,v=>10*Math.log10(v/t.specN+1e-30)),hz=AC().sampleRate/2/sp.length,band=f=>Math.round(f/hz);let ref=-300;for(let i=band(200);i<band(4000);i++)if(sp[i]>ref)ref=sp[i];
+  if(t.specDb||t.specN){const sp=t.specDb?t.specDb:Array.from(t.spec,v=>10*Math.log10(v/t.specN+1e-30)),hz=t.specDb?t.hzBin:AC().sampleRate/2/sp.length,band=f=>Math.round(f/hz);let ref=-300;for(let i=band(200);i<band(4000);i++)if(sp[i]>ref)ref=sp[i];
    let top=0;const sm=i=>(sp[i-2]+sp[i-1]+sp[i]+sp[i+1]+sp[i+2])/5;for(let i=sp.length-3;i>band(1000);i--)if(sm(i)>ref-45){top=i*hz;break}
    const k=(top/1000).toLocaleString('pt-BR',{maximumFractionDigits:1});
    if(top&&top<11000)out.push(vz?['mid','Agudos até ~'+k+' kHz','a voz está chegando abafada. Algo no caminho corta os agudos: microfone Bluetooth, modo de comunicação do Windows ou um simulador de caixa. Escolha a entrada direta do microfone ou da placa.']
@@ -856,7 +875,7 @@ const GEAR=[
  {re:/usb|codec|pnp/i,n:'Dispositivo de áudio USB',src:null,tip:'Se for uma placa, pedaleira ou mesa, prefira ouvir pelo fone ligado nela (atraso zero).'}
 ];
 let devs=[],srcTouched=false;
-async function listDevs(){try{const all=await navigator.mediaDevices.enumerateDevices(),ds=all.filter(d=>d.kind==='audioinput');const cur=$('#dev').value;devs=all;
+async function listDevs(){if(NATIVO)return;try{const all=await navigator.mediaDevices.enumerateDevices(),ds=all.filter(d=>d.kind==='audioinput');const cur=$('#dev').value;devs=all;
   $('#dev').innerHTML='<option value="">Padrão</option>'+ds.filter(d=>d.deviceId&&d.deviceId!=='default'&&d.deviceId!=='communications'&&!/^(comunica[cç][oõ]es|communications)\s*-/i.test(d.label)).map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'Entrada '+(i+1))}</option>`).join('');$('#dev').value=cur;gear()}catch(e){}}
 function devLabel(kind,id){const d=devs.find(d=>d.kind===kind&&(id?d.deviceId===id:d.deviceId==='default'))||devs.find(d=>d.kind===kind);return d?.label||''}
 function gear(){
@@ -965,7 +984,7 @@ function ui(){
 }
 function refresh(){ui();draw()}
 function frame(){
-  let lv=0;if(rec)lv=rec.lvl;else if(test)lv=test.lvl;else if(play&&outAn){const a=new Float32Array(outAn.fftSize);outAn.getFloatTimeDomainData(a);for(const v of a)lv=Math.max(lv,Math.abs(v))}
+  let lv=0;if(rec)lv=rec.lvl;else if(test)lv=test.lvl;else if(NATIVO&&!play)lv=natLvl;else if(play&&outAn){const a=new Float32Array(outAn.fftSize);outAn.getFloatTimeDomainData(a);for(const v of a)lv=Math.max(lv,Math.abs(v))}
   const d=dB(lv),now=performance.now();if(lv>=.995&&(rec||test))clipHold=now;const clipped=now-clipHold<1500;
   $('#lvl').style.width=Math.max(0,Math.min(100,(d+60)/60*100))+'%';$('#lvlTxt').textContent=clipped?'ESTOUROU':dBs(d);$('.meter').classList.toggle('clip',clipped);
   if(test){const el=(now-test.t0)/1000;verd([el<4?`${isVoz()?'Fique em silêncio… medindo o ruído da sala':'Não toque… medindo o ruído de fundo'} (${Math.ceil(4-el)} s)`:`${isVoz()?'Agora fale normalmente, como vai gravar':'Agora toque como vai gravar'} (${Math.max(1,Math.ceil(10-el))} s)`])}
@@ -993,9 +1012,9 @@ window.addEventListener('dragover',e=>e.preventDefault());window.addEventListene
 const on=(id,f)=>$(id).addEventListener('click',f);
 on('#test',micTest);on('#finish',()=>{sel=null;master(isVoz()?3:2,true)});
 $('#srcType').addEventListener('change',()=>{srcTouched=true;srcChanged()});$('#dev').addEventListener('change',gear);
-$('#chan').addEventListener('change',()=>{const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
+$('#chan').addEventListener('change',()=>{if(NATIVO)natMonitor();const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
 navigator.mediaDevices?.addEventListener?.('devicechange',listDevs);listDevs();
-$('#mon').addEventListener('change',e=>{if(e.target.checked)toast(isVoz()?'Use fone de ouvido: em caixa de som dá microfonia. O navegador tem um pequeno atraso no retorno.':'Dica: sua pedaleira ou placa tem saída de fone sem atraso. Prefira ouvir por ela.',5000);const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
+$('#mon').addEventListener('change',e=>{if(NATIVO){natMonitor();if(e.target.checked)toast('Retorno direto da placa ligado. Use fone de ouvido.',3000);return}if(e.target.checked)toast(isVoz()?'Use fone de ouvido: em caixa de som dá microfonia. O navegador tem um pequeno atraso no retorno.':'Dica: sua pedaleira ou placa tem saída de fone sem atraso. Prefira ouvir por ela.',5000);const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
 on('#rec',startRec);on('#play',toggle);on('#stop',()=>{stopRec();stopPlay();cursor=sel?sel.a:0;refresh()});on('#loop',()=>{loop=!loop;if(play){const t=pos();stopPlay();cursor=t;startPlay()}ui()});
 on('#zin',()=>zoom(.5));on('#zout',()=>zoom(2));on('#zfit',fit);on('#zsel',()=>sel?zoomTo(sel.a-(sel.b-sel.a)*.05,(sel.b-sel.a)*1.1):toast('Selecione um trecho primeiro'));
 $('#scroll').addEventListener('input',e=>{if(buf){view.s=e.target.value/1000*(buf.duration-view.d);draw()}});
@@ -1021,7 +1040,7 @@ window.addEventListener('beforeunload',e=>{if((dirty||saving)&&!leaving){saveNow
 let wl=null;
 async function keepAwake(on){try{if(on&&'wakeLock'in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}else if(!on&&wl){await wl.release();wl=null}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&rec)keepAwake(true)});
-if('serviceWorker'in navigator&&location.protocol!=='file:'){
+if('serviceWorker'in navigator&&location.protocol!=='file:'&&!NATIVO){
   navigator.serviceWorker.register('sw.js').then(r=>{reg=r;
     r.addEventListener('updatefound',()=>{const w=r.installing;if(!w||!navigator.serviceWorker.controller)return;w.addEventListener('statechange',()=>{if(w.state==='activated')updReady(true)})})
   }).catch(e=>console.warn('SW',e));
@@ -1033,6 +1052,7 @@ function updReady(auto){newReady=true;armed=false;$('#aboutBtn').classList.add('
   if(auto&&!checking&&!$('#aboutDlg').open)toast('Há uma versão nova do Estúdio. Toque em ⓘ para reiniciar.',5000)}
 async function checkUpdate(){
   const b=$('#updBtn'),t=$('#updTxt');
+  if(NATIVO)return nat('estudioAbrirLink','https://github.com/Fbi0l/estudio/releases');
   if(newReady)return restart();
   if(!reg){t.textContent='Atualização indisponível aqui. Abra o app pelo endereço publicado.';return}
   if(!navigator.onLine){t.textContent='Sem internet. Conecte e tente de novo.';return}
@@ -1050,7 +1070,7 @@ async function restart(){
   if(!ok&&buf&&!armed){armed=true;$('#updTxt').textContent='Não consegui salvar o projeto. Exporte antes, ou toque de novo para reiniciar assim mesmo.';$('#updBtn').textContent='Reiniciar assim mesmo';return}
   leaving=true;$('#updTxt').textContent='Reiniciando…';location.reload();
 }
-function openAbout(){showVer();$('#modeTxt').textContent=(isApp()?'App instalado':'No navegador'+(installEv&&!installed?' · pode instalar':''))+' · captura: '+(motor==='—'?(window.AudioWorkletNode?'AudioWorklet':'ScriptProcessor (reserva)'):motor);showInstall();$('#aboutDlg').showModal()}
+function openAbout(){showVer();$('#modeTxt').textContent=(isApp()?'App instalado':'No navegador'+(installEv&&!installed?' · pode instalar':''))+' · captura: '+(motor==='—'?(window.AudioWorkletNode?'AudioWorklet':'ScriptProcessor (reserva)'):motor);showInstall();if(NATIVO){$('#modeTxt').textContent='App para Windows · motor nativo: '+(NOMES_DRIVER[natEst?.tipo]||natEst?.tipo||'—');$('#updTxt').textContent='Versões novas do app saem como instalador.';$('#updBtn').textContent='Ver versões';$('#instRow').hidden=true}$('#aboutDlg').showModal()}
 on('#aboutBtn',openAbout);on('#aboutClose',()=>$('#aboutDlg').close());on('#updBtn',checkUpdate);
 $('#aboutDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 // botão Instalar só aparece no navegador, quando o app ainda não está instalado
@@ -1082,6 +1102,90 @@ on('#expOpen',openExp);on('#expOpen2',openExp);on('#expCancel',()=>$('#expDlg').
 $('#expDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 on('#rec2',startRec);
 $('#fname').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
+/* ---------- Estúdio Desktop: motor nativo (JUCE) ---------- */
+// Dentro do app do Windows, a gravação, o retorno no fone e o teste usam o motor nativo:
+// driver ASIO/WASAPI, buffer escolhido, 32 bits sem perdas. No navegador, nada disto liga.
+let natEst=null,natTipos=[],natLvl=0;
+const NOMES_DRIVER={'Windows Audio':'Windows compartilhado','Windows Audio (Low Latency Mode)':'Windows baixa latência','Windows Audio (Exclusive Mode)':'Windows exclusivo (menor atraso)','DirectSound':'DirectSound (antigo)','ASIO':'ASIO (menor atraso, se a placa tiver)','ALSA':'ALSA','JACK':'JACK'};
+const canalNat=()=>({auto:0,'1':1,'2':2,st:3})[chanSel()]??0;
+function natOpts(sel,itens,atual,rot,porIdx){sel.innerHTML=itens.map((v,i)=>`<option value="${porIdx?i:esc(v)}"${String(v)===String(atual)?' selected':''}>${esc(rot?rot(v):v)}</option>`).join('')}
+async function natAtualiza(){
+  if(!NATIVO)return;
+  try{natTipos=await nat('estudioListar');natEst=await nat('estudioEstado')}catch(e){return}
+  const e=natEst,t=natTipos.find(x=>x.nome===e.tipo)||natTipos[0]||{entradas:[],saidas:[]};
+  natOpts($('#natTipo'),natTipos.map(x=>x.nome),e.tipo,v=>NOMES_DRIVER[v]||v,true);
+  natOpts($('#natIn'),t.entradas,e.entrada,null,true);natOpts($('#natOut'),t.saidas,e.saida,null,true);
+  natOpts($('#natTaxa'),e.taxas||[],e.taxa,v=>(v/1000).toLocaleString('pt-BR')+' kHz');
+  natOpts($('#natBuf'),e.buffers||[],e.buffer,v=>v+' amostras ('+(v/(e.taxa||48000)*1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+' ms)');
+  const ms=Math.round(e.idaVoltaMs||0),ok=ms&&ms<=12,meio=ms&&ms<=25;
+  $('#natLat').textContent=e.aberto?`Atraso ida e volta ~${ms} ms: ${ok?'ótimo para tocar':meio?'bom; para tocar, tente um buffer menor':'alto; diminua o buffer ou use o modo exclusivo ou ASIO'}`:'Dispositivo fechado. Escolha outra entrada ou saída.';
+  $('#natLat').className='lat '+(ok?'ok':meio?'mid':'bad');
+  const excl=/Exclusive|ASIO/.test(e.tipo||'');
+  $('#natDrvHint').textContent=excl?'O motor ocupa a placa: para ouvir o projeto pelo app, volte ao compartilhado ou ao de baixa latência.':'Como o app fala com a placa';
+  if(e.taxa&&!ac)natTaxaPref=e.taxa;
+  devs=[{kind:'audioinput',deviceId:'default',label:e.entrada||''},{kind:'audiooutput',deviceId:'default',label:e.saida||''}];gear();
+  $('#monSub').className='';$('#monSub').textContent=e.aberto?`Direto da placa, sem efeitos · ~${ms} ms`:'—';
+}
+async function natConfigura(mudouTipo){
+  const cfg={tipoIdx:+$('#natTipo').value};
+  if(!mudouTipo){cfg.entradaIdx=+$('#natIn').value;cfg.saidaIdx=+$('#natOut').value;cfg.taxa=+$('#natTaxa').value;cfg.buffer=+$('#natBuf').value}
+  busy(true,'Abrindo a placa…');
+  try{const r=await nat('estudioConfigurar',cfg);if(r.erro)toast('A placa recusou essa configuração: '+r.erro,6000);else{try{localStorage.setItem('estudio:natcfg',JSON.stringify({tipo:r.estado.tipo,entrada:r.estado.entrada,saida:r.estado.saida,taxa:r.estado.taxa,buffer:r.estado.buffer}))}catch(x){}}}
+  finally{busy(false)}
+  await natAtualiza();natMonitor();
+}
+function natMonitor(){if(NATIVO)nat('estudioMonitor',$('#mon').checked,canalNat(),1)}
+async function natInicia(){
+  document.querySelectorAll('.so-web').forEach(e=>e.hidden=true);$('#natRows').hidden=false;
+  let salvo=null;try{salvo=JSON.parse(localStorage.getItem('estudio:natcfg')||'null')}catch(e){}
+  natTipos=await nat('estudioListar').catch(()=>[]);
+  if(salvo){const ti=natTipos.findIndex(x=>x.nome===salvo.tipo);if(ti>=0){const t=natTipos[ti];await nat('estudioConfigurar',{tipoIdx:ti,entradaIdx:Math.max(0,t.entradas.indexOf(salvo.entrada)),saidaIdx:Math.max(0,t.saidas.indexOf(salvo.saida)),taxa:salvo.taxa,buffer:salvo.buffer}).catch(()=>{})}}
+  else{const ti=natTipos.findIndex(x=>x.nome==='Windows Audio (Low Latency Mode)');if(ti>=0)await nat('estudioConfigurar',{tipoIdx:ti}).catch(()=>{})}
+  await natAtualiza();natMonitor();natLibera&&natLibera();
+  window.__JUCE__.backend.addEventListener('estudioNivel',d=>{
+    natLvl=Math.max(d.pico[0]||0,d.pico[1]||0);
+    const r=rec;if(r&&r.nat){r.lvl=natLvl;if(d.picos)for(const p of d.picos)r.peaks.push(p);if(r.started)r.len=d.frames}
+    if(d.medidas)for(const m of d.medidas)testBloco(m);
+  });
+  ['#natTipo'].forEach(s=>$(s).addEventListener('change',()=>natConfigura(true)));
+  ['#natIn','#natOut','#natTaxa','#natBuf'].forEach(s=>$(s).addEventListener('change',()=>natConfigura(false)));
+}
+async function startRecNative(){
+  if(rec)return stopRec();if(test)return toast('Espere o teste do microfone terminar');stopPlay();
+  const punch=$('#place').value==='punch'&&sel&&buf?{...sel}:null;
+  const r={nat:true,len:0,peaks:[],lvl:0,max:0,clips:[],armed:$('#count').checked?3:0,punch,mutes:[],started:false};rec=r;
+  const vai=async()=>{if(rec!==r)return;await nat('estudioGravar');r.started=true;refresh()};
+  if(r.armed){const step=()=>{if(rec!==r)return;r.armed--;if(r.armed>0)setTimeout(step,1000);else vai();refresh()};setTimeout(step,1000)}else vai();
+  keepAwake(true);navigator.vibrate?.(12);$('#rec').classList.add('live');$('#test').disabled=true;$('#empty').style.display='none';ui();
+}
+async function stopRecNative(){
+  const r=rec;rec=null;$('#rec').classList.remove('live');$('#test').disabled=false;keepAwake(false);ui();
+  if(!r.started){refresh();return toast('Gravação cancelada')}
+  const res=await nat('estudioParar');
+  if(!res||!res.ok){refresh();return toast('Nada foi gravado')}
+  busy(true,'Trazendo a gravação…');
+  try{
+    const raw=await AC().decodeAudioData(await (await fetch(res.url)).arrayBuffer());
+    const sr=raw.sampleRate;for(const d of chans(raw))for(let i=0;i<d.length;i++){const v=d[i]<0?-d[i]:d[i];if(v>=.995){const t=i/sr;if(!r.clips.length||t-r.clips[r.clips.length-1]>.5)r.clips.push(t)}}
+    r.clips.sort((a,b)=>a-b);
+    if(res.descartadas>0)r.perdidas=res.descartadas;
+    finishRec(r,raw);
+  }catch(e){toast('Não consegui trazer a gravação: '+e.message,6000)}finally{busy(false)}
+}
+async function micTestNative(){
+  if(rec||test)return;stopPlay();
+  const t={nat:true,t0:performance.now(),noise:[],voice:[],lvl:0,peak:0,zeros:0,tot:0};test=t;
+  await nat('estudioMedirInicio');t.t0=performance.now();$('#test').disabled=true;$('#rec').disabled=true;
+}
+function testBloco(m){
+  const t=test;if(!t||!t.nat||t.fim)return;const ch=chanSel(),cs=ch==='1'?[0]:ch==='2'?[1]:[0,1];let r=0,pk=0;
+  for(const k of cs){r=Math.max(r,m.rms[k]);pk=Math.max(pk,m.pico[k])}
+  const el=(performance.now()-t.t0)/1000;t.lvl=Math.max(pk,t.lvl*.85);
+  if(el>.6&&el<4){t.noise.push(r);t.zeros+=m.zeros[cs[0]];t.tot+=m.n}
+  else if(el>=4.6&&el<10){t.voice.push(r);if(pk>t.peak)t.peak=pk}
+  else if(el>=10){t.fim=true;nat('estudioMedirFim').then(esp=>{t.specDb=esp.espectro;t.hzBin=esp.hz;finishTest()})}
+}
+
 /* ---------- projetos salvos no aparelho (IndexedDB) ---------- */
 // O áudio fica só neste aparelho. Cada mudança salva sozinha, 1,2 s depois; o histórico de desfazer não é guardado.
 let proj=null,saveT=null,saving=false,dirty=false,saveLbl='',persisted=false;
@@ -1107,6 +1211,7 @@ async function saveNow(){
   finally{saving=false}
 }
 async function openProject(id){
+  await natPronto;
   const p=await dbGet('projetos',id);if(!p)return false;
   if(rec)stopRec();stopPlay();await saveNow();
   const a=await dbGet('audio',id);let b=null;
@@ -1158,7 +1263,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.6.3',GUIA_REVISADO_NA_VERSAO='1.6.0';
+const APP_VERSION='1.7.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Estúdio',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',
@@ -1211,6 +1316,7 @@ document.querySelectorAll('[data-fechar]').forEach(b=>b.addEventListener('click'
 document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
 // primeiro acesso: o guia abre sozinho uma vez
 (()=>{let v=null;try{v=localStorage.getItem('estudio:guiaVisto')}catch(e){}if(!v)setTimeout(abrirGuia,400)})();
+if(NATIVO)natInicia().catch(e=>{console.warn(e);natLibera&&natLibera();toast('Não consegui falar com o motor de áudio.')});
 window.__studio={pickChannels,setDevs:d=>{devs=d;gear()},get buf(){return buf},set sel(v){sel=v},master,process,lufs,exportF,wav,place:b=>place(b,'teste'),presets,fx};
 refresh();measure();requestAnimationFrame(frame);
 }

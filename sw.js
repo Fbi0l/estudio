@@ -1,6 +1,6 @@
 // Service worker do Estúdio: guarda o app para funcionar offline.
 // Ao publicar uma versão nova, troque VERSAO para os usuários receberem a atualização.
-const VERSAO = 'estudio-v10';
+const VERSAO = 'estudio-v11';
 const APP = [
   './',
   './index.html',

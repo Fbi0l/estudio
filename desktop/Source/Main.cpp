@@ -1,0 +1,224 @@
+// Estúdio Desktop: janela, interface web embutida e ponte com o motor nativo
+// Copyright (C) 2026 Fbiol. Licença GPLv3 (ver LICENSE na raiz do repositório).
+#include <juce_gui_extra/juce_gui_extra.h>
+#include <juce_audio_utils/juce_audio_utils.h>
+#include "AudioEngine.h"
+#include "BinaryData.h"
+
+using namespace juce;
+using Opcoes = WebBrowserComponent::Options;
+
+//==============================================================================
+/** A interface do Estúdio (a mesma do PWA) rodando dentro do app, falando com o motor nativo. */
+/** Só para o teste automático: faz o papel da placa, mandando um tom ao motor em tempo real. */
+class PlacaDeTeste : public HighResolutionTimer
+{
+public:
+    explicit PlacaDeTeste (AudioEngine& e) : engine (e) { engine.taxaParaTeste (48000.0); startTimer (10); }
+    ~PlacaDeTeste() override { stopTimer(); }
+    void hiResTimerCallback() override
+    {
+        float l[480], r[480], o0[480], o1[480];
+        for (int i = 0; i < 480; ++i) { l[i] = 0.3f * (float) std::sin (fase); r[i] = 0.0f; fase += 2.0 * MathConstants<double>::pi * 220.0 / 48000.0; }
+        const float* in[2] = { l, r }; float* out[2] = { o0, o1 };
+        engine.processar (in, 2, out, 2, 480);
+    }
+private:
+    AudioEngine& engine; double fase = 0;
+};
+
+class EstudioView : public Component, private Timer
+{
+public:
+    EstudioView (AudioEngine& e, const String& roteiroTeste) : engine (e), web (opcoes()), roteiro (roteiroTeste)
+    {
+        addAndMakeVisible (web);
+        web.goToURL (WebBrowserComponent::getResourceProviderRoot());
+        startTimerHz (30);
+        if (roteiro.isNotEmpty())
+        {
+            placaTeste = std::make_unique<PlacaDeTeste> (engine);
+            Timer::callAfterDelay (6000, [this] { web.evaluateJavascript (roteiro); });
+        }
+    }
+
+    void resized() override { web.setBounds (getLocalBounds()); }
+
+private:
+    AudioEngine& engine;
+    WebBrowserComponent web;
+
+    Opcoes opcoes()
+    {
+        auto o = Opcoes{};
+       #if JUCE_WINDOWS
+        o = o.withBackend (Opcoes::Backend::webview2)
+             .withWinWebView2Options (Opcoes::WinWebView2{}
+                 .withUserDataFolder (File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Estudio"))
+                 .withBackgroundColour (Colour (0xff141518))
+                 .withStatusBarDisabled());
+       #endif
+        return o.withNativeIntegrationEnabled()
+            .withKeepPageLoadedWhenBrowserIsHidden()
+            .withResourceProvider ([this] (const String& u) { return recurso (u); })
+            .withNativeFunction ("estudioListar", [this] (const Array<var>&, auto done) { done (engine.listar()); })
+            .withNativeFunction ("estudioEstado", [this] (const Array<var>&, auto done) { done (engine.estado()); })
+            .withNativeFunction ("estudioConfigurar", [this] (const Array<var>& a, auto done)
+            {
+                auto erro = engine.configurar (a.isEmpty() ? var() : a[0]);
+                auto* r = new DynamicObject();
+                r->setProperty ("erro", erro);
+                r->setProperty ("estado", engine.estado());
+                done (var (r));
+            })
+            .withNativeFunction ("estudioMonitor", [this] (const Array<var>& a, auto done)
+            {
+                engine.setMonitor (a.size() > 0 && (bool) a[0], a.size() > 1 ? (int) a[1] : 0, a.size() > 2 ? (float) (double) a[2] : 1.0f);
+                done (true);
+            })
+            .withNativeFunction ("estudioGravar", [this] (const Array<var>&, auto done) { engine.iniciarGravacao(); done (true); })
+            .withNativeFunction ("estudioParar", [this] (const Array<var>&, auto done)
+            {
+                auto r = engine.pararGravacao();
+                if (auto* obj = r.getDynamicObject())
+                    obj->setProperty ("url", WebBrowserComponent::getResourceProviderRoot() + "gravacao.wav?n=" + String (++contagem));
+                done (r);
+            })
+            .withNativeFunction ("estudioMedirInicio", [this] (const Array<var>&, auto done) { engine.iniciarMedicao(); done (true); })
+            .withNativeFunction ("estudioMedirFim", [this] (const Array<var>&, auto done) { done (engine.pararMedicao()); })
+            .withNativeFunction ("estudioEco", [] (const Array<var>& a, auto done)
+            {
+                // teste de acentos nos dois sentidos: devolve o que chegou e um texto nativo
+                auto* r = new DynamicObject();
+                r->setProperty ("chegou", a.isEmpty() ? var() : a[0]);
+                r->setProperty ("nativo", String (CharPointer_UTF8 ("Comunica\xc3\xa7\xc3\xb5" "es \xc3\xa9")));
+                r->setProperty ("codigos", a.isEmpty() ? String() : String::toHexString ((int) a[0].toString()[0]));
+                done (var (r));
+            })
+            .withNativeFunction ("estudioLog", [] (const Array<var>& a, auto done)
+            {
+                // chega codificado (encodeURIComponent): ida em ASCII puro, sem risco para os acentos
+                const auto linha = a.isEmpty() ? String() : URL::removeEscapeChars (a[0].toString());
+                std::printf ("%s\n", linha.toRawUTF8()); std::fflush (stdout);
+                // no Windows o app não tem console: o teste automático lê este arquivo
+                File::getCurrentWorkingDirectory().getChildFile ("autoteste.log").appendText (linha + "\n", false, false, "\n");
+                done (true);
+            })
+            .withNativeFunction ("estudioSair", [] (const Array<var>&, auto done)
+            {
+                done (true);
+                MessageManager::callAsync ([] { JUCEApplication::getInstance()->systemRequestedQuit(); });
+            })
+            .withNativeFunction ("estudioAbrirLink", [] (const Array<var>& a, auto done)
+            {
+                if (! a.isEmpty()) URL (a[0].toString()).launchInDefaultBrowser();
+                done (true);
+            });
+    }
+
+    std::optional<WebBrowserComponent::Resource> recurso (const String& url)
+    {
+        auto caminho = url.upToFirstOccurrenceOf ("?", false, false).trimCharactersAtStart ("/");
+        if (caminho.isEmpty()) caminho = "index.html";
+
+        if (caminho == "gravacao.wav")
+        {
+            const auto& m = engine.wav();
+            std::vector<std::byte> d ((size_t) m.getSize());
+            if (m.getSize() > 0) std::memcpy (d.data(), m.getData(), m.getSize());
+            return WebBrowserComponent::Resource { std::move (d), "audio/wav" };
+        }
+
+        const auto nome = caminho.fromLastOccurrenceOf ("/", false, false);
+        for (int i = 0; i < BinaryData::namedResourceListSize; ++i)
+        {
+            if (nome != BinaryData::originalFilenames[i]) continue;
+            int tam = 0;
+            const char* dados = BinaryData::getNamedResource (BinaryData::namedResourceList[i], tam);
+            std::vector<std::byte> d ((size_t) tam);
+            std::memcpy (d.data(), dados, (size_t) tam);
+            return WebBrowserComponent::Resource { std::move (d), tipoMime (nome) };
+        }
+        return std::nullopt;
+    }
+
+    static String tipoMime (const String& nome)
+    {
+        if (nome.endsWith (".html")) return "text/html; charset=utf-8";
+        if (nome.endsWith (".js"))   return "text/javascript; charset=utf-8";
+        if (nome.endsWith (".png"))  return "image/png";
+        if (nome.endsWith (".webmanifest")) return "application/manifest+json";
+        return "application/octet-stream";
+    }
+
+    // 30 vezes por segundo: nível da entrada, picos para a onda ao vivo e medições do teste
+    void timerCallback() override
+    {
+        auto* o = new DynamicObject();
+        o->setProperty ("pico", Array<var> { engine.pico (0), engine.pico (1) });
+        o->setProperty ("gravando", engine.gravando());
+        o->setProperty ("frames", engine.framesGravados());
+        auto picos = engine.pegarPicosNovos();
+        if (! picos.isEmpty()) o->setProperty ("picos", picos);
+        auto medidas = engine.pegarMedidas();
+        if (! medidas.isEmpty()) o->setProperty ("medidas", medidas);
+        web.emitEventIfBrowserIsVisible ("estudioNivel", var (o));
+    }
+
+    int contagem = 0;
+    String roteiro;
+    std::unique_ptr<PlacaDeTeste> placaTeste;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EstudioView)
+};
+
+//==============================================================================
+class JanelaPrincipal : public DocumentWindow
+{
+public:
+    JanelaPrincipal (AudioEngine& e, const String& roteiro)
+        : DocumentWindow ("Estúdio", Colour (0xff141518), DocumentWindow::allButtons)
+    {
+        setUsingNativeTitleBar (true);
+        setContentOwned (new EstudioView (e, roteiro), false);
+        setResizable (true, true);
+        setResizeLimits (900, 600, 10000, 10000);
+        centreWithSize (1400, 900);
+        setVisible (true);
+    }
+
+    void closeButtonPressed() override { JUCEApplication::getInstance()->systemRequestedQuit(); }
+};
+
+class EstudioApp : public JUCEApplication
+{
+public:
+    const String getApplicationName() override    { return "Estúdio"; }
+    const String getApplicationVersion() override { return JUCE_APPLICATION_VERSION_STRING; }
+    bool moreThanOneInstanceAllowed() override    { return false; }
+
+    void initialise (const String&) override
+    {
+        engine = std::make_unique<AudioEngine>();
+        // --autoteste=roteiro.js: roda a interface com uma placa simulada e um roteiro de cliques
+        String roteiro;
+        for (auto& arg : getCommandLineParameterArray())
+            if (arg.startsWith ("--autoteste="))
+                roteiro = File (arg.fromFirstOccurrenceOf ("=", false, false).unquoted()).loadFileAsString();
+        if (roteiro.isEmpty()) engine->iniciar();
+        janela = std::make_unique<JanelaPrincipal> (*engine, roteiro);
+    }
+
+    void shutdown() override
+    {
+        janela = nullptr;
+        engine = nullptr;
+    }
+
+    void systemRequestedQuit() override { quit(); }
+
+private:
+    std::unique_ptr<AudioEngine> engine;
+    std::unique_ptr<JanelaPrincipal> janela;
+};
+
+START_JUCE_APPLICATION (EstudioApp)

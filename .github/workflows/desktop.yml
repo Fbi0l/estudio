@@ -1,0 +1,64 @@
+name: Estudio Desktop (Windows)
+
+on:
+  push:
+    branches: [desktop, main]
+    paths: ['desktop/**', 'index.html', 'lame.min.js', 'icons/**', '.github/workflows/desktop.yml']
+    tags: ['desktop-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: SDK do WebView2
+        shell: pwsh
+        run: |
+          Register-PackageSource -ProviderName NuGet -Name nugetRepository -Location https://www.nuget.org/api/v2 -Force -ErrorAction SilentlyContinue | Out-Null
+          Install-Package Microsoft.Web.WebView2 -Scope CurrentUser -RequiredVersion 1.0.2903.40 -Source nugetRepository -Force | Out-Null
+
+      - name: SDK do ASIO (GPLv3)
+        run: git clone --depth 1 https://codeberg.org/rubiefawn/asiosdk asiosdk
+
+      - name: Configurar
+        run: cmake -S desktop -B build -G "Visual Studio 17 2022" -A x64 -DASIO_SDK_DIR="${{ github.workspace }}/asiosdk"
+
+      - name: Compilar
+        run: cmake --build build --config Release --target EstudioDesktop EngineTest --parallel
+
+      - name: Teste do motor
+        run: build\EngineTest_artefacts\Release\EngineTest.exe
+
+      - name: Teste de ponta a ponta (interface + motor, placa simulada)
+        shell: pwsh
+        run: |
+          $exe = "build\EstudioDesktop_artefacts\Release\Estudio.exe"
+          $p = Start-Process $exe -ArgumentList "--autoteste=$pwd\desktop\autoteste.js" -PassThru
+          if (-not $p.WaitForExit(120000)) { $p.Kill(); Write-Host "tempo esgotado" }
+          Get-Content autoteste.log -Encoding utf8
+          if (-not (Select-String -Path autoteste.log -Pattern "TODOS OS TESTES PASSARAM" -Quiet)) { exit 1 }
+
+      - name: Instalador
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress | Out-Null
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DFonte="$pwd\build\EstudioDesktop_artefacts\Release" /O"$pwd\saida" desktop\instalador\estudio.iss
+          Compress-Archive -Path build\EstudioDesktop_artefacts\Release\Estudio.exe -DestinationPath saida\Estudio-portatil.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Estudio-Desktop-Windows
+          path: saida/*
+
+      - name: Publicar versão
+        if: startsWith(github.ref, 'refs/tags/desktop-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: saida/*
+          name: Estúdio Desktop ${{ github.ref_name }}

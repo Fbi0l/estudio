@@ -60,3 +60,15 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 ## Versão 1.0.0 — Primeira versão
 
 - Gravação sem perdas com assistente, edição, efeitos, masterização por LUFS, exportação WAV/MP3, instalável e offline.
+
+---
+
+# Estúdio Desktop (Windows) — em desenvolvimento
+
+App instalável para Windows com a mesma interface do Estúdio e um **motor de áudio nativo** (JUCE 8): drivers ASIO e WASAPI (compartilhado, baixa latência e exclusivo), escolha de buffer com o atraso real, retorno direto no fone e gravação em 32 bits sem perdas, sem passar pelo mixer do Windows. O celular continua no PWA.
+
+- Código em `desktop/`: `Source/AudioEngine.*` (motor), `Source/Main.cpp` (janela, interface embutida e ponte JS ↔ C++), `Source/EngineTest.cpp` (teste do motor sem placa), `autoteste.js` (teste de ponta a ponta com placa simulada), `gerar_web.py` (cópia da interface com acentos em códigos ASCII).
+- Compilação e instalador: GitHub Actions (`.github/workflows/desktop.yml`), que também roda os dois testes no Windows. Tag `desktop-vX.Y.Z` publica o instalador em Releases.
+- Fases: **A** motor nativo (esta) · **B** plugins VST3 · **C** multipista no motor nativo.
+
+**Licenças:** o Estúdio é GPLv3 (`LICENSE`). Usa JUCE 8 (AGPLv3/licença Starter), VST3 SDK (MIT), ASIO SDK (GPLv3) e lamejs (LGPL-3.0).
