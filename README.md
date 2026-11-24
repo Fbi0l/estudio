@@ -6,6 +6,14 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.6.1 — Gravação crua protegida
+
+- O teste do microfone avisa quando um noise gate fora do app (Windows ou pedaleira) zera o som nas pausas; a gravação avisa quando houve cortes entre as notas ou palavras.
+- Pede ao navegador para não aplicar isolação de voz (gravação crua).
+- Efeitos → Utilidades: **Aparar silêncio das pontas**.
+- Exportar avisa quando o volume está baixo para publicar e oferece o acabamento antes.
+- Reconhece a Joyo Momix CAB com dicas próprias; esconde a entrada duplicada "Comunicações" do Windows.
+
 ## Versão 1.6.0 — Projetos salvos no aparelho
 
 - Cada trabalho vira um **projeto salvo automaticamente** no próprio aparelho (IndexedDB), 1,2 s depois de cada mudança. O histórico de desfazer não é guardado.
