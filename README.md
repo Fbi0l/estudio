@@ -6,6 +6,12 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.6.3 — Diagnóstico de qualidade do sinal
+
+- Teste do microfone mede até onde vão os agudos e avisa quando algo no caminho abafa o som (voz) ou informa o limite (guitarra com simulador de caixa).
+- Depois de gravar, separa queda de conexão (som some por mais de 1,5 s) de gate (cortes curtos) e aponta a causa.
+- Dica da Joyo Momix CAB: corta os agudos; para gravar, ligar a pedaleira direto na USB.
+
 ## Versão 1.6.2 — Novo motor de captura
 
 - A gravação e o teste do microfone usam **AudioWorklet**, que roda numa linha de áudio própria, separada da tela. Com a tela sobrecarregada, o teste caiu de 35 cortes (motor antigo) para nenhum além do início.

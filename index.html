@@ -721,9 +721,9 @@ function latInfo(s){const el=$('#monSub');if(!s){if(!el.classList.contains('lat'
 function findGaps(b){
   const d=b.getChannelData(0),n=d.length,sr=b.sampleRate,min=Math.round(.005*sr);
   let first=-1,last=-1;for(let i=0;i<n;i++)if(d[i]!==0){first=i;break}for(let i=n-1;i>=0;i--)if(d[i]!==0){last=i;break}
-  if(first<0)return{n:0,max:0};let cnt=0,mx=0,run=0;
-  for(let i=first;i<=last;i++){if(d[i]===0)run++;else{if(run>=min){cnt++;if(run>mx)mx=run}run=0}}
-  return{n:cnt,max:Math.round(mx/sr*1000)};
+  if(first<0)return{n:0,max:0,longos:[]};let cnt=0,mx=0,run=0;const longos=[],lim=Math.round(1.5*sr);
+  for(let i=first;i<=last;i++){if(d[i]===0)run++;else{if(run>=lim)longos.push([(i-run)/sr,run/sr]);else if(run>=min){cnt++;if(run>mx)mx=run}run=0}}
+  return{n:cnt,max:Math.round(mx/sr*1000),longos};
 }
 /* separa os canais: no automático, descobre se o sinal veio só de uma entrada */
 function pickChannels(b){
@@ -763,7 +763,7 @@ async function captura(c,aoPedaco){
   motor='ScriptProcessor (reserva)';
   return{node,parar:async()=>{},fechar:()=>{}};
 }
-function closeMic(s){unmonitor(s);s.cap?.fechar();s.proc.disconnect();s.src.disconnect();s.z.disconnect();s.stream.getTracks().forEach(t=>t.stop())}
+function closeMic(s){unmonitor(s);s.cap?.fechar();try{s.an?.disconnect()}catch(e){}s.proc.disconnect();s.src.disconnect();s.z.disconnect();s.stream.getTracks().forEach(t=>t.stop())}
 async function startRec(){
   if(rec)return stopRec();if(test)return toast('Espere o teste do microfone terminar');
   stopPlay();let stream;try{stream=await openMic()}catch(e){return toast(e.message,5000)}
@@ -771,7 +771,8 @@ async function startRec(){
   const src=c.createMediaStreamSource(stream),z=c.createGain();z.gain.value=0;
   const data=[[],[]],punch=$('#place').value==='punch'&&sel&&buf?{...sel}:null;
   if($('#place').value==='punch'&&!punch)toast('Sem seleção: a gravação entra no cursor',3500);
-  const r={stream,src,proc:null,z,data,nch,len:0,peaks:[],lvl:0,max:0,clips:[],armed:$('#count').checked?3:0,punch,done:false};
+  const r={stream,src,proc:null,z,data,nch,len:0,peaks:[],lvl:0,max:0,clips:[],armed:$('#count').checked?3:0,punch,done:false,mutes:[]};
+  {const tr=stream.getAudioTracks()[0];tr.addEventListener('mute',()=>{if(!r.done)r.mutes.push(r.len/sr)})}
   r.cap=await captura(c,chs=>{if(r.done)return;const n=chs[0].length;let m=0;
     for(let ch=0;ch<nch;ch++){const d=chs[ch];for(let i=0;i<n;i++){const v=d[i]<0?-d[i]:d[i];if(v>m)m=v;
       if(v>=.995&&!r.armed){const t=(r.len+i)/sr;if(!r.clips.length||t-r.clips[r.clips.length-1]>.5)r.clips.push(t)}}}
@@ -796,6 +797,7 @@ async function stopRec(){
   const pk=Math.min(0,dB(peak(b))),v=[['', 'Última gravação', fmt(b.duration)+' · pico '+dBs(pk)+(b.numberOfChannels>1?' · estéreo':' · mono')]];
   if(pc.msg)v.push(['','Canais',pc.msg]);
   const gp=findGaps(b);
+  if(gp.longos.length){const[t0,du]=gp.longos[0];v.push(['bad','O som parou de chegar',`por ${du.toFixed(1).replace('.',',')} s a partir de ${fmt(t0).slice(0,5)}${gp.longos.length>1?' (e mais '+(gp.longos.length-1)+(gp.longos.length>2?' vezes)':' vez)'):''}${r.mutes.length?'; o sistema avisou que a entrada foi interrompida':''}. Não é gate: é a ligação entre a placa ou pedaleira e o computador. Troque a porta USB (de preferência direto no computador, sem hub), confira o cabo ou ligue o equipamento direto, sem intermediários.`])}
   if(gp.n>=2)v.push(['bad','Cortes no som','o sinal sumiu por completo '+gp.n+' vezes (até '+gp.max+' ms) '+(isVoz()?'entre as palavras':'entre as notas')+'. Isso é um noise gate fora do app cortando o fim do som: nas “Melhorias de áudio” do Windows (Configurações → Sistema → Som → o seu microfone) ou na redução de ruído da '+(isVoz()?'placa':'pedaleira ou placa')+'. Desligue para gravar cru e limpe depois, em Efeitos.']);
   if(r.clips.length)v.push(['bad',r.clips.length+(r.clips.length>1?' estouros':' estouro'),'marcados em vermelho na onda. Estouro não tem conserto: selecione o trecho e regrave (Novo áudio → Regrava a seleção).']);
   else if(pk<-24)v.push(['mid','Ficou baixa',isVoz()?'o tratamento sobe o volume, mas o ruído de fundo sobe junto. Na próxima, chegue mais perto do microfone.':'suba o volume da pedaleira ou o ganho da placa na próxima. Subir depois aumenta o chiado junto.']);
@@ -811,7 +813,8 @@ async function micTest(){
   t.cap=await captura(c,chs=>{if(test!==t)return;const ch=chanSel(),cs=ch==='1'?[0]:ch==='2'?[1]:[0,1],len=chs[0].length;let s=0,m=0;
     for(const k of cs){const d=chs[k];let q=0;for(let i=0;i<len;i++){const v=d[i];q+=v*v;const a=v<0?-v:v;if(a>m)m=a}if(q>s)s=q}
     const r=Math.sqrt(s/len),el=(performance.now()-t.t0)/1000;t.lvl=Math.max(m,t.lvl*.85);
-    if(el>.6&&el<4){t.noise.push(r);const d0=chs[cs[0]];for(let i=0;i<len;i++)if(d0[i]===0)t.zeros++;t.tot+=len}else if(el>=4.6&&el<10){t.voice.push(r);if(m>t.peak)t.peak=m}else if(el>=10)finishTest()});
+    if(el>.6&&el<4){t.noise.push(r);const d0=chs[cs[0]];for(let i=0;i<len;i++)if(d0[i]===0)t.zeros++;t.tot+=len}else if(el>=4.6&&el<10){t.voice.push(r);if(m>t.peak)t.peak=m;t.an.getFloatFrequencyData(t.tmp);for(let i=0;i<t.tmp.length;i++)t.spec[i]+=Math.pow(10,Math.max(-200,t.tmp[i])/10);t.specN++}else if(el>=10)finishTest()});
+  t.an=c.createAnalyser();t.an.fftSize=8192;t.an.smoothingTimeConstant=0;src.connect(t.an);t.spec=new Float64Array(t.an.frequencyBinCount);t.specN=0;t.tmp=new Float32Array(t.an.frequencyBinCount);
   t.proc=t.cap.node;test=t;t.t0=performance.now();t.mon=monitor(t);
   src.connect(t.proc);t.proc.connect(z);z.connect(c.destination);$('#test').disabled=true;$('#rec').disabled=true;listDevs();
 }
@@ -832,6 +835,12 @@ function finishTest(){
   out.push(snr>=30?['good',V+' × ruído: excelente',f(snr)+' de folga.']:snr>=20?['good',V+' × ruído: boa',f(snr)+'. O fundo some com o acabamento.']:snr>=12?['mid',V+' × ruído: razoável',f(snr)+'. O fundo vai aparecer nas pausas; o acabamento ameniza, mas não apaga.']:['bad',V+' × ruído: fraca',f(snr)+'. O ruído compete com o sinal e nenhum filtro conserta isso bem.'+(vz?' Vale mudar o ambiente ou a posição.':' Ajuste ganho e cabos antes de gravar.')]);
   if(gate){out[0]=['','Ruído de fundo: não medido','com o gate ligado, o chiado real fica escondido; ele vai aparecer quando o gate for desligado.'];out.pop()}
   if(gate)out.unshift(['mid','Silêncio absoluto na pausa','algo fora do app está cortando o som quando ele fica baixo (noise gate). Isso corta o fim das '+(vz?'palavras':'notas')+'. Desligue as “Melhorias de áudio” do Windows para este dispositivo e a redução de ruído da '+(vz?'placa':'pedaleira')+', se houver. O app grava cru, e a limpeza se faz depois, em Efeitos.']);
+  if(t.specN){const sp=Array.from(t.spec,v=>10*Math.log10(v/t.specN+1e-30)),hz=AC().sampleRate/2/sp.length,band=f=>Math.round(f/hz);let ref=-300;for(let i=band(200);i<band(4000);i++)if(sp[i]>ref)ref=sp[i];
+   let top=0;const sm=i=>(sp[i-2]+sp[i-1]+sp[i]+sp[i+1]+sp[i+2])/5;for(let i=sp.length-3;i>band(1000);i--)if(sm(i)>ref-45){top=i*hz;break}
+   const k=(top/1000).toLocaleString('pt-BR',{maximumFractionDigits:1});
+   if(top&&top<11000)out.push(vz?['mid','Agudos até ~'+k+' kHz','a voz está chegando abafada. Algo no caminho corta os agudos: microfone Bluetooth, modo de comunicação do Windows ou um simulador de caixa. Escolha a entrada direta do microfone ou da placa.']
+     :['','Agudos até ~'+k+' kHz','normal para guitarra com simulador de caixa. Se uma base ou outro instrumento passa pelo mesmo caminho, também chega abafado: para gravar, ligue a pedaleira direto na USB, sem aparelhos no meio.']);
+   else if(top>=11000)out.push(['good','Agudos até ~'+k+' kHz','o som chega com brilho, sem nada cortando os agudos.'])}
   if(vz&&!gate)out.push(['','Redutor de ruído calibrado','limiar em '+roomThr()+' dB, a partir da sua sala.']);
   verd(out);$('#side').scrollTop=0;
   const g=document.querySelector('.card[data-k="4"] input[data-id="thr"]');if(g){g.value=roomThr();g.nextElementSibling.textContent=g.value+' dB'}
@@ -840,7 +849,7 @@ function finishTest(){
 /* ---------- reconhece o equipamento pelo nome ---------- */
 const GEAR=[
  {re:/cuvave|m-?vave|cube ?baby|tank-?[gb]/i,n:'Pedaleira Cuvave / M-Vave',src:'pedal',tip:'O som já sai com amp e efeitos da pedaleira. Para se ouvir sem atraso, ligue o fone na própria pedaleira e deixe “Me ouvir no fone” desligado. O volume gravado é o master da pedaleira: no teste, deixe o pico entre −12 e −6 dB.'},
- {re:/momix-?\s?cab/i,n:'Joyo Momix CAB',src:'pedal',tip:'O nível da gravação é o volume da própria Momix CAB: use os botões + e − dela até o teste mostrar pico entre −12 e −6 dB. Ligue o fone na saída 3,5 mm da Momix para se ouvir sem atraso e deixe “Me ouvir no fone” desligado. Ela grava em mono; deixe Canal no automático.'},
+ {re:/momix-?\s?cab/i,n:'Joyo Momix CAB',src:'pedal',tip:'A Momix CAB simula uma caixa de guitarra e corta os agudos de tudo que passa por ela, inclusive uma base tocada pelo Bluetooth da pedaleira. Para gravar com qualidade, ligue a pedaleira direto na USB do computador. Se usar a Momix, o nível é o volume dela: use os botões + e − até o teste mostrar pico entre −12 e −6 dB. Ligue o fone na saída 3,5 mm da Momix para se ouvir sem atraso e deixe “Me ouvir no fone” desligado. Ela grava em mono; deixe Canal no automático.'},
  {re:/joyo|momix/i,n:'Interface Joyo',src:'pedal',tip:'Ligue o fone na saída da própria Joyo para se ouvir sem atraso e deixe “Me ouvir no fone” desligado. Se o som do computador aparecer na gravação, desligue a chave de monitor/loopback da Joyo. Alguns modelos gravam em 16 bits, o que é suficiente para MP3 e WAV 16.'},
  {re:/valeton|mooer|nux|sonicake|hotone|ammoon|lekato|flamma|donner|headrush|ampero|gp-?\d00/i,n:'Pedaleira / processador',src:'pedal',tip:'O som já sai processado. Ouça pelo fone ligado na pedaleira (atraso zero) e deixe “Me ouvir no fone” desligado. Ajuste o nível pelo master da pedaleira.'},
  {re:/scarlett|focusrite|umc|behringer|m-?track|m-?audio|audiobox|presonus|steinberg|\bur ?\d|minifuse|arturia|tascam|rubix|roland|motu|audient|\bevo\b|\bssl\b|yamaha|irig|line ?6|pod |esi |icon |solo|vocaster|go:?xlr|rodecaster|universal audio|volt/i,n:'Interface de áudio',src:null,tip:'Para se ouvir sem atraso, use o “Direct Monitor” da interface e deixe “Me ouvir no fone” desligado. Microfone numa entrada e instrumento na outra? Escolha o Canal abaixo ou deixe no automático.'},
@@ -1149,7 +1158,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.6.2',GUIA_REVISADO_NA_VERSAO='1.6.0';
+const APP_VERSION='1.6.3',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Estúdio',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',
