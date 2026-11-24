@@ -6,6 +6,14 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.6.0 — Projetos salvos no aparelho
+
+- Cada trabalho vira um **projeto salvo automaticamente** no próprio aparelho (IndexedDB), 1,2 s depois de cada mudança. O histórico de desfazer não é guardado.
+- Ao abrir o app, o **último projeto volta sozinho**.
+- Menu **☰** (canto superior esquerdo): novo projeto, abrir, apagar (com confirmação) e espaço usado no aparelho.
+- Antes de reiniciar para atualizar, o app salva o projeto. Primeiro passo da multipista.
+- Guia, Sobre o app e justificativa atualizados.
+
 ## Versão 1.5.0 — Guia de uso e Sobre o app
 
 - **Como usar o app** (botão "?" no topo): guia em 9 passos com todas as funções. Abre sozinho no primeiro acesso; depois, pelo "?", pelo ⓘ ou pelo rodapé.

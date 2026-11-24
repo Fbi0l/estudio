@@ -51,7 +51,8 @@ input.sw:disabled{opacity:.4}
 /* ---------- casca do app ---------- */
 .app{display:grid;height:100vh;height:100dvh;grid-template-columns:minmax(0,1fr) clamp(320px,28vw,380px);grid-template-rows:auto 52px minmax(0,1fr) auto;grid-template-areas:"bar bar" "tools tabs" "work side" "trans trans"}
 .appbar{grid-area:bar;display:flex;align-items:center;gap:10px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));border-bottom:1px solid var(--line);background:var(--panel)}
-.logo{width:34px;height:34px;border-radius:9px;background:#26282e;display:grid;place-items:center;flex:none;position:relative}
+.logo{width:34px;height:34px;border-radius:9px;background:#26282e;display:grid;place-items:center;flex:none;position:relative;padding:0;min-height:0;border:1px solid transparent}
+button.logo{width:40px;height:40px}button.logo:hover{border-color:var(--line);background:var(--panel2)}
 .logo::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--rec)}
 .ttl{display:flex;flex-direction:column;min-width:0;flex:0 1 340px}
 #fname{background:transparent;border-color:transparent;font-weight:700;font-size:16px;min-height:30px;padding:0 6px;margin-left:-6px;width:100%;border-radius:8px}
@@ -191,6 +192,9 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
 .link{background:none;border:0;padding:0;min-height:0;color:var(--selb);font-size:12px;text-decoration:underline;text-underline-offset:2px;display:inline}
 .link:hover{background:none;color:#a5c4ff}
 @media(prefers-reduced-motion:reduce){.tut-ponto::after{transition:none}}
+.proj.atual{background:#202a3d}.proj b{font-weight:600}.pacts{display:flex;gap:6px;align-items:center;flex:none}
+.perigo{background:#3a1d1c;border-color:#7a2e2a;color:#ffb4ae}.perigo:hover{background:#4a2321;border-color:var(--rec)}
+#projLista{max-height:min(52vh,460px);overflow-y:auto}
 #expName{font:500 13px 'JetBrains Mono',monospace;color:var(--mute);word-break:break-all}
 .dlg .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
 .toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,10px);background:var(--ink);color:#141518;padding:10px 16px;border-radius:12px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:min(90vw,520px);z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.4)}
@@ -258,13 +262,15 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
  <symbol id="i-wand" viewBox="0 0 24 24"><path d="m3 21 12-12M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8 19 13M17.8 6.2 19 5M12.2 6.2 11 5"/></symbol>
  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></symbol>
+ <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="i-proj" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
  <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></symbol>
 </defs></svg>
 
 <div class="app" id="app" data-tab="rec">
   <header class="appbar">
-    <div class="logo" aria-hidden="true"><svg class="i"><use href="#i-mic"/></svg></div>
+    <button class="logo" id="projBtn" aria-label="Projetos" title="Projetos"><svg class="i"><use href="#i-proj"/></svg></button>
     <div class="ttl"><input type="text" id="fname" value="gravacao" aria-label="Nome do projeto" spellcheck="false" autocomplete="off"><span id="sub">Nenhum áudio ainda</span></div>
     <span id="offline" hidden>offline</span>
     <div class="bar-act">
@@ -394,6 +400,14 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
     <div class="acts"><button id="expCancel">Cancelar</button><button class="pri" id="export"><svg class="i"><use href="#i-share"/></svg>Exportar</button></div>
   </div>
 </dialog>
+<dialog id="projDlg" aria-labelledby="projT">
+  <div class="dlg">
+    <div class="dlg-topo"><h2 id="projT">Seus projetos</h2><button class="ib" type="button" data-fechar aria-label="Fechar">✕</button></div>
+    <button class="go wide" id="projNovo" type="button"><svg class="i"><use href="#i-plus"/></svg>Novo projeto</button>
+    <div class="list" id="projLista"></div>
+    <p class="hint" id="projUso"></p>
+  </div>
+</dialog>
 <dialog id="tutorialDialog" class="dlg-tut" aria-labelledby="tutTitulo" aria-describedby="tutTexto">
   <div class="dlg">
     <div class="dlg-topo"><span id="tutContagem" class="tut-contagem" aria-live="polite"></span><button id="tutFechar" class="ib" type="button" aria-label="Fechar o guia">✕</button></div>
@@ -431,11 +445,12 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
         <li>editar o áudio e aplicar efeitos com a opção de desfazer qualquer passo;</li>
         <li>deixar o áudio no volume usado pelas plataformas com um único comando;</li>
         <li>funcionar com placas de áudio e pedaleiras de guitarra, além do microfone do aparelho;</li>
+        <li>guardar cada trabalho automaticamente como projeto no próprio aparelho;</li>
         <li>manter o áudio no próprio aparelho, sem envio pela internet.</li>
       </ol>
       <h4>2.3 Funcionamento</h4>
       <p>O Estúdio não tem cadastro nem senha. Ao abrir, a pessoa encontra a forma de onda no centro, o botão de gravar embaixo e quatro áreas: Gravar, Editar, Efeitos e Finalizar. No computador, as ferramentas de edição ficam numa barra acima da onda; no celular, numa aba própria.</p>
-      <p>Antes de gravar, o teste do microfone leva dez segundos. Nos quatro primeiros, mede o ruído da sala em silêncio e, nos seguintes, o volume da voz ou do instrumento. O resultado informa se a sala está silenciosa, se o nível está adequado e se a diferença entre o som e o ruído é suficiente, e a redução de ruído passa a usar essa medição. A gravação é feita sem compressão, com contagem regressiva opcional. Ao terminar, o sistema mostra o pico alcançado e marca em vermelho os pontos em que o som estourou.</p>
+      <p>Antes de gravar, o teste do microfone leva dez segundos. Nos quatro primeiros, mede o ruído da sala em silêncio e, nos seguintes, o volume da voz ou do instrumento. O resultado informa se a sala está silenciosa, se o nível está adequado e se a diferença entre o som e o ruído é suficiente, e a redução de ruído passa a usar essa medição. A gravação é feita sem compressão, com contagem regressiva opcional, e cada trabalho fica guardado como projeto no próprio aparelho, salvo a cada alteração e reaberto quando o aplicativo volta a ser usado. Ao terminar, o sistema mostra o pico alcançado e marca em vermelho os pontos em que o som estourou.</p>
       <p>Quando a entrada é uma placa de áudio ou pedaleira, o sistema reconhece alguns modelos pelo nome, como Cuvave, Joyo e Focusrite, e mostra orientações próprias para cada um. A pessoa indica se está gravando voz, instrumento direto ou pedaleira, e o sistema ajusta o retorno no fone, o teste e o acabamento. Se o sinal chegar só por uma das entradas da placa, a gravação é convertida para mono no volume correto. O retorno no fone mostra o atraso estimado e recomenda o retorno direto da placa quando esse atraso atrapalha.</p>
       <p>Na edição, o trecho é selecionado arrastando sobre a onda e pode ser recortado, copiado, colado, excluído ou silenciado. Os efeitos incluem ganho, normalização, fades, equalizador, compressor, redução de ruído, eco e reverb, aplicados ao trecho selecionado ou ao áudio todo. A finalização ajusta o volume ao padrão das plataformas, medido em LUFS (unidade de volume percebido), com −16 LUFS para voz e −14 LUFS para música. Ela também reduz o ruído nas pausas e limita os picos. O resultado é exportado em MP3 ou WAV.</p>
       <h4>2.4 Benefícios</h4>
@@ -444,7 +459,7 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
       <p>Para músicos, a ligação com placas e pedaleiras evita arquivos com som de um lado só e explica como ouvir o instrumento sem atraso. Como o sistema funciona no navegador, a mesma ferramenta serve no computador e no celular, sem a instalação de programas pesados.</p>
       <h4>2.5 Privacidade e proteção de dados</h4>
       <p>A voz pode identificar uma pessoa e, por isso, é tratada como dado pessoal pela Lei Geral de Proteção de Dados Pessoais (LGPD, Lei nº 13.709/2018). No Estúdio, todo o processamento acontece no próprio aparelho. O áudio gravado não é enviado a nenhum servidor, o sistema não pede cadastro e não guarda informações de quem o usa.</p>
-      <p>O acesso ao microfone depende da autorização dada no navegador e pode ser retirado a qualquer momento nas configurações. Como o áudio não fica salvo no sistema, ele deve ser exportado antes de o aplicativo ser fechado.</p>
+      <p>O acesso ao microfone depende da autorização dada no navegador e pode ser retirado a qualquer momento nas configurações. Os projetos ficam guardados apenas no aparelho, no armazenamento do navegador. Se os dados do navegador forem apagados ou o aplicativo for desinstalado, os projetos também são, e por isso os trabalhos importantes devem ser exportados.</p>
       <h4>2.6 Custos</h4>
       <p>O sistema foi desenvolvido internamente e é publicado em um serviço gratuito de hospedagem de páginas, o GitHub Pages. O codificador de MP3 usado é de código aberto. Não há licença, mensalidade ou contrato com fornecedor.</p>
       <h3>3 Considerações finais</h3>
@@ -631,7 +646,7 @@ function master(pi,whole){
     return x;
   },{whole:!!whole});
 }
-let mt;function measure(){clearTimeout(mt);stats();if(!buf)return;mt=setTimeout(async()=>{const b=buf;const l=await lufs(b);if(b===buf)$('#sLu').textContent=isFinite(l)?l.toFixed(1)+' LUFS':'—'},350)}
+let mt;function measure(){saveSoon();clearTimeout(mt);stats();if(!buf)return;mt=setTimeout(async()=>{const b=buf;const l=await lufs(b);if(b===buf)$('#sLu').textContent=isFinite(l)?l.toFixed(1)+' LUFS':'—'},350)}
 function stats(){if(!buf){['#sDur','#sFmt','#sPk','#sLu'].forEach(s=>$(s).textContent='—');return}
   $('#sDur').textContent=fmt(buf.duration);$('#sFmt').textContent=(buf.sampleRate/1000)+' kHz · '+(buf.numberOfChannels>1?'estéreo':'mono');$('#sPk').textContent=dBs(dB(peak(buf)));$('#sLu').textContent='medindo…'}
 
@@ -882,7 +897,7 @@ function ui(){
   const hb=!!buf,hs=!!sel&&!rec;
   ['#cut','#copy','#del','#trim','#mute','#zsel'].forEach(i=>$(i).disabled=!hs);$('#paste').disabled=!clip||!!rec;
   ['#addsil','#selall','#zin','#zout','#zfit','#play','#stop'].forEach(i=>$(i).disabled=!hb&&!rec);$('#play').disabled=!hb||!!rec;
-  $('#sub').textContent=rec?(rec.armed?'Prepare-se…':'● Gravando'):hb?fmt(buf.duration)+' · '+(buf.sampleRate/1000).toLocaleString('pt-BR')+' kHz · '+(buf.numberOfChannels>1?'estéreo':'mono'):'Nenhum áudio ainda';
+  $('#sub').textContent=rec?(rec.armed?'Prepare-se…':'● Gravando'):hb?fmt(buf.duration)+' · '+(buf.sampleRate/1000).toLocaleString('pt-BR')+' kHz · '+(buf.numberOfChannels>1?'estéreo':'mono')+(saveLbl?' · '+saveLbl:''):'Nenhum áudio ainda';
   $('.scrollbar').style.visibility=hb?'visible':'hidden';const sc=$('#scroll');sc.disabled=!buf||view.d>=buf.duration;if(buf&&buf.duration>view.d)sc.value=Math.round(view.s/(buf.duration-view.d)*1000);
 }
 function refresh(){ui();draw()}
@@ -938,7 +953,7 @@ document.addEventListener('keydown',e=>{
   else if(k==='escape'){sel=null;refresh()}
 });
 let leaving=false;
-window.addEventListener('beforeunload',e=>{if(buf&&hist.length&&!leaving){e.preventDefault();e.returnValue=''}});
+window.addEventListener('beforeunload',e=>{if((dirty||saving)&&!leaving){saveNow();e.preventDefault();e.returnValue=''}});
 /* ---------- PWA ---------- */
 let wl=null;
 async function keepAwake(on){try{if(on&&'wakeLock'in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}else if(!on&&wl){await wl.release();wl=null}}catch(e){}}
@@ -966,9 +981,10 @@ async function checkUpdate(){
   await new Promise(res=>{if(w.state==='activated')return res();w.addEventListener('statechange',()=>{if(w.state==='activated'||w.state==='redundant')res()})});
   updReady(false);checking=false;
 }
-function restart(){
+async function restart(){
   if(rec||test)return $('#updTxt').textContent='Termine a gravação antes de reiniciar.';
-  if(buf&&!armed){armed=true;$('#updTxt').textContent='O áudio aberto não fica salvo ao reiniciar. Exporte antes, ou toque de novo para reiniciar assim mesmo.';$('#updBtn').textContent='Reiniciar assim mesmo';return}
+  $('#updTxt').textContent='Salvando o projeto…';const ok=await saveNow();
+  if(!ok&&buf&&!armed){armed=true;$('#updTxt').textContent='Não consegui salvar o projeto. Exporte antes, ou toque de novo para reiniciar assim mesmo.';$('#updBtn').textContent='Reiniciar assim mesmo';return}
   leaving=true;$('#updTxt').textContent='Reiniciando…';location.reload();
 }
 function openAbout(){showVer();$('#modeTxt').textContent=isApp()?'App instalado':'No navegador'+(installEv&&!installed?' · pode instalar':'');showInstall();$('#aboutDlg').showModal()}
@@ -1000,13 +1016,87 @@ on('#expOpen',openExp);on('#expOpen2',openExp);on('#expCancel',()=>$('#expDlg').
 $('#expDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 on('#rec2',startRec);
 $('#fname').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
+/* ---------- projetos salvos no aparelho (IndexedDB) ---------- */
+// O áudio fica só neste aparelho. Cada mudança salva sozinha, 1,2 s depois; o histórico de desfazer não é guardado.
+let proj=null,saveT=null,saving=false,dirty=false,saveLbl='',persisted=false;
+const idb=new Promise((ok,no)=>{try{const r=indexedDB.open('estudio',1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('projetos',{keyPath:'id'});d.createObjectStore('audio')};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}});
+idb.catch(()=>{});
+const req=r=>new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+async function store(n,m){return (await idb).transaction(n,m||'readonly').objectStore(n)}
+const dbGet=async(s,k)=>req((await store(s)).get(k)),dbPut=async(s,v,k)=>req((await store(s,'readwrite')).put(v,k)),dbDel=async(s,k)=>req((await store(s,'readwrite')).delete(k)),dbAll=async s=>req((await store(s)).getAll());
+const novoNome=()=>{const d=new Date();return 'Gravação '+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})};
+function saveSoon(){if(!buf&&!proj)return;dirty=true;saveLbl='Salvando…';clearTimeout(saveT);saveT=setTimeout(saveNow,1200)}
+async function saveNow(){
+  clearTimeout(saveT);if(!dirty)return true;if(saving){saveT=setTimeout(saveNow,400);return false}
+  saving=true;dirty=false;const b=buf;
+  try{
+    if(!proj)proj={id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),created:Date.now()};
+    Object.assign(proj,{name:$('#fname').value.trim()||'Sem título',updated:Date.now(),dur:b?b.duration:0,ch:b?b.numberOfChannels:0,bytes:b?b.length*b.numberOfChannels*4:0});
+    if(b)await dbPut('audio',{sr:b.sampleRate,chs:chans(b)},proj.id);else await dbDel('audio',proj.id);
+    await dbPut('projetos',{...proj});
+    try{localStorage.setItem('estudio:ultimo',proj.id)}catch(e){}
+    if(!persisted){persisted=true;navigator.storage?.persist?.().catch(()=>{})}
+    saveLbl=dirty?'Salvando…':'Salvo no aparelho';ui();return true;
+  }catch(e){console.warn('salvar',e);dirty=true;saveLbl='Não salvo';ui();toast('Não consegui salvar o projeto no aparelho. Exporte para não perder o áudio.',6000);return false}
+  finally{saving=false}
+}
+async function openProject(id){
+  const p=await dbGet('projetos',id);if(!p)return false;
+  if(rec)stopRec();stopPlay();await saveNow();
+  const a=await dbGet('audio',id);let b=null;
+  if(a&&a.chs&&a.chs.length&&a.chs[0].length){
+    b=AC().createBuffer(a.chs.length,a.chs[0].length,a.sr);a.chs.forEach((d,c)=>b.copyToChannel(d,c));
+    if(a.sr!==AC().sampleRate){const o=new OfflineAudioContext(b.numberOfChannels,Math.ceil(b.duration*AC().sampleRate),AC().sampleRate),sc=o.createBufferSource();sc.buffer=b;sc.connect(o.destination);sc.start();b=await o.startRendering()}
+  }
+  proj=p;buf=b;hist=[];redo=[];clip=null;sel=null;cursor=0;markers=null;$('#fname').value=p.name;
+  fit();measure();clearTimeout(saveT);dirty=false;saveLbl='Salvo no aparelho';ui();
+  try{localStorage.setItem('estudio:ultimo',p.id)}catch(e){}
+  return true;
+}
+async function newProject(){
+  if(rec)stopRec();stopPlay();await saveNow();
+  proj=null;buf=null;hist=[];redo=[];clip=null;sel=null;cursor=0;markers=null;saveLbl='';$('#fname').value=novoNome();
+  try{localStorage.removeItem('estudio:ultimo')}catch(e){}
+  clampAll();refresh();measure();
+}
+const fmtData=t=>new Date(t).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const fmtMB=n=>n>=1e9?(n/1e9).toLocaleString('pt-BR',{maximumFractionDigits:1})+' GB':Math.max(1,Math.round(n/1e6))+' MB';
+async function listProjects(){
+  const l=$('#projLista');let ps=[];
+  try{await saveNow();ps=(await dbAll('projetos')).sort((a,b)=>b.updated-a.updated)}catch(e){l.innerHTML='<p class="hint">Este navegador não permite salvar projetos aqui. Use o app instalado ou outro navegador.</p>';return}
+  l.innerHTML=ps.length?ps.map(p=>`<div class="row-i proj${proj&&proj.id===p.id?' atual':''}" data-id="${esc(p.id)}"><span><b>${esc(p.name)}</b><small>${p.dur?fmt(p.dur).slice(0,5)+' · ':'vazio · '}${fmtData(p.updated)}${proj&&proj.id===p.id?' · aberto agora':''}</small></span><span class="pacts"><button class="ib pdel" type="button" aria-label="Apagar ${esc(p.name)}" title="Apagar"><svg class="i"><use href="#i-trash"/></svg></button>${proj&&proj.id===p.id?'':'<button type="button" class="popen">Abrir</button>'}</span></div>`).join(''):'<p class="hint" style="padding:14px">Nenhum projeto ainda. A primeira gravação vira um projeto, salvo sozinho.</p>';
+  try{const e=await navigator.storage.estimate();$('#projUso').textContent=`${ps.length} ${ps.length===1?'projeto':'projetos'} · usando ${fmtMB(e.usage||0)} no aparelho${e.quota?' de '+fmtMB(e.quota)+' disponíveis':''}. Os projetos ficam só neste aparelho e neste navegador.`}catch(e){$('#projUso').textContent='Os projetos ficam só neste aparelho e neste navegador.'}
+}
+function openProjDlg(){for(const x of document.querySelectorAll('dialog[open]'))x.close();$('#projDlg').showModal();listProjects()}
+on('#projBtn',openProjDlg);
+on('#projNovo',async()=>{await newProject();$('#projDlg').close();toast('Projeto novo. Grave ou abra um arquivo.')});
+$('#projLista').addEventListener('click',async e=>{
+  const row=e.target.closest('.proj');if(!row)return;const id=row.dataset.id;
+  if(e.target.closest('.popen')){if(await openProject(id)){$('#projDlg').close();toast('Projeto “'+proj.name+'” aberto')}return}
+  const del=e.target.closest('.pdel');if(!del)return;
+  if(!row.classList.contains('confirma')){row.classList.add('confirma');del.outerHTML='<button type="button" class="perigo pconf">Apagar de vez</button>';row.querySelector('small').textContent='O áudio deste projeto será apagado do aparelho. Não dá para desfazer.';return}
+});
+$('#projLista').addEventListener('click',async e=>{
+  const b=e.target.closest('.pconf');if(!b)return;const id=b.closest('.proj').dataset.id;
+  try{await dbDel('audio',id);await dbDel('projetos',id)}catch(x){return toast('Não consegui apagar agora.')}
+  if(proj&&proj.id===id){proj=null;dirty=false;await newProject()}
+  toast('Projeto apagado');listProjects();
+});
+$('#fname').addEventListener('change',()=>{if(buf||proj)saveSoon()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow()});
+window.addEventListener('pagehide',()=>{saveNow()});
+// ao abrir o app, volta ao último projeto
+(async()=>{let id=null;try{id=localStorage.getItem('estudio:ultimo')}catch(e){}
+  if(id){try{if(await openProject(id))toast('Projeto “'+proj.name+'” reaberto',3000)}catch(e){console.warn(e)}}
+  else $('#fname').value=novoNome();})();
+
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.5.0',GUIA_REVISADO_NA_VERSAO='1.5.0';
+const APP_VERSION='1.6.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Estúdio',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',
-  itens:['Funciona no navegador do computador e do celular, pode ser instalado como app e continua funcionando sem internet.','Tudo roda no seu aparelho: nenhum áudio é enviado para a internet.','Errou? Desfazer (a seta curva no topo ou Ctrl+Z) volta qualquer passo.']},
+  itens:['Funciona no navegador do computador e do celular, pode ser instalado como app e continua funcionando sem internet.','Tudo roda no seu aparelho: nenhum áudio é enviado para a internet.','Cada trabalho vira um projeto salvo sozinho no aparelho. O menu ☰, no canto superior esquerdo, lista seus projetos.','Errou? Desfazer (a seta curva no topo ou Ctrl+Z) volta qualquer passo.']},
  {icone:'●',titulo:'1. Gravar',
   texto:'O botão vermelho fica embaixo, no centro. Toque para começar e de novo para parar.',
   itens:['A contagem 3-2-1 dá tempo para se preparar. O tempo e o medidor de nível ficam ao lado do botão.','Durante a gravação, a tela não apaga.','Em “Novo áudio” você escolhe onde a gravação entra: no cursor, no final, substituindo tudo ou regravando só o trecho selecionado.','A gravação é feita sem compressão, na melhor qualidade que a entrada oferece.']},
@@ -1027,10 +1117,10 @@ const PASSOS_GUIA=[
   itens:['O acabamento acerta o volume para o padrão das plataformas, reduz o ruído nas pausas e segura os picos em −1 dB.','Em “Outras predefinições” há Podcast, Locução, Música e Natural, com o alvo de volume em LUFS.','Os quadros mostram duração, formato, pico e loudness do áudio.']},
  {icone:'⇪',titulo:'7. Exportar',
   texto:'O botão Exportar fica no canto superior direito.',
-  itens:['MP3 192 kbps é o recomendado para publicar. WAV guarda sem perdas, para continuar editando.','Dá para exportar só o trecho selecionado.','O nome do arquivo é o título no topo: toque nele para mudar.','O áudio não fica salvo no app. Exporte antes de fechar.']},
+  itens:['MP3 192 kbps é o recomendado para publicar. WAV guarda sem perdas, para continuar editando.','Dá para exportar só o trecho selecionado.','O nome do arquivo é o título no topo: toque nele para mudar.','O projeto fica salvo no aparelho, mas só dentro do app. Exporte para usar o áudio em outro lugar.']},
  {icone:'?',titulo:'Pronto para começar',
   texto:'No ⓘ do topo ficam a versão, a busca por atualização, a instalação do app e o “Sobre o app”.',
-  itens:['Para rever este guia, toque em “?” no topo.','No computador: Espaço toca e pausa, R grava, L repete, Delete exclui, Ctrl+A seleciona tudo.','Dica: faça o teste do microfone antes da primeira gravação.']}
+  itens:['No menu ☰ você cria um projeto novo, abre um antigo ou apaga o que não quer mais. Ao abrir o app, o último projeto volta sozinho.','Para rever este guia, toque em “?” no topo.','No computador: Espaço toca e pausa, R grava, L repete, Delete exclui, Ctrl+A seleciona tudo.','Dica: faça o teste do microfone antes da primeira gravação.']}
 ];
 const g={p:0};
 function desenharGuia(){
