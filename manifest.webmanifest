@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Estúdio — gravação e edição de áudio",
-  "short_name": "Estúdio",
+  "name": "Stumix — gravação e edição de áudio",
+  "short_name": "Stumix",
   "description": "Grave, edite e finalize áudio no seu computador, com assistente de gravação. Funciona offline.",
   "lang": "pt-BR",
   "start_url": "./",

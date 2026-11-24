@@ -1,4 +1,4 @@
-// Roteiro do teste automático do Estúdio Desktop: clica como uma pessoa e confere o resultado.
+// Roteiro do teste automático do Stumix Desktop: clica como uma pessoa e confere o resultado.
 (async () => {
   const log = (m) => window.__JUCE__.backend.emitEvent('__juce__invoke', { name: 'estudioLog', params: [encodeURIComponent(m)], resultId: 9e6 + Math.floor(Math.random() * 1e5) });
   const espera = (ms) => new Promise(r => setTimeout(r, ms));

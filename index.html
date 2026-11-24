@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Estúdio de Áudio</title>
+<title>Stumix</title>
 <meta name="theme-color" content="#16171a">
 <meta name="description" content="Grave, edite e finalize áudio no seu computador. Funciona offline.">
 <link rel="manifest" href="manifest.webmanifest">
@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Estúdio">
+<meta name="apple-mobile-web-app-title" content="Stumix">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -439,8 +439,8 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
     <div class="dlg-topo"><h2 id="sobreTitulo">Sobre o app</h2><button class="ib" type="button" data-fechar aria-label="Fechar">✕</button></div>
     <article class="sobre" tabindex="0" aria-labelledby="sobreTitulo">
       <h3>1 Introdução</h3>
-      <p>Este texto apresenta as razões que levaram ao desenvolvimento do Estúdio, sistema para gravar, editar e finalizar áudio. Ele descreve como esse trabalho costuma ser feito sem o sistema, o que o sistema passou a oferecer e por que ele é útil.</p>
-      <p>O Estúdio é usado por quem grava voz ou instrumento, em locuções, podcasts ou música, inclusive com guitarra ligada a uma pedaleira ou a uma placa de áudio. Funciona no navegador do computador e do celular, pode ser instalado como aplicativo e continua funcionando sem internet depois de aberto uma vez. A versão atual é indicada no rodapé.</p>
+      <p>Este texto apresenta as razões que levaram ao desenvolvimento do Stumix, sistema para gravar, editar e finalizar áudio. Ele descreve como esse trabalho costuma ser feito sem o sistema, o que o sistema passou a oferecer e por que ele é útil.</p>
+      <p>O Stumix é usado por quem grava voz ou instrumento, em locuções, podcasts ou música, inclusive com guitarra ligada a uma pedaleira ou a uma placa de áudio. Funciona no navegador do computador e do celular, pode ser instalado como aplicativo e continua funcionando sem internet depois de aberto uma vez. A versão atual é indicada no rodapé.</p>
       <h3>2 Desenvolvimento</h3>
       <h4>2.1 Como o trabalho era feito</h4>
       <p>Gravar um áudio com qualidade em casa costuma exigir um programa de edição instalado no computador. Esses programas reúnem centenas de recursos, alguns são pagos, e quem só quer gravar uma locução ou registrar uma ideia de música precisa aprender bastante antes de chegar a um bom resultado. A outra opção comum é o gravador do celular, que registra o som, mas não ajuda a tratá-lo.</p>
@@ -459,7 +459,7 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
         <li>manter o áudio no próprio aparelho, sem envio pela internet.</li>
       </ol>
       <h4>2.3 Funcionamento</h4>
-      <p>O Estúdio não tem cadastro nem senha. Ao abrir, a pessoa encontra a forma de onda no centro, o botão de gravar embaixo e quatro áreas: Gravar, Editar, Efeitos e Finalizar. No computador, as ferramentas de edição ficam numa barra acima da onda; no celular, numa aba própria.</p>
+      <p>O Stumix não tem cadastro nem senha. Ao abrir, a pessoa encontra a forma de onda no centro, o botão de gravar embaixo e quatro áreas: Gravar, Editar, Efeitos e Finalizar. No computador, as ferramentas de edição ficam numa barra acima da onda; no celular, numa aba própria.</p>
       <p>Antes de gravar, o teste do microfone leva dez segundos. Nos quatro primeiros, mede o ruído da sala em silêncio e, nos seguintes, o volume da voz ou do instrumento. O resultado informa se a sala está silenciosa, se o nível está adequado e se a diferença entre o som e o ruído é suficiente, e a redução de ruído passa a usar essa medição. A gravação é feita sem compressão, com contagem regressiva opcional, e cada trabalho fica guardado como projeto no próprio aparelho, salvo a cada alteração e reaberto quando o aplicativo volta a ser usado. Ao terminar, o sistema mostra o pico alcançado e marca em vermelho os pontos em que o som estourou.</p>
       <p>Quando a entrada é uma placa de áudio ou pedaleira, o sistema reconhece alguns modelos pelo nome, como Cuvave, Joyo e Focusrite, e mostra orientações próprias para cada um. A pessoa indica se está gravando voz, instrumento direto ou pedaleira, e o sistema ajusta o retorno no fone, o teste e o acabamento. Se o sinal chegar só por uma das entradas da placa, a gravação é convertida para mono no volume correto. O retorno no fone mostra o atraso estimado e recomenda o retorno direto da placa quando esse atraso atrapalha.</p>
       <p>Na edição, o trecho é selecionado arrastando sobre a onda e pode ser recortado, copiado, colado, excluído ou silenciado. Os efeitos incluem ganho, normalização, fades, equalizador, compressor, redução de ruído, eco e reverb, aplicados ao trecho selecionado ou ao áudio todo. A finalização ajusta o volume ao padrão das plataformas, medido em LUFS (unidade de volume percebido), com −16 LUFS para voz e −14 LUFS para música. Ela também reduz o ruído nas pausas e limita os picos. O resultado é exportado em MP3 ou WAV.</p>
@@ -468,19 +468,19 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
       <p>O tratamento do áudio também fica mais simples. Em vez de ajustar vários efeitos até chegar ao volume certo, um comando leva o arquivo ao padrão das plataformas, com picos seguros. Quem quiser mais controle continua com os efeitos separados, e qualquer passo pode ser desfeito.</p>
       <p>Para músicos, a ligação com placas e pedaleiras evita arquivos com som de um lado só e explica como ouvir o instrumento sem atraso. Como o sistema funciona no navegador, a mesma ferramenta serve no computador e no celular, sem a instalação de programas pesados.</p>
       <h4>2.5 Privacidade e proteção de dados</h4>
-      <p>A voz pode identificar uma pessoa e, por isso, é tratada como dado pessoal pela Lei Geral de Proteção de Dados Pessoais (LGPD, Lei nº 13.709/2018). No Estúdio, todo o processamento acontece no próprio aparelho. O áudio gravado não é enviado a nenhum servidor, o sistema não pede cadastro e não guarda informações de quem o usa.</p>
+      <p>A voz pode identificar uma pessoa e, por isso, é tratada como dado pessoal pela Lei Geral de Proteção de Dados Pessoais (LGPD, Lei nº 13.709/2018). No Stumix, todo o processamento acontece no próprio aparelho. O áudio gravado não é enviado a nenhum servidor, o sistema não pede cadastro e não guarda informações de quem o usa.</p>
       <p>O acesso ao microfone depende da autorização dada no navegador e pode ser retirado a qualquer momento nas configurações. Os projetos ficam guardados apenas no aparelho, no armazenamento do navegador. Se os dados do navegador forem apagados ou o aplicativo for desinstalado, os projetos também são, e por isso os trabalhos importantes devem ser exportados.</p>
       <h4>2.6 Custos</h4>
       <p>O sistema foi desenvolvido internamente e é publicado em um serviço gratuito de hospedagem de páginas, o GitHub Pages. O codificador de MP3 usado é de código aberto. Não há licença, mensalidade ou contrato com fornecedor.</p>
       <h3>3 Considerações finais</h3>
-      <p>O Estúdio reúne gravação, edição e finalização em um aplicativo que orienta quem grava em cada etapa. Para quem faz locuções e podcasts, isso significa menos regravações e um arquivo pronto no volume das plataformas. Para músicos, uma forma simples de gravar pela placa ou pela pedaleira. Para todos, o áudio continua no próprio aparelho.</p>
+      <p>O Stumix reúne gravação, edição e finalização em um aplicativo que orienta quem grava em cada etapa. Para quem faz locuções e podcasts, isso significa menos regravações e um arquivo pronto no volume das plataformas. Para músicos, uma forma simples de gravar pela placa ou pela pedaleira. Para todos, o áudio continua no próprio aparelho.</p>
     </article>
     <div class="acts"><button class="pri" type="button" data-fechar>Fechar</button></div>
   </div>
 </dialog>
 <dialog id="aboutDlg" aria-labelledby="aboutT">
   <div class="dlg">
-    <div class="about-h"><div class="logo" aria-hidden="true"><svg class="i"><use href="#i-mic"/></svg></div><div><h2 id="aboutT">Estúdio</h2><span class="hint" id="verTxt">Versão —</span></div></div>
+    <div class="about-h"><div class="logo" aria-hidden="true"><svg class="i"><use href="#i-mic"/></svg></div><div><h2 id="aboutT">Stumix</h2><span class="hint" id="verTxt">Versão —</span></div></div>
     <div class="list">
       <div class="row-i"><span>Atualizações<small id="updTxt">Procura e instala a versão mais nova</small></span><button id="updBtn" class="go">Buscar atualização</button></div>
       <div class="row-i" id="instRow" hidden><span>Instalar como app<small>Ícone próprio, janela própria e funciona offline</small></span><button id="install2">Instalar</button></div>
@@ -499,7 +499,7 @@ dialog[open]{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform
 {
 const $=s=>document.querySelector(s);
 let ac=null;
-// ponte com o motor nativo (só existe dentro do Estúdio Desktop)
+// ponte com o motor nativo (só existe dentro do Stumix Desktop)
 const NATIVO=!!(window.__JUCE__&&window.__JUCE__.backend);let natId=7e5,natTaxaPref=0,natPronto=Promise.resolve(),natLibera=null;if(NATIVO)natPronto=new Promise(r=>natLibera=r);const natP=new Map();
 if(NATIVO)window.__JUCE__.backend.addEventListener('__juce__complete',({promiseId,result})=>{const f=natP.get(promiseId);if(f){natP.delete(promiseId);f(result)}});
 const nat=(name,...params)=>new Promise(res=>{const id=natId++;natP.set(id,res);window.__JUCE__.backend.emitEvent('__juce__invoke',{name,params,resultId:id})});
@@ -1050,7 +1050,7 @@ if('serviceWorker'in navigator&&location.protocol!=='file:'&&!NATIVO){
 let reg=null,newReady=false,armed=false,checking=false;
 async function showVer(){$('#verTxt').textContent='Versão '+APP_VERSION+(newReady?' · versão nova pronta para usar':'')}
 function updReady(auto){newReady=true;armed=false;$('#aboutBtn').classList.add('upd');$('#updTxt').textContent='Nova versão baixada. Reinicie para usar.';$('#updBtn').textContent='Reiniciar agora';$('#updBtn').disabled=false;showVer();
-  if(auto&&!checking&&!$('#aboutDlg').open)toast('Há uma versão nova do Estúdio. Toque em ⓘ para reiniciar.',5000)}
+  if(auto&&!checking&&!$('#aboutDlg').open)toast('Há uma versão nova do Stumix. Toque em ⓘ para reiniciar.',5000)}
 async function checkUpdate(){
   const b=$('#updBtn'),t=$('#updTxt');
   if(NATIVO)return natAtualizacao(false);
@@ -1082,11 +1082,11 @@ const showInstall=()=>{const h=!installEv||installed||isApp();$('#install').hidd
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEv=e;showInstall()});
 appMode.addEventListener?.('change',showInstall);
 on('#install2',()=>$('#install').click());
-on('#install',async()=>{if(!installEv)return;installEv.prompt();const r=await installEv.userChoice;installEv=null;showInstall();if(r.outcome==='accepted')toast('Estúdio instalado')});
+on('#install',async()=>{if(!installEv)return;installEv.prompt();const r=await installEv.userChoice;installEv=null;showInstall();if(r.outcome==='accepted')toast('Stumix instalado')});
 window.addEventListener('appinstalled',()=>{installed=true;installEv=null;showInstall()});
 navigator.getInstalledRelatedApps?.().then(a=>{if(a&&a.length){installed=true;showInstall()}}).catch(()=>{});
 const net=()=>{$('#offline').hidden=navigator.onLine};addEventListener('online',net);addEventListener('offline',net);net();
-// abrir áudio pelo sistema ("Abrir com > Estúdio")
+// abrir áudio pelo sistema ("Abrir com > Stumix")
 if('launchQueue'in window)launchQueue.setConsumer(async p=>{for(const h of p.files||[]){const f=await h.getFile();await importFile(f)}});
 if(new URLSearchParams(location.search).get('acao')==='gravar')verd(['Atalho “Gravar agora”: aperte o botão vermelho ou a tecla R para começar.']);
 /* ---------- abas e diálogo ---------- */
@@ -1103,7 +1103,7 @@ on('#expOpen',openExp);on('#expOpen2',openExp);on('#expCancel',()=>$('#expDlg').
 $('#expDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 on('#rec2',startRec);
 $('#fname').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
-/* ---------- Estúdio Desktop: motor nativo (JUCE) ---------- */
+/* ---------- Stumix Desktop: motor nativo (JUCE) ---------- */
 // Dentro do app do Windows, a gravação, o retorno no fone e o teste usam o motor nativo:
 // driver ASIO/WASAPI, buffer escolhido, 32 bits sem perdas. No navegador, nada disto liga.
 let natEst=null,natTipos=[],natLvl=0;
@@ -1144,14 +1144,14 @@ async function natAtualizacao(silencioso){
     b.disabled=true;t.textContent='Salvando o projeto e baixando a versão '+natNova.versao+'…';await saveNow();
     const r=await nat('estudioInstalarAtualizacao',natNova.url);
     if(!r||!r.ok){b.disabled=false;t.textContent='Não consegui atualizar: '+(r&&r.erro||'erro desconhecido')+'. Tente de novo.';return}
-    leaving=true;t.textContent='Instalando… o Estúdio vai fechar e abrir de novo sozinho.';return;
+    leaving=true;t.textContent='Instalando… o Stumix vai fechar e abrir de novo sozinho.';return;
   }
   if(!silencioso){b.disabled=true;b.textContent='Procurando…';t.textContent='Verificando se há versão nova…'}
   const r=await nat('estudioVerificarAtualizacao').catch(()=>({erro:'falha'}));
   if(!silencioso)b.disabled=false;
   if(r.erro){if(!silencioso){t.textContent='Não consegui verificar agora ('+r.erro+'). Tente de novo.';b.textContent='Tentar de novo'}return}
   if(r.nova){natNova=r;$('#aboutBtn').classList.add('upd');t.textContent=`Versão ${r.versao} disponível (você tem a ${r.atual}). Seus projetos continuam salvos.`;b.textContent='Atualizar agora';
-    if(silencioso)toast('Há uma versão nova do Estúdio. Toque em ⓘ para atualizar.',5000)}
+    if(silencioso)toast('Há uma versão nova do Stumix. Toque em ⓘ para atualizar.',5000)}
   else if(!silencioso){t.textContent='Você já está na versão mais recente ('+r.atual+'). ✓';b.textContent='Buscar de novo'}
 }
 async function natInicia(){
@@ -1285,7 +1285,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
 const APP_VERSION='1.7.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
- {icone:'✦',titulo:'Bem-vindo ao Estúdio',
+ {icone:'✦',titulo:'Bem-vindo ao Stumix',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',
   itens:['Funciona no navegador do computador e do celular, pode ser instalado como app e continua funcionando sem internet.','Tudo roda no seu aparelho: nenhum áudio é enviado para a internet.','Cada trabalho vira um projeto salvo sozinho no aparelho. O menu ☰, no canto superior esquerdo, lista seus projetos.','Errou? Desfazer (a seta curva no topo ou Ctrl+Z) volta qualquer passo.']},
  {icone:'●',titulo:'1. Gravar',

@@ -1,4 +1,4 @@
-name: Estudio Desktop (Windows)
+name: Stumix Desktop (Windows)
 
 on:
   push:
@@ -38,7 +38,7 @@ jobs:
       - name: Teste de ponta a ponta (interface + motor, placa simulada)
         shell: pwsh
         run: |
-          $exe = "build\EstudioDesktop_artefacts\Release\Estudio.exe"
+          $exe = "build\EstudioDesktop_artefacts\Release\Stumix.exe"
           $p = Start-Process $exe -ArgumentList "--autoteste=$pwd\desktop\autoteste.js" -PassThru
           if (-not $p.WaitForExit(120000)) { $p.Kill(); Write-Host "tempo esgotado" }
           Get-Content autoteste.log -Encoding utf8
@@ -50,16 +50,30 @@ jobs:
           choco install innosetup -y --no-progress | Out-Null
           $v = ([regex]::Match((Get-Content desktop\CMakeLists.txt -Raw), 'VERSION (\d+\.\d+\.\d+)')).Groups[1].Value
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DVersao="$v" /DFonte="$pwd\build\EstudioDesktop_artefacts\Release" /O"$pwd\saida" desktop\instalador\estudio.iss
-          Compress-Archive -Path build\EstudioDesktop_artefacts\Release\Estudio.exe -DestinationPath saida\Estudio-portatil.zip
+          Compress-Archive -Path build\EstudioDesktop_artefacts\Release\Stumix.exe -DestinationPath saida\Stumix-portatil.zip
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Estudio-Desktop-Windows
+          name: Stumix-Desktop-Windows
           path: saida/*
 
-      - name: Publicar versão
-        if: startsWith(github.ref, 'refs/tags/desktop-v')
+      - name: Versão nova?
+        id: versao
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = ([regex]::Match((Get-Content desktop\CMakeLists.txt -Raw), 'VERSION (\d+\.\d+\.\d+)')).Groups[1].Value
+          "tag=desktop-v$v" >> $env:GITHUB_OUTPUT
+          gh release view "desktop-v$v" --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) { "nova=false" >> $env:GITHUB_OUTPUT } else { "nova=true" >> $env:GITHUB_OUTPUT }
+          exit 0
+
+      - name: Publicar versão (o botão de atualização do app encontra aqui)
+        if: steps.versao.outputs.nova == 'true' && github.ref == 'refs/heads/desktop'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.versao.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Stumix Desktop ${{ steps.versao.outputs.tag }}
           files: saida/*
-          name: Estúdio Desktop ${{ github.ref_name }}

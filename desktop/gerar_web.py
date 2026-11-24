@@ -1,4 +1,4 @@
-"""Gera a cópia da interface embutida no Estúdio Desktop com acentos em códigos ASCII.
+"""Gera a cópia da interface embutida no Stumix Desktop com acentos em códigos ASCII.
 HTML: &#NNN;  ·  JavaScript: \\uXXXX  ·  CSS: \\XXXXXX
 Assim nenhum caminho entre o app e o navegador interno consegue corromper o texto."""
 import re, sys, pathlib

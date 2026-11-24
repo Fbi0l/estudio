@@ -3,7 +3,7 @@ project(EstudioDesktop VERSION 0.2.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# JUCE 8 (AGPLv3/Starter); o Estúdio é GPLv3
+# JUCE 8 (AGPLv3/Starter); o Stumix é GPLv3
 if(DEFINED JUCE_DIR)
   add_subdirectory(${JUCE_DIR} juce)
 else()
@@ -12,7 +12,7 @@ else()
   FetchContent_MakeAvailable(JUCE)
 endif()
 
-# Interface web do Estúdio embutida no executável (cópia com acentos em códigos ASCII)
+# Interface web do Stumix embutida no executável (cópia com acentos em códigos ASCII)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(WEB_GERADA ${CMAKE_CURRENT_BINARY_DIR}/web/index.html)
 execute_process(COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/gerar_web.py ${CMAKE_CURRENT_BINARY_DIR}/web)
@@ -35,7 +35,7 @@ if(WIN32)
 endif()
 
 juce_add_gui_app(EstudioDesktop
-  PRODUCT_NAME "Estudio"
+  PRODUCT_NAME "Stumix"
   COMPANY_NAME "Fbiol"
   BUNDLE_ID "io.github.fbi0l.estudio"
   VERSION ${PROJECT_VERSION}

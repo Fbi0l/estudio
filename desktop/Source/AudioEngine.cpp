@@ -1,4 +1,4 @@
-// Estúdio Desktop: motor de áudio nativo
+// Stumix Desktop: motor de áudio nativo
 // Copyright (C) 2026 Fbiol. Licença GPLv3 (ver LICENSE na raiz do repositório).
 #include "AudioEngine.h"
 

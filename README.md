@@ -1,10 +1,16 @@
-# Estúdio
+# Stumix
 
 App para gravar, editar e finalizar áudio: locução, podcast, voz ou instrumento, inclusive por placa de áudio ou pedaleira de guitarra. Tem assistente de gravação (teste da sala e do nível, avisos de estouro, regravar trecho), edição, efeitos, acabamento no volume das plataformas (LUFS) e exportação em MP3 ou WAV. Site estático (HTML, CSS e JavaScript, sem etapa de build), instalável como app (PWA) e funciona offline. Tudo roda no aparelho: nenhum áudio é enviado para a internet.
 
 No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instalar: `LEIA-ME.md`.
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
+
+## Versão 1.7.0 — Novo nome: Stumix
+
+- O app passa a se chamar **Stumix** (stu de estúdio, mix de mixagem). Nome conferido no INPI em 24/11/2026: sem registro ou pedido igual.
+- Endereço, projetos salvos e preferências continuam os mesmos; nada precisa ser refeito.
+- Interface pronta para o Stumix Desktop (motor nativo no Windows).
 
 ## Versão 1.6.3 — Diagnóstico de qualidade do sinal
 
@@ -63,13 +69,14 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 ---
 
-# Estúdio Desktop (Windows) — em desenvolvimento
+# Stumix Desktop (Windows) — em desenvolvimento
 
-App instalável para Windows com a mesma interface do Estúdio e um **motor de áudio nativo** (JUCE 8): drivers ASIO e WASAPI (compartilhado, baixa latência e exclusivo), escolha de buffer com o atraso real, retorno direto no fone e gravação em 32 bits sem perdas, sem passar pelo mixer do Windows. O celular continua no PWA.
+App instalável para Windows com a mesma interface do Stumix e um **motor de áudio nativo** (JUCE 8): drivers ASIO e WASAPI (compartilhado, baixa latência e exclusivo), escolha de buffer com o atraso real, retorno direto no fone e gravação em 32 bits sem perdas, sem passar pelo mixer do Windows. O celular continua no PWA.
 
 - Código em `desktop/`: `Source/AudioEngine.*` (motor), `Source/Main.cpp` (janela, interface embutida e ponte JS ↔ C++), `Source/EngineTest.cpp` (teste do motor sem placa), `autoteste.js` (teste de ponta a ponta com placa simulada), `gerar_web.py` (cópia da interface com acentos em códigos ASCII).
-- Compilação e instalador: GitHub Actions (`.github/workflows/desktop.yml`), que também roda os dois testes no Windows. Tag `desktop-vX.Y.Z` publica o instalador em Releases.
+- Compilação e instalador: GitHub Actions (`.github/workflows/desktop.yml`), que também roda os dois testes no Windows. Ao subir a versão em `desktop/CMakeLists.txt` no ramo `desktop`, o workflow publica sozinho a versão `desktop-vX.Y.Z` com o instalador em Releases.
 - Atualização: ⓘ → Buscar atualização consulta a última versão `desktop-v*` em Releases, baixa o instalador e o roda em modo silencioso; o app fecha, atualiza e reabre.
+- Nome antigo (Estúdio): o instalador mantém o mesmo AppId, remove o `Estudio.exe` e os atalhos antigos, e a pasta de dados `%APPDATA%\Estudio` foi mantida para não perder projetos.
 - Fases: **A** motor nativo (esta) · **B** plugins VST3 · **C** multipista no motor nativo.
 
-**Licenças:** o Estúdio é GPLv3 (`LICENSE`). Usa JUCE 8 (AGPLv3/licença Starter), VST3 SDK (MIT), ASIO SDK (GPLv3) e lamejs (LGPL-3.0).
+**Licenças:** o Stumix é GPLv3 (`LICENSE`). Usa JUCE 8 (AGPLv3/licença Starter), VST3 SDK (MIT), ASIO SDK (GPLv3) e lamejs (LGPL-3.0).

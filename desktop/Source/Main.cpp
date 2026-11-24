@@ -1,4 +1,4 @@
-// Estúdio Desktop: janela, interface web embutida e ponte com o motor nativo
+// Stumix Desktop: janela, interface web embutida e ponte com o motor nativo
 // Copyright (C) 2026 Fbiol. Licença GPLv3 (ver LICENSE na raiz do repositório).
 #include <juce_gui_extra/juce_gui_extra.h>
 #include <juce_audio_utils/juce_audio_utils.h>
@@ -31,7 +31,7 @@ namespace Atualizador
         auto* r = new DynamicObject();
         r->setProperty ("atual", JUCE_APPLICATION_VERSION_STRING);
         auto opcoes = URL::InputStreamOptions (URL::ParameterHandling::inAddress)
-                          .withExtraHeaders ("User-Agent: Estudio-Desktop\r\nAccept: application/vnd.github+json")
+                          .withExtraHeaders ("User-Agent: Stumix-Desktop\r\nAccept: application/vnd.github+json")
                           .withConnectionTimeoutMs (15000);
         std::unique_ptr<InputStream> in (URL (api).createInputStream (opcoes));
         if (in == nullptr) { r->setProperty ("erro", "sem conexão com o GitHub"); return var (r); }
@@ -55,10 +55,10 @@ namespace Atualizador
         auto* r = new DynamicObject();
         if (! url.startsWith ("https://github.com/Fbi0l/estudio/releases/download/"))
         { r->setProperty ("ok", false); r->setProperty ("erro", "endereço inesperado"); return var (r); }
-        auto destino = File::getSpecialLocation (File::tempDirectory).getChildFile ("Estudio-Atualizacao.exe");
+        auto destino = File::getSpecialLocation (File::tempDirectory).getChildFile ("Stumix-Atualizacao.exe");
         destino.deleteFile();
         auto opcoes = URL::InputStreamOptions (URL::ParameterHandling::inAddress)
-                          .withExtraHeaders ("User-Agent: Estudio-Desktop").withConnectionTimeoutMs (30000);
+                          .withExtraHeaders ("User-Agent: Stumix-Desktop").withConnectionTimeoutMs (30000);
         std::unique_ptr<InputStream> in (URL (url).createInputStream (opcoes));
         bool ok = false;
         if (in != nullptr)
@@ -78,7 +78,7 @@ namespace Atualizador
 }
 
 //==============================================================================
-/** A interface do Estúdio (a mesma do PWA) rodando dentro do app, falando com o motor nativo. */
+/** A interface do Stumix (a mesma do PWA) rodando dentro do app, falando com o motor nativo. */
 /** Só para o teste automático: faz o papel da placa, mandando um tom ao motor em tempo real. */
 class PlacaDeTeste : public HighResolutionTimer
 {
@@ -123,7 +123,7 @@ private:
        #if JUCE_WINDOWS
         o = o.withBackend (Opcoes::Backend::webview2)
              .withWinWebView2Options (Opcoes::WinWebView2{}
-                 .withUserDataFolder (File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Estudio"))
+                 .withUserDataFolder (File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Estudio")) // pasta mantida: guarda os projetos de quem já usava o app
                  .withBackgroundColour (Colour (0xff141518))
                  .withStatusBarDisabled());
        #endif
@@ -261,7 +261,7 @@ class JanelaPrincipal : public DocumentWindow
 {
 public:
     JanelaPrincipal (AudioEngine& e, const String& roteiro)
-        : DocumentWindow (String (CharPointer_UTF8 ("Est\xc3\xba" "dio")), Colour (0xff141518), DocumentWindow::allButtons)
+        : DocumentWindow ("Stumix", Colour (0xff141518), DocumentWindow::allButtons)
     {
         setUsingNativeTitleBar (true);
         setContentOwned (new EstudioView (e, roteiro), false);
@@ -277,7 +277,7 @@ public:
 class EstudioApp : public JUCEApplication
 {
 public:
-    const String getApplicationName() override    { return String (CharPointer_UTF8 ("Est\xc3\xba" "dio")); }
+    const String getApplicationName() override    { return "Stumix"; }
     const String getApplicationVersion() override { return JUCE_APPLICATION_VERSION_STRING; }
     bool moreThanOneInstanceAllowed() override    { return false; }
 

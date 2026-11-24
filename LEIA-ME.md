@@ -1,4 +1,4 @@
-# Estúdio (PWA)
+# Stumix (PWA)
 
 App de gravação, edição e finalização de áudio que roda no navegador e pode ser instalado como aplicativo. Funciona offline e nada sai do computador.
 
@@ -18,7 +18,7 @@ App de gravação, edição e finalização de áudio que roda no navegador e po
 Também funciona em GitHub Pages, Netlify ou qualquer hospedagem com **https**.
 
 ## Instalar
-- **Chrome/Edge no computador:** botão "Instalar app" no topo do Estúdio ou ícone de instalar na barra de endereço. Depois de instalado, arquivos de áudio podem ser abertos pelo sistema com "Abrir com > Estúdio".
+- **Chrome/Edge no computador:** botão "Instalar app" no topo do Stumix ou ícone de instalar na barra de endereço. Depois de instalado, arquivos de áudio podem ser abertos pelo sistema com "Abrir com > Stumix".
 - **Android (Chrome):** menu ⋮ → Instalar app.
 - **iPhone/iPad (Safari):** Compartilhar → Adicionar à Tela de Início.
 
