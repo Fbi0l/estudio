@@ -1151,7 +1151,8 @@ async function natAtualizacao(silencioso){
   if(!silencioso)b.disabled=false;
   if(r.erro){if(!silencioso){t.textContent='Não consegui verificar agora ('+r.erro+'). Tente de novo.';b.textContent='Tentar de novo'}return}
   if(r.nova){natNova=r;$('#aboutBtn').classList.add('upd');t.textContent=`Versão ${r.versao} disponível (você tem a ${r.atual}). Seus projetos continuam salvos.`;b.textContent='Atualizar agora';
-    if(silencioso)toast('Há uma versão nova do Stumix. Toque em ⓘ para atualizar.',5000)}
+    if(silencioso)toast('Há uma versão nova do Stumix. Toque em ⓘ para atualizar.',5000);
+    else return natAtualizacao(false)}  // um clique só: achou, já baixa e instala
   else if(!silencioso){t.textContent='Você já está na versão mais recente ('+r.atual+'). ✓';b.textContent='Buscar de novo'}
 }
 async function natInicia(){

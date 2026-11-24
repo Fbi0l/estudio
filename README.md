@@ -75,7 +75,7 @@ App instalável para Windows com a mesma interface do Stumix e um **motor de áu
 
 - Código em `desktop/`: `Source/AudioEngine.*` (motor), `Source/Main.cpp` (janela, interface embutida e ponte JS ↔ C++), `Source/EngineTest.cpp` (teste do motor sem placa), `autoteste.js` (teste de ponta a ponta com placa simulada), `gerar_web.py` (cópia da interface com acentos em códigos ASCII).
 - Compilação e instalador: GitHub Actions (`.github/workflows/desktop.yml`), que também roda os dois testes no Windows. Ao subir a versão em `desktop/CMakeLists.txt` no ramo `desktop`, o workflow publica sozinho a versão `desktop-vX.Y.Z` com o instalador em Releases.
-- Atualização: ⓘ → Buscar atualização consulta a última versão `desktop-v*` em Releases, baixa o instalador e o roda em modo silencioso; o app fecha, atualiza e reabre.
+- Atualização: ⓘ → Buscar atualização consulta a última versão `desktop-v*` em Releases e, se houver uma nova, já baixa o instalador e o roda em modo silencioso (um clique, sem abrir site); o app salva o projeto, fecha, atualiza e reabre. Desde a 0.2.1.
 - Nome antigo (Estúdio): o instalador mantém o mesmo AppId, remove o `Estudio.exe` e os atalhos antigos, e a pasta de dados `%APPDATA%\Estudio` foi mantida para não perder projetos.
 - Fases: **A** motor nativo (esta) · **B** plugins VST3 · **C** multipista no motor nativo.
 
