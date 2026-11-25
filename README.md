@@ -6,6 +6,14 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.8.0 — Identidade visual
+
+- Logo nova: o S é um cabo de guitarra com o plugue na ponta, em verde-limão sobre fundo escuro; nome em Unbounded.
+- Ícones novos do app (celular, PC e aba do navegador).
+- Tema "palco": fundo #0E0F0C, destaque verde-limão #C8F169 (onda, botões, aba ativa), vermelho só na gravação.
+- Barras e janelas de vidro fosco; abas com uma pílula que desliza até a aba tocada; no celular, a barra de abas flutua.
+- Sem vidro quando o sistema pede menos transparência; sem animação quando pede menos movimento.
+
 ## Versão 1.7.0 — Novo nome: Stumix
 
 - O app passa a se chamar **Stumix** (stu de estúdio, mix de mixagem). Nome conferido no INPI em 24/11/2026: sem registro ou pedido igual.

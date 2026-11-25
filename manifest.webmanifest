@@ -8,8 +8,8 @@
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone"],
-  "background_color": "#16171a",
-  "theme_color": "#16171a",
+  "background_color": "#0E0F0C",
+  "theme_color": "#0E0F0C",
   "related_applications": [{ "platform": "webapp", "url": "https://fbi0l.github.io/estudio/manifest.webmanifest" }],
   "categories": ["music", "productivity", "utilities"],
   "icons": [
