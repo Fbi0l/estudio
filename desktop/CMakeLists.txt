@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(EstudioDesktop VERSION 0.5.1 LANGUAGES C CXX)
+project(EstudioDesktop VERSION 0.6.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -21,6 +21,7 @@ add_custom_command(OUTPUT ${WEB_GERADA}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../index.html ${CMAKE_CURRENT_SOURCE_DIR}/gerar_web.py)
 juce_add_binary_data(EstudioWeb SOURCES
   ${WEB_GERADA} ../lame.min.js ../manifest.webmanifest
+  ../fonts/manrope.woff2 ../fonts/jetbrains-mono-500.woff2 ../fonts/unbounded-800-stumix.woff2
   ../icons/icon-192-v2.png ../icons/icon-512-v2.png ../icons/favicon-32-v2.png ../icons/apple-touch-icon-v2.png ../icons/maskable-512-v2.png)
 
 set(ESTUDIO_DEFS JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0 JUCE_DISPLAY_SPLASH_SCREEN=0 JUCE_REPORT_APP_USAGE=0

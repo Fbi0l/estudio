@@ -12,6 +12,15 @@ using Opcoes = WebBrowserComponent::Options;
 //==============================================================================
 /** Atualização pelo próprio app: consulta a última versão no GitHub, baixa o instalador
     e o executa em modo silencioso; o instalador fecha o app, troca os arquivos e o reabre. */
+// Tempo de cada etapa da abertura, em ms desde que o app começou (aparece em ⓘ e em abertura.log)
+namespace Abertura
+{
+    static double inicio = 0;
+    static NamedValueSet marcas;
+    static void marcar (const char* etapa) { marcas.set (etapa, std::round (Time::getMillisecondCounterHiRes() - inicio)); }
+    static File pasta() { return File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Estudio"); }
+}
+
 namespace Atualizador
 {
     // textos com acento: sempre como UTF-8 (sem isso a interface mostra "nÃ£o")
@@ -153,7 +162,12 @@ public:
             ? File::getSpecialLocation (File::tempDirectory).getChildFile ("Stumix-teste-multipista")
             : File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Estudio").getChildFile ("multipista");
         if (roteiroTeste.isNotEmpty()) base.deleteRecursively();
-        engine.sessao.usarPasta (base);
+        // a última sessão da multipista carrega depois que a janela já está na tela
+        Timer::callAfterDelay (roteiroTeste.isNotEmpty() ? 10 : 1500, [this, base]
+        {
+            engine.sessao.usarPasta (base);
+            Abertura::marcar ("sessao");
+        });
 
         addAndMakeVisible (web);
         web.goToURL (WebBrowserComponent::getResourceProviderRoot());
@@ -184,7 +198,18 @@ private:
         return o.withNativeIntegrationEnabled()
             .withKeepPageLoadedWhenBrowserIsHidden()
             .withResourceProvider ([this] (const String& u) { return recurso (u); })
-            .withNativeFunction ("estudioListar", [this] (const Array<var>&, auto done) { done (engine.listar()); })
+            .withNativeFunction ("estudioListar", [this] (const Array<var>& a, auto done) { done (engine.listar (a.size() > 0 && (bool) a[0])); })
+            .withNativeFunction ("estudioTempos", [] (const Array<var>&, auto done)
+            {
+                // chamado quando a interface termina de abrir: anota e devolve o tempo de cada etapa
+                Abertura::marcar ("pronto");
+                auto* o = new DynamicObject();
+                String linha = Time::getCurrentTime().formatted ("%Y-%m-%d %H:%M:%S");
+                for (auto& m : Abertura::marcas) { o->setProperty (m.name, m.value); linha << "  " << m.name.toString() << "=" << m.value.toString() << "ms"; }
+                Abertura::pasta().createDirectory();
+                Abertura::pasta().getChildFile ("abertura.log").appendText (linha + "\n", false, false, "\n");
+                done (var (o));
+            })
             .withNativeFunction ("estudioEstado", [this] (const Array<var>&, auto done) { done (engine.estado()); })
             .withNativeFunction ("estudioConfigurar", [this] (const Array<var>& a, auto done)
             {
@@ -413,6 +438,7 @@ private:
         if (nome.endsWith (".js"))   return "text/javascript; charset=utf-8";
         if (nome.endsWith (".png"))  return "image/png";
         if (nome.endsWith (".webmanifest")) return "application/manifest+json";
+        if (nome.endsWith (".woff2")) return "font/woff2";
         return "application/octet-stream";
     }
 
@@ -499,6 +525,7 @@ public:
 
     void initialise (const String&) override
     {
+        Abertura::inicio = Time::getMillisecondCounterHiRes();
         engine = std::make_unique<AudioEngine>();
         // --autoteste=roteiro.js: roda a interface com uma placa simulada e um roteiro de cliques
         String roteiro;
@@ -518,8 +545,16 @@ public:
         for (auto& arg : getCommandLineParameterArray())
             if (arg.startsWith ("--autoteste="))
                 roteiro = File (arg.fromFirstOccurrenceOf ("=", false, false).unquoted()).loadFileAsString();
-        if (roteiro.isEmpty()) engine->iniciar();
+        // a janela aparece primeiro; a placa abre logo em seguida, uma vez só, já com a configuração salva
         janela = std::make_unique<JanelaPrincipal> (*engine, roteiro);
+        Abertura::marcar ("janela");
+        if (roteiro.isEmpty())
+            MessageManager::callAsync ([this]
+            {
+                if (engine == nullptr) return;
+                engine->iniciar (Abertura::pasta().getChildFile ("placa.xml"));
+                Abertura::marcar ("placa");
+            });
     }
 
     void shutdown() override

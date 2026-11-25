@@ -6,6 +6,15 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.11.0 — Abertura rápida (Stumix Desktop 0.6.0)
+
+- Animação de abertura completa só na primeira vez do dia; nas outras, a logo some em cerca de meio segundo.
+- Fontes guardadas dentro do app (Manrope, JetBrains Mono, Unbounded; licença OFL em fonts/): a tela aparece sem esperar a internet.
+- Com rede lenta, o app instalado abre a cópia guardada depois de 1,2 s, em vez de esperar a rede.
+- PC: a placa abre uma vez só, já com a última configuração (placa.xml); drivers procurados só quando preciso; a última sessão da multipista carrega depois que a janela aparece.
+- PC: o tempo de abertura aparece em ⓘ (Modo) e fica anotado em %APPDATA%\Estudio\abertura.log.
+- PC 0.5.1: barra de título escura; botões das listas sem texto vazando.
+
 ## Versão 1.10.0 — Multipista no PC (Stumix Desktop 0.5.0)
 
 - Aba **Faixas** (só no PC): várias faixas numa linha do tempo, cada uma com volume, pan, mudo e solo.

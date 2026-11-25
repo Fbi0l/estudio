@@ -6,6 +6,7 @@
 #include "Sessao.h"
 #include <atomic>
 #include <vector>
+#include <set>
 
 /*  O áudio entra pela placa (thread de áudio), passa por uma fila sem travas e é
     consumido por uma thread própria, que grava, mede e calcula os picos para a tela.
@@ -19,8 +20,8 @@ public:
 
     juce::AudioDeviceManager deviceManager;
 
-    void iniciar();                                   // abre o dispositivo padrão
-    juce::var listar();                               // drivers e dispositivos
+    void iniciar (const juce::File& configSalva = {});   // abre a placa já com a configuração salva (uma vez só)
+    juce::var listar (bool forcar = false);           // drivers e dispositivos (procura de novo só o driver atual, ou todos se forcar)
     juce::var estado();                               // configuração atual + atraso
     juce::String configurar (const juce::var& cfg);   // muda driver/entrada/saída/taxa/buffer
 
@@ -87,5 +88,8 @@ private:
     std::vector<float> acumFFT, blocoFFT; int posFFT = 0; int nFFT = 0; std::vector<double> espectro;
 
     juce::MemoryBlock wavGravado;
+    juce::File arquivoConfig;
+    bool configRestaurada = false;
+    std::set<juce::String> tiposProcurados;
     juce::AudioBuffer<float> tmp { 2, 4096 };
 };

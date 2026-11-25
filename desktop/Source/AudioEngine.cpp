@@ -19,10 +19,15 @@ AudioEngine::~AudioEngine()
     stopThread (2000);
 }
 
-void AudioEngine::iniciar()
+void AudioEngine::iniciar (const File& configSalva)
 {
-    // 2 entradas e 2 saídas; sem processamento do sistema quando o driver permite
-    auto erro = deviceManager.initialise (2, 2, nullptr, true);
+    // 2 entradas e 2 saídas; abre direto com a última configuração (driver, placa, taxa, buffer)
+    arquivoConfig = configSalva;
+    std::unique_ptr<XmlElement> salvo;
+    if (configSalva.existsAsFile()) salvo = parseXML (configSalva);
+    auto erro = deviceManager.initialise (2, 2, salvo.get(), true);
+    configRestaurada = salvo != nullptr && erro.isEmpty();
+    tiposProcurados.insert (deviceManager.getCurrentAudioDeviceType());   // o initialise já procurou o driver atual
     if (erro.isNotEmpty())
         DBG ("Erro ao abrir o áudio: " << erro);
     deviceManager.addAudioCallback (this);
@@ -36,12 +41,19 @@ static var nomes (const StringArray& s)
     return a;
 }
 
-var AudioEngine::listar()
+var AudioEngine::listar (bool forcar)
 {
+    // procurar placas ASIO carrega o driver de cada uma: só o driver em uso é procurado na abertura
     Array<var> tipos;
+    const auto atual = deviceManager.getCurrentAudioDeviceType();
     for (auto* tipo : deviceManager.getAvailableDeviceTypes())
     {
-        tipo->scanForDevices();
+        const auto nome = tipo->getTypeName();
+        if (forcar || (nome == atual && tiposProcurados.count (nome) == 0))
+        {
+            tipo->scanForDevices();
+            tiposProcurados.insert (nome);
+        }
         auto* o = new DynamicObject();
         o->setProperty ("nome", tipo->getTypeName());
         o->setProperty ("entradas", nomes (tipo->getDeviceNames (true)));
@@ -87,6 +99,7 @@ var AudioEngine::estado()
         o->setProperty ("taxa", taxaAtual.load());
     }
     o->setProperty ("descartadas", descartadas.load());
+    o->setProperty ("configSalva", configRestaurada);
     return var (o);
 }
 
@@ -118,7 +131,14 @@ String AudioEngine::configurar (const var& cfg)
     setup.inputChannels.clear();
     setup.inputChannels.setRange (0, 2, true);
     setup.useDefaultOutputChannels = true;
-    return deviceManager.setAudioDeviceSetup (setup, true);
+    const auto erro = deviceManager.setAudioDeviceSetup (setup, true);
+    if (erro.isEmpty() && arquivoConfig != File())
+        if (auto xml = deviceManager.createStateXml())
+        {
+            arquivoConfig.getParentDirectory().createDirectory();
+            xml->writeTo (arquivoConfig);
+        }
+    return erro;
 }
 
 void AudioEngine::setMonitor (bool ligado, int canal, float ganho)

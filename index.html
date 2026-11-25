@@ -13,10 +13,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Stumix">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&text=stumix&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/manrope.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* fontes guardadas no próprio app (abre sem esperar a internet e funciona offline) */
+@font-face{font-family:Manrope;src:url(fonts/manrope.woff2) format("woff2");font-weight:200 800;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(fonts/jetbrains-mono-500.woff2) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Unbounded;src:url(fonts/unbounded-800-stumix.woff2) format("woff2");font-weight:800;font-display:swap}
 /* VOICE: app de estúdio calmo e confiável, que orienta sem atrapalhar
    IDEA: Lei de Jakob — funciona como os apps que a pessoa já conhece (Gravador do iPhone, GarageBand, Audacity)
    PICTURE: a forma de onda é a tela; o botão vermelho mora embaixo, no centro
@@ -282,6 +284,7 @@ dialog{background:var(--glass-strong);-webkit-backdrop-filter:var(--blur);backdr
 @keyframes sp-pulso{0%{opacity:.8;transform:scale(.6)}100%{opacity:0;transform:scale(3.4)}}
 @keyframes sp-brilho{50%{opacity:1}100%{opacity:.6}}
 @keyframes sp-letra{to{opacity:1;transform:none}}
+#splash.curta *{animation:none!important;opacity:1!important;transform:none!important}#splash.curta .sp-cabo{stroke-dashoffset:0}#splash.curta .sp-pulso,#splash.curta .sp-brilho{display:none}
 @media(prefers-reduced-motion:reduce){#splash *{animation:none!important;opacity:1!important;transform:none!important}.sp-cabo{stroke-dashoffset:0}.sp-pulso,.sp-brilho{display:none}#splash{transition:opacity .2s}}
 
 /* ---------- celular: título, onda, painel, transporte, abas ---------- */
@@ -334,7 +337,10 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
   const sai=()=>{if(el.classList.contains('sai'))return;el.classList.add('sai');setTimeout(()=>{el.remove();fim()},380)};
   if(navigator.webdriver){el.remove();fim();return}
   const calmo=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  setTimeout(sai,calmo?700:2200);el.addEventListener('pointerdown',sai);addEventListener('keydown',sai,{once:true})});
+  // animação completa só na primeira abertura do dia; nas outras, só a logo por um instante
+  let curta=false;try{const hoje=new Date().toDateString();curta=localStorage.getItem('estudio:aberturaDia')===hoje;localStorage.setItem('estudio:aberturaDia',hoje)}catch(e){}
+  if(curta)el.classList.add('curta');
+  setTimeout(sai,calmo?700:curta?550:2200);el.addEventListener('pointerdown',sai);addEventListener('keydown',sai,{once:true})});
 </script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
@@ -656,7 +662,7 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
 const $=s=>document.querySelector(s);
 let ac=null;
 // ponte com o motor nativo (só existe dentro do Stumix Desktop)
-const NATIVO=!!(window.__JUCE__&&window.__JUCE__.backend);let natId=7e5,natTaxaPref=0,natPronto=Promise.resolve(),natLibera=null;if(NATIVO)natPronto=new Promise(r=>natLibera=r);const natP=new Map();
+const NATIVO=!!(window.__JUCE__&&window.__JUCE__.backend);let natTempos=null;let natId=7e5,natTaxaPref=0,natPronto=Promise.resolve(),natLibera=null;if(NATIVO)natPronto=new Promise(r=>natLibera=r);const natP=new Map();
 if(NATIVO)window.__JUCE__.backend.addEventListener('__juce__complete',({promiseId,result})=>{const f=natP.get(promiseId);if(f){natP.delete(promiseId);f(result)}});
 const nat=(name,...params)=>new Promise(res=>{const id=natId++;natP.set(id,res);window.__JUCE__.backend.emitEvent('__juce__invoke',{name,params,resultId:id})});
 const AC=()=>ac||(ac=new (window.AudioContext||window.webkitAudioContext)(natTaxaPref?{sampleRate:natTaxaPref}:undefined));
@@ -1229,7 +1235,7 @@ async function restart(){
   if(!ok&&buf&&!armed){armed=true;$('#updTxt').textContent='Não consegui salvar o projeto. Exporte antes, ou toque de novo para reiniciar assim mesmo.';$('#updBtn').textContent='Reiniciar assim mesmo';return}
   leaving=true;$('#updTxt').textContent='Reiniciando…';location.reload();
 }
-function openAbout(){showVer();$('#modeTxt').textContent=(isApp()?'App instalado':'No navegador'+(installEv&&!installed?' · pode instalar':''))+' · captura: '+(motor==='—'?(window.AudioWorkletNode?'AudioWorklet':'ScriptProcessor (reserva)'):motor);showInstall();if(NATIVO){$('#modeTxt').textContent='App para Windows · motor nativo: '+(NOMES_DRIVER[natEst?.tipo]||natEst?.tipo||'—');$('#verTxt').textContent='Versão '+(natVersao||'—')+' · interface '+APP_VERSION;if(!natNova){$('#updTxt').textContent='Procura, baixa e instala a versão mais nova';$('#updBtn').textContent='Buscar atualização'}$('#instRow').hidden=true}$('#aboutDlg').showModal()}
+function openAbout(){showVer();$('#modeTxt').textContent=(isApp()?'App instalado':'No navegador'+(installEv&&!installed?' · pode instalar':''))+' · captura: '+(motor==='—'?(window.AudioWorkletNode?'AudioWorklet':'ScriptProcessor (reserva)'):motor);showInstall();if(NATIVO){$('#modeTxt').textContent='App para Windows · motor nativo: '+(NOMES_DRIVER[natEst?.tipo]||natEst?.tipo||'—')+(natTempos&&natTempos.pronto?' · abriu em '+(natTempos.pronto/1000).toFixed(1).replace('.',',')+' s':'');$('#verTxt').textContent='Versão '+(natVersao||'—')+' · interface '+APP_VERSION;if(!natNova){$('#updTxt').textContent='Procura, baixa e instala a versão mais nova';$('#updBtn').textContent='Buscar atualização'}$('#instRow').hidden=true}$('#aboutDlg').showModal()}
 on('#aboutBtn',openAbout);on('#aboutClose',()=>$('#aboutDlg').close());on('#updBtn',checkUpdate);
 $('#aboutDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 // botão Instalar só aparece no navegador, quando o app ainda não está instalado
@@ -1472,9 +1478,12 @@ async function natInicia(){
   document.querySelectorAll('.so-web').forEach(e=>e.hidden=true);$('#natRows').hidden=false;
   let salvo=null;try{salvo=JSON.parse(localStorage.getItem('estudio:natcfg')||'null')}catch(e){}
   natTipos=await nat('estudioListar').catch(()=>[]);
-  if(salvo){const ti=natTipos.findIndex(x=>x.nome===salvo.tipo);if(ti>=0){const t=natTipos[ti];await nat('estudioConfigurar',{tipoIdx:ti,entradaIdx:Math.max(0,t.entradas.indexOf(salvo.entrada)),saidaIdx:Math.max(0,t.saidas.indexOf(salvo.saida)),taxa:salvo.taxa,buffer:salvo.buffer}).catch(()=>{})}}
+  const est0=await nat('estudioEstado').catch(()=>({}));
+  if(est0.configSalva){}
+  else if(salvo){natTipos=await nat('estudioListar',true).catch(()=>natTipos);const ti=natTipos.findIndex(x=>x.nome===salvo.tipo);if(ti>=0){const t=natTipos[ti];await nat('estudioConfigurar',{tipoIdx:ti,entradaIdx:Math.max(0,t.entradas.indexOf(salvo.entrada)),saidaIdx:Math.max(0,t.saidas.indexOf(salvo.saida)),taxa:salvo.taxa,buffer:salvo.buffer}).catch(()=>{})}}
   else{const ti=natTipos.findIndex(x=>x.nome==='Windows Audio (Low Latency Mode)');if(ti>=0)await nat('estudioConfigurar',{tipoIdx:ti}).catch(()=>{})}
   await natAtualiza();natMonitor();natLibera&&natLibera();
+  window.SPLASH.then(()=>nat('estudioTempos')).then(t=>{natTempos=t}).catch(()=>{});
   window.__JUCE__.backend.addEventListener('estudioNivel',d=>{
     natLvl=Math.max(d.pico[0]||0,d.pico[1]||0);
     const r=rec;if(r&&r.nat){r.lvl=natLvl;if(d.picos)for(const p of d.picos)r.peaks.push(p);if(r.started)r.len=d.frames}
@@ -1598,7 +1607,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.10.1',GUIA_REVISADO_NA_VERSAO='1.6.0';
+const APP_VERSION='1.11.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Stumix',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',
