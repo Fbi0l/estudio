@@ -16,6 +16,7 @@ using Opcoes = WebBrowserComponent::Options;
 namespace Abertura
 {
     static double inicio = 0;
+    static bool modoTeste = false;   // funções só para o teste automático ficam desligadas no uso normal
     static NamedValueSet marcas;
     static void marcar (const char* etapa) { marcas.set (etapa, std::round (Time::getMillisecondCounterHiRes() - inicio)); }
     static File pasta() { return File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Estudio"); }
@@ -162,12 +163,10 @@ public:
             ? File::getSpecialLocation (File::tempDirectory).getChildFile ("Stumix-teste-multipista")
             : File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Estudio").getChildFile ("multipista");
         if (roteiroTeste.isNotEmpty()) base.deleteRecursively();
-        // a última sessão da multipista carrega depois que a janela já está na tela
-        Timer::callAfterDelay (roteiroTeste.isNotEmpty() ? 10 : 1500, [this, base]
-        {
-            engine.sessao.usarPasta (base);
-            Abertura::marcar ("sessao");
-        });
+        // a última sessão da multipista é lida em segundo plano, sem segurar a janela
+        const auto ultima = engine.sessao.prepararPasta (base);
+        if (ultima.isEmpty()) engine.sessao.nova();
+        else abrirSessaoEmSegundoPlano (ultima, [] (const String&) { Abertura::marcar ("sessao"); });
 
         addAndMakeVisible (web);
         web.goToURL (WebBrowserComponent::getResourceProviderRoot());
@@ -262,6 +261,7 @@ private:
             .withNativeFunction ("estudioLog", [] (const Array<var>& a, auto done)
             {
                 // chega codificado (encodeURIComponent): ida em ASCII puro, sem risco para os acentos
+                if (! Abertura::modoTeste) { done (false); return; }
                 const auto linha = a.isEmpty() ? String() : URL::removeEscapeChars (a[0].toString());
                 std::printf ("%s\n", linha.toRawUTF8()); std::fflush (stdout);
                 // no Windows o app não tem console: o teste automático lê este arquivo
@@ -328,13 +328,24 @@ private:
                     {
                         const auto f = fc.getResult();
                         if (! f.existsAsFile()) { done (var()); return; }
-                        const auto erro = engine.sessao.importar (f);
-                        engine.sessao.salvar();
-                        done (erro.isEmpty() ? var (true) : var (erro));
+                        ocupado (String::fromUTF8 ("Importando “") + f.getFileName() + String::fromUTF8 ("”…"));
+                        Component::SafePointer<EstudioView> eu (this);
+                        trabalho.addJob ([this, eu, f, done]
+                        {
+                            const auto erro = engine.sessao.importar (f);
+                            MessageManager::callAsync ([this, eu, erro, done]
+                            {
+                                if (eu == nullptr) return;
+                                engine.sessao.salvar();
+                                ocupado ({});
+                                done (erro.isEmpty() ? var (true) : var (erro));
+                            });
+                        });
                     });
             })
             .withNativeFunction ("mpImportarArquivo", [this] (const Array<var>& a, auto done)   // teste automático
             {
+                if (! Abertura::modoTeste) { done (var ("indisponível")); return; }
                 const auto erro = engine.sessao.importar (File (a.isEmpty() ? String() : a[0].toString()));
                 done (erro.isEmpty() ? var (true) : var (erro));
             })
@@ -376,23 +387,29 @@ private:
             })
             .withNativeFunction ("mpExportar", [this] (const Array<var>&, auto done)
             {
-                auto* r = new DynamicObject();
-                double dur = 0;
-                const auto erro = engine.sessao.exportar (arquivoMixagem(), dur);
-                r->setProperty ("ok", erro.isEmpty());
-                r->setProperty ("erro", erro);
-                r->setProperty ("dur", dur);
-                r->setProperty ("url", WebBrowserComponent::getResourceProviderRoot() + "mixagem.wav?n=" + String (++contagem));
-                done (var (r));
+                const String url = WebBrowserComponent::getResourceProviderRoot() + "mixagem.wav?n=" + String (++contagem);
+                trabalho.addJob ([this, url, done]
+                {
+                    auto* r = new DynamicObject();
+                    double dur = 0;
+                    const auto erro = engine.sessao.exportar (arquivoMixagem(), dur);
+                    r->setProperty ("ok", erro.isEmpty());
+                    r->setProperty ("erro", erro);
+                    r->setProperty ("dur", dur);
+                    r->setProperty ("url", url);
+                    done (var (r));
+                });
             })
             .withNativeFunction ("mpAbrirSessao", [this] (const Array<var>& a, auto done)
             {
-                done (engine.sessao.abrir (a.isEmpty() ? String() : URL::removeEscapeChars (a[0].toString())));
+                abrirSessaoEmSegundoPlano (a.isEmpty() ? String() : URL::removeEscapeChars (a[0].toString()),
+                                          [done] (const String& erro) { done (erro); });
             })
             .withNativeFunction ("mpNovaSessao", [this] (const Array<var>&, auto done) { done (engine.sessao.nova()); })
             .withNativeFunction ("estudioAbrirLink", [] (const Array<var>& a, auto done)
             {
-                if (! a.isEmpty()) URL (a[0].toString()).launchInDefaultBrowser();
+                // só endereços https abrem no navegador (nada de arquivos ou outros programas)
+                if (! a.isEmpty() && a[0].toString().startsWithIgnoreCase ("https://")) URL (a[0].toString()).launchInDefaultBrowser();
                 done (true);
             });
     }
@@ -460,6 +477,31 @@ private:
 
     int contagem = 0;
     std::unique_ptr<FileChooser> seletor;
+    ThreadPool trabalho { 1 };   // tarefas longas da multipista: a janela continua respondendo
+
+    void ocupado (const String& texto)   // avisa a interface (mostra ou tira o "Processando…")
+    {
+        web.emitEventIfBrowserIsVisible ("mpOcupado", texto);
+    }
+
+    void abrirSessaoEmSegundoPlano (const String& nome, std::function<void (const String&)> fim)
+    {
+        Component::SafePointer<EstudioView> eu (this);
+        ocupado (String::fromUTF8 ("Abrindo a sessão…"));
+        trabalho.addJob ([this, eu, nome, fim]
+        {
+            auto carga = engine.sessao.carregar (nome);
+            auto ptr = std::make_shared<std::unique_ptr<Sessao::Carga>> (std::move (carga));
+            MessageManager::callAsync ([this, eu, ptr, fim]
+            {
+                if (eu == nullptr) return;
+                const auto erro = engine.sessao.aplicar (std::move (*ptr));
+                ocupado ({});
+                web.emitEventIfBrowserIsVisible ("mpMudou", var());
+                fim (erro);
+            });
+        });
+    }
     static File arquivoMixagem() { return File::getSpecialLocation (File::tempDirectory).getChildFile ("Stumix-mixagem.wav"); }
     String roteiro;
     std::unique_ptr<PlacaDeTeste> placaTeste;
@@ -546,6 +588,7 @@ public:
             if (arg.startsWith ("--autoteste="))
                 roteiro = File (arg.fromFirstOccurrenceOf ("=", false, false).unquoted()).loadFileAsString();
         // a janela aparece primeiro; a placa abre logo em seguida, uma vez só, já com a configuração salva
+        Abertura::modoTeste = roteiro.isNotEmpty();
         janela = std::make_unique<JanelaPrincipal> (*engine, roteiro);
         Abertura::marcar ("janela");
         if (roteiro.isEmpty())

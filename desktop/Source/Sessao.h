@@ -85,6 +85,10 @@ public:
     void usarPasta (const juce::File& raiz);             // onde ficam as sessões
     juce::var listarSessoes() const;
     juce::String abrir (const juce::String& nome);
+    struct Carga { juce::File pasta; juce::var json; juce::OwnedArray<Faixa> faixas; };
+    std::unique_ptr<Carga> carregar (const juce::String& nome) const;   // lê os WAVs (pode ser fora da linha da janela)
+    juce::String aplicar (std::unique_ptr<Carga> carga);                 // troca as faixas e carrega os plugins (linha da janela)
+    juce::String prepararPasta (const juce::File& raiz);                 // devolve o nome da última sessão, se houver
     juce::String nova();
     void salvar();                                        // grava sessao.json (os WAVs já ficam salvos)
     juce::String nomeAtual() const { return nomeSessao; }
@@ -92,7 +96,7 @@ public:
 
 private:
     void prepararFaixa (Faixa&);
-    void calcularPicos (Faixa&);
+    void calcularPicos (Faixa&) const;
     void gravarWav (Faixa&);
     Faixa* achar (int id) const;
     void processarCadeia (Faixa&, int n);

@@ -333,7 +333,7 @@ var Sessao::picos (int id) const
     return a;
 }
 
-void Sessao::calcularPicos (Faixa& f)
+void Sessao::calcularPicos (Faixa& f) const
 {
     const int passo = jmax (1, (int) (taxa / 100.0));
     const int n = f.audio.getNumSamples();
@@ -566,15 +566,9 @@ String Sessao::exportar (const File& destino, double& duracao)
 // Sessões salvas: uma pasta por sessão, com os WAVs das faixas e o sessao.json
 void Sessao::usarPasta (const File& raiz)
 {
-    pastaRaiz = raiz;
-    pastaRaiz.createDirectory();
-    raiz.getChildFile ("sessoes").createDirectory();
-    buscarPlugins (false);
-    const String ultima = raiz.getChildFile ("ultima-sessao.txt").loadFileAsString().trim();
-    if (ultima.isNotEmpty() && raiz.getChildFile ("sessoes").getChildFile (ultima).getChildFile ("sessao.json").existsAsFile())
-        abrir (ultima);
-    else
-        nova();
+    const auto ultima = prepararPasta (raiz);
+    if (ultima.isNotEmpty()) abrir (ultima);
+    else nova();
 }
 
 var Sessao::listarSessoes() const
@@ -658,25 +652,17 @@ void Sessao::salvar()
     pastaRaiz.getChildFile ("ultima-sessao.txt").replaceWithText (pastaSessao.getFileName());
 }
 
-String Sessao::abrir (const String& nome)
+// Abrir uma sessão em duas partes: ler os WAVs (pode ser em segundo plano, sem travar a janela)
+// e depois trocar as faixas e carregar os plugins (na linha da janela, como os plugins exigem).
+std::unique_ptr<Sessao::Carga> Sessao::carregar (const String& nome) const
 {
-    const auto pasta = pastaRaiz.getChildFile ("sessoes").getChildFile (nomeSeguro (nome));
-    const auto json = JSON::parse (pasta.getChildFile ("sessao.json"));
-    if (! json.isObject()) return t ("sessão não encontrada");
-
-    parar();
-    janelas.clear();
-    {
-        const ScopedLock sl (trava);
-        faixas.clear();
-    }
-    pastaSessao = pasta;
-    nomeSessao = pasta.getFileName();
-
+    auto c = std::make_unique<Carga>();
+    c->pasta = pastaRaiz.getChildFile ("sessoes").getChildFile (nomeSeguro (nome));
+    c->json = JSON::parse (c->pasta.getChildFile ("sessao.json"));
+    if (! c->json.isObject()) return nullptr;
     AudioFormatManager fm;
     fm.registerBasicFormats();
-    StringArray faltando;
-    if (auto* lista = json["faixas"].getArray())
+    if (auto* lista = c->json["faixas"].getArray())
         for (auto& v : *lista)
         {
             auto f = std::make_unique<Faixa>();
@@ -691,43 +677,75 @@ String Sessao::abrir (const String& nome)
             f->entrada = (int) v["entrada"];
             f->monitorar = (bool) v["monitorar"];
             if (f->arquivo.isNotEmpty())
-                if (std::unique_ptr<AudioFormatReader> r { fm.createReaderFor (pasta.getChildFile (f->arquivo)) })
+                if (std::unique_ptr<AudioFormatReader> r { fm.createReaderFor (c->pasta.getChildFile (f->arquivo)) })
                 {
                     f->audio.setSize ((int) r->numChannels, (int) r->lengthInSamples);
                     r->read (&f->audio, 0, (int) r->lengthInSamples, 0, true, true);
                 }
             calcularPicos (*f);
-            {
-                const ScopedLock sl (trava);
-                prepararFaixa (*f);
-            }
-            auto* bruto = f.get();
-            {
-                const ScopedLock sl (trava);
-                faixas.add (f.release());
-            }
-            if (auto* pl = v["plugins"].getArray())
-                for (auto& q : *pl)
-                {
-                    // a descrição salva diz exatamente qual plugin era; o identificador é o plano B
-                    std::optional<PluginDescription> desc;
-                    if (auto xml = parseXML (q["descricao"].toString()))
-                    {
-                        PluginDescription d;
-                        if (d.loadFromXml (*xml)) desc = d;
-                    }
-                    if (! desc)
-                        for (auto& d : conhecidos.getTypes())
-                            if (d.createIdentifierString() == q["id"].toString()) { desc = d; break; }
-                    const bool achou = desc && criarPlugin (*bruto, *desc, q["estado"].toString(), (bool) q["ligado"]).isEmpty();
-                    if (! achou) faltando.add (q["nome"].toString());
-                }
+            c->faixas.add (f.release());
         }
+    return c;
+}
+
+String Sessao::aplicar (std::unique_ptr<Carga> c)
+{
+    if (c == nullptr) return t ("sessão não encontrada");
+    parar();
+    janelas.clear();
     {
         const ScopedLock sl (trava);
-        proximoId = jmax ((int) json["proximoId"], 1);
+        faixas.clear();
+    }
+    pastaSessao = c->pasta;
+    nomeSessao = c->pasta.getFileName();
+
+    StringArray faltando;
+    auto* lista = c->json["faixas"].getArray();
+    for (int i = 0; i < c->faixas.size(); ++i)
+    {
+        auto* bruto = c->faixas[i];
+        {
+            const ScopedLock sl (trava);
+            prepararFaixa (*bruto);
+            faixas.add (c->faixas.removeAndReturn (i--));
+        }
+        const var v = lista != nullptr && isPositiveAndBelow (faixas.size() - 1, lista->size()) ? (*lista)[faixas.size() - 1] : var();
+        if (auto* pl = v["plugins"].getArray())
+            for (auto& q : *pl)
+            {
+                // a descrição salva diz exatamente qual plugin era; o identificador é o plano B
+                std::optional<PluginDescription> desc;
+                if (auto xml = parseXML (q["descricao"].toString()))
+                {
+                    PluginDescription d;
+                    if (d.loadFromXml (*xml)) desc = d;
+                }
+                if (! desc)
+                    for (auto& d : conhecidos.getTypes())
+                        if (d.createIdentifierString() == q["id"].toString()) { desc = d; break; }
+                const bool achou = desc && criarPlugin (*bruto, *desc, q["estado"].toString(), (bool) q["ligado"]).isEmpty();
+                if (! achou) faltando.add (q["nome"].toString());
+            }
+    }
+    {
+        const ScopedLock sl (trava);
+        proximoId = jmax ((int) c->json["proximoId"], 1);
         for (auto* f : faixas) proximoId = jmax (proximoId, f->id + 1);
     }
     pastaRaiz.getChildFile ("ultima-sessao.txt").replaceWithText (pastaSessao.getFileName());
     return faltando.isEmpty() ? String() : t ("plugins não encontrados: ") + faltando.joinIntoString (", ");
+}
+
+String Sessao::abrir (const String& nome) { return aplicar (carregar (nome)); }
+
+String Sessao::prepararPasta (const File& raiz)
+{
+    pastaRaiz = raiz;
+    pastaRaiz.createDirectory();
+    raiz.getChildFile ("sessoes").createDirectory();
+    buscarPlugins (false);
+    const String ultima = raiz.getChildFile ("ultima-sessao.txt").loadFileAsString().trim();
+    return ultima.isNotEmpty() && raiz.getChildFile ("sessoes").getChildFile (ultima).getChildFile ("sessao.json").existsAsFile()
+               ? ultima : String();
 }

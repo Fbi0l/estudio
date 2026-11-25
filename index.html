@@ -83,7 +83,7 @@ svg.lg{width:24px;height:24px;flex:none}.about-h svg.lg{width:30px;height:30px}
 .empty .big svg{width:32px;height:32px}
 .empty b{font-size:20px;color:var(--ink)}
 .empty .acts{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;justify-content:center}
-.empty .recb{background:var(--rec);border-color:var(--rec);color:#fff;font-weight:700}.empty .recb:hover{background:#ff5b51}
+.empty .recb{background:#d63a2f;border-color:#d63a2f;color:#fff;font-weight:700}.empty .recb:hover{background:#e0443a}
 .scrollbar{display:flex;align-items:center;padding:0 12px;height:36px;border-top:1px solid #1d1e22}
 #scroll{height:24px}#scroll:disabled{opacity:.3}
 .tabs{grid-area:tabs;display:flex;gap:4px;padding:6px 10px;border-bottom:1px solid var(--line);border-left:1px solid var(--line);background:var(--panel)}
@@ -266,6 +266,11 @@ dialog{background:var(--glass-strong);-webkit-backdrop-filter:var(--blur);backdr
 .mp-plug{display:flex;align-items:center;gap:8px}.mp-plug span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mp-perigo{color:#ff6b61}
 .so-nat[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mp-tit{display:none}.app[data-tab=mp] #fname,.app[data-tab=mp] #sub{display:none}.app[data-tab=mp] .mp-tit{display:block}
+#mpTitulo{font-size:17px;padding:2px 0}#mpTitSub{color:var(--mute);font-size:12px}
+.app[data-tab=mp] #undo,.app[data-tab=mp] #redo{opacity:.3;pointer-events:none}
+.mp-linha:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
 .mp-ferr{display:none}.app[data-tab=mp] .mp-ferr{display:flex;align-items:center;gap:4px}.mp-sep{width:1px;height:24px;background:var(--line);margin:0 6px}
 .mp-arm{font-size:15px;line-height:1}
 
@@ -374,7 +379,7 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
 <div class="app" id="app" data-tab="rec">
   <header class="appbar">
     <button class="logo" id="projBtn" aria-label="Projetos" title="Projetos"><svg class="lg" viewBox="0 0 100 100" aria-hidden="true"><use href="#i-logo"/></svg></button>
-    <div class="ttl"><input type="text" id="fname" value="gravacao" aria-label="Nome do projeto" spellcheck="false" autocomplete="off"><span id="sub">Nenhum áudio ainda</span></div>
+    <div class="ttl"><h1 class="sr">Stumix</h1><input type="text" id="fname" value="gravacao" aria-label="Nome do projeto" spellcheck="false" autocomplete="off"><span id="sub">Nenhum áudio ainda</span><b class="mp-tit" id="mpTitulo">Sessão</b><span class="mp-tit" id="mpTitSub">—</span></div>
     <span id="offline" hidden>offline</span>
     <div class="bar-act">
       <button class="ib" id="undo" aria-label="Desfazer" title="Desfazer (Ctrl+Z)"><svg class="i"><use href="#i-undo"/></svg></button>
@@ -386,6 +391,7 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
     </div>
   </header>
 
+  <section aria-label="Ferramentas" style="display:contents">
   <div class="tools" id="tools" role="toolbar" aria-label="Ferramentas de edição">
     <div class="mp-ferr">
       <button data-mp="importar" title="Importar uma base ou back track"><svg class="i"><use href="#i-folder"/></svg><span class="lb">Importar base</span></button>
@@ -414,6 +420,7 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
       <button id="zsel" title="Zoom na seleção"><svg class="i"><use href="#i-zsel"/></svg><span class="lb">Zoom seleção</span></button>
     </div>
   </div>
+  </section>
 
   <main class="work">
     <section class="stage" id="stage" aria-label="Forma de onda">
@@ -443,14 +450,14 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
     <div class="scrollbar"><input type="range" id="scroll" min="0" max="1000" value="0" aria-label="Rolar a forma de onda"></div>
   </main>
 
-  <nav class="tabs" id="tabs" role="tablist" aria-label="Painéis">
+  <nav aria-label="Painéis" style="display:contents"><div class="tabs" id="tabs" role="tablist" aria-label="Painéis">
     <span class="tabind" id="tabind" aria-hidden="true"></span>
     <button role="tab" data-t="rec"><svg class="i"><use href="#i-mic"/></svg><span>Gravar</span></button>
     <button role="tab" data-t="mp" class="so-nat" hidden><svg class="i"><use href="#i-faixas"/></svg><span>Faixas</span></button>
     <button role="tab" data-t="edit" class="m-only"><svg class="i"><use href="#i-cut"/></svg><span>Editar</span></button>
     <button role="tab" data-t="fx"><svg class="i"><use href="#i-sliders"/></svg><span>Efeitos</span></button>
     <button role="tab" data-t="fin"><svg class="i"><use href="#i-wand"/></svg><span>Finalizar</span></button>
-  </nav>
+  </div></nav>
 
   <aside class="side" id="side">
     <section class="panel" id="p-mp" role="tabpanel" aria-label="Faixas">
@@ -1260,7 +1267,7 @@ if('launchQueue'in window)launchQueue.setConsumer(async p=>{for(const h of p.fil
 if(new URLSearchParams(location.search).get('acao')==='gravar')verd(['Atalho “Gravar agora”: aperte o botão vermelho ou a tecla R para começar.']);
 /* ---------- abas e diálogo ---------- */
 const app=$('#app'),mq=matchMedia('(max-width:760px)');
-function tab(t){if(t==='edit'&&!mq.matches)t='rec';app.dataset.tab=t;document.querySelectorAll('#tabs [data-t]').forEach(b=>{const o=b.dataset.t===t;b.classList.toggle('on',o);b.setAttribute('aria-selected',o)});$('#side').scrollTop=0;tabInd();if(t==='mp')MP.atualizar()}
+function tab(t){if(t==='edit'&&!mq.matches)t='rec';app.dataset.tab=t;document.querySelectorAll('#tabs [data-t]').forEach(b=>{const o=b.dataset.t===t;b.classList.toggle('on',o);b.setAttribute('aria-selected',o)});$('#side').scrollTop=0;tabInd();const ex=$('#expOpen');ex.querySelector('span').textContent=t==='mp'?'Mixar':'Exportar';ex.title=t==='mp'?'Mixar as faixas e finalizar':'Exportar';if(t==='mp')MP.atualizar()}
 // pílula de vidro que desliza até a aba ativa
 function tabInd(){const b=$('#tabs .on'),i=$('#tabind');if(!b||!b.offsetWidth){i.style.opacity=0;return}i.style.opacity=1;i.style.width=b.offsetWidth+'px';i.style.height=b.offsetHeight+'px';i.style.transform=`translate(${b.offsetLeft}px,${b.offsetTop}px)`}
 addEventListener('resize',tabInd);addEventListener('load',tabInd);document.fonts&&document.fonts.ready.then(tabInd);
@@ -1271,7 +1278,7 @@ async function expLoudCheck(){const el=$('#expLoud');el.hidden=true;const b=$('#
   el.innerHTML=`<span class="v mid"><b>Volume baixo para publicar</b>${l.toFixed(0)} LUFS; as plataformas usam −14 a −16. <button type="button" class="link" id="expFix">Fazer o acabamento antes</button></span>`;el.hidden=false;
   $('#expFix').onclick=()=>{$('#expDlg').close();sel=null;master(isVoz()?3:2,true)}}
 function openExp(){if(!buf)return toast('Grave ou abra um áudio primeiro');setTimeout(expLoudCheck,0);stopPlay();const e=$('#expSel');e.disabled=!sel;if(!sel)e.checked=false;$('#selHint').textContent=sel?'Seleção de '+fmt(sel.b-sel.a):'Sem seleção no momento';expPrev();$('#expDlg').showModal()}
-on('#expOpen',openExp);on('#expOpen2',openExp);on('#expCancel',()=>$('#expDlg').close());$('#fmt').addEventListener('change',expPrev);$('#expSel').addEventListener('change',expLoudCheck);
+on('#expOpen',()=>mpAtivo()?$('#mpMixar').click():openExp());on('#expOpen2',openExp);on('#expCancel',()=>$('#expDlg').close());$('#fmt').addEventListener('change',expPrev);$('#expSel').addEventListener('change',expLoudCheck);
 $('#expDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 on('#rec2',startRec);
 $('#fname').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur()});
@@ -1343,14 +1350,14 @@ const MP=(()=>{
   }
   function desenhar(){
     $('#mpView').classList.toggle('vazia',!est.faixas.length&&!grav);
-    $('#mpNome').textContent=est.nome||'Sessão';
+    $('#mpNome').textContent=est.nome||'Sessão';$('#mpTitulo').textContent=est.nome||'Sessão';$('#mpTitSub').textContent=est.faixas.length+(est.faixas.length===1?' faixa':' faixas')+(grav?' · gravando':'');
     if(app.dataset.tab==='mp')$('#selInfo').textContent=est.faixas.length?'Sessão · '+est.faixas.filter(f=>f.armada).length+' armada(s)':'Sessão vazia';
     $('#mpSub').textContent=est.faixas.length+(est.faixas.length===1?' faixa':' faixas')+' · '+String(Math.round(est.taxa/100)/10).replace('.',',')+' kHz'+(est.taxaPlaca&&Math.abs(est.taxaPlaca-est.taxa)>1?' · a placa está em outra taxa':'');
     const ss=$('#mpSessoes');ss.innerHTML=(est.sessoes||[]).map(x=>`<option${x.atual?' selected':''}>${esc(x.nome)}</option>`).join('');
     $('#mpLatTxt').textContent=(est.latenciaMs||0).toFixed(1).replace('.',',')+' ms (entrada + saída, informado pela placa). É descontado sozinho ao gravar.';
     $('#mpAjuste').value=ajuste;$('#mpAjusteTxt').textContent=(ajuste>0?'+':'')+ajuste+' ms';
     const W=Math.ceil(fim()*pxs);
-    $('#mpPistas').innerHTML=est.faixas.map(f=>`<div class="mp-linha${f.id===selId?' sel':''}" data-id="${f.id}">
+    $('#mpPistas').innerHTML=est.faixas.map(f=>`<div class="mp-linha${f.id===selId?' sel':''}" data-id="${f.id}" tabindex="0" aria-label="Faixa ${esc(f.nome)}${f.armada?', armada':''}${f.mudo?', muda':''}">
       <div class="mp-h">
         <div class="mp-l1"><input type="text" value="${esc(f.nome)}" data-campo="nome" aria-label="Nome da faixa" spellcheck="false">
           <button class="mp-b mp-arm" data-tg="armada" aria-pressed="${f.armada}" title="Armar para gravar" aria-label="Armar ${esc(f.nome)} para gravar">●</button>
@@ -1462,6 +1469,11 @@ const MP=(()=>{
     $('#mpAjuste').addEventListener('input',e=>{ajuste=+e.target.value;$('#mpAjusteTxt').textContent=(ajuste>0?'+':'')+ajuste+' ms';try{localStorage.setItem('estudio:mpAjuste',ajuste)}catch(x){}});
     $('#mpSessoes').addEventListener('change',async e=>{const r=await nat('mpAbrirSessao',encodeURIComponent(e.target.value));if(r)toast(r,5000);picos.clear();atualizar()});
     $('#mpNovaSessao').addEventListener('click',async()=>{await nat('mpNovaSessao');picos.clear();pos=0;await atualizar();toast('Sessão nova criada',2000)});
+    // teclado: setas para cima/baixo escolhem a faixa; para os lados movem o cursor (Shift: 5 s)
+    pistas.addEventListener('keydown',e=>{const l=e.target.closest('.mp-linha');if(!l||e.target!==l)return;
+      const ls=[...document.querySelectorAll('#mpPistas .mp-linha')],i=ls.indexOf(l);
+      if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const n=ls[Math.max(0,Math.min(ls.length-1,i+(e.key==='ArrowDown'?1:-1)))];selId=+n.dataset.id;ls.forEach(x=>x.classList.toggle('sel',x===n));n.focus();inspetor()}
+      else if((e.key==='ArrowRight'||e.key==='ArrowLeft')&&!tocando&&!grav){e.preventDefault();pos=Math.max(0,pos+(e.key==='ArrowRight'?1:-1)*(e.shiftKey?5:1));nat('mpPosicionar',pos);cabeca();$('#clock').firstChild.textContent=fmt(pos)}});
     $('#mpMixar').addEventListener('click',async()=>{
       if(grav)return toast('Pare a gravação antes de mixar');
       busy(true,'Mixando as faixas…');
@@ -1491,6 +1503,8 @@ async function natInicia(){
     MP.nivel(d);
   });
   MP.iniciar();
+  window.__JUCE__.backend.addEventListener('mpOcupado',t=>{t?busy(true,t):busy(false)});
+  window.__JUCE__.backend.addEventListener('mpMudou',()=>MP.atualizar());
   ['#natTipo'].forEach(s=>$(s).addEventListener('change',()=>natConfigura(true)));
   ['#natIn','#natOut','#natTaxa','#natBuf'].forEach(s=>$(s).addEventListener('change',()=>natConfigura(false)));
 }
@@ -1607,7 +1621,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.11.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
+const APP_VERSION='1.12.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Stumix',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',
