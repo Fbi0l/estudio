@@ -1,6 +1,6 @@
 // Service worker do Stumix: guarda o app para funcionar offline.
 // Ao publicar uma versão nova, troque VERSAO para os usuários receberem a atualização.
-const VERSAO = 'estudio-v12';
+const VERSAO = 'estudio-v13';
 const APP = [
   './',
   './index.html',

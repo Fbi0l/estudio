@@ -6,6 +6,12 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.9.0 — Animação de abertura
+
+- Ao abrir, o cabo do S se desenha, o plugue encaixa e o nome sobe (cerca de 2 s); o app carrega por baixo.
+- Um toque ou uma tecla pula a abertura; com "menos movimento" no sistema, só a logo aparece.
+- O guia da primeira vez abre depois da abertura.
+
 ## Versão 1.8.0 — Identidade visual
 
 - Logo nova: o S é um cabo de guitarra com o plugue na ponta, em verde-limão sobre fundo escuro; nome em Unbounded.
