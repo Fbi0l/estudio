@@ -267,17 +267,48 @@ class JanelaPrincipal : public DocumentWindow
 {
 public:
     JanelaPrincipal (AudioEngine& e, const String& roteiro)
-        : DocumentWindow ("Stumix", Colour (0xff141518), DocumentWindow::allButtons)
+        : DocumentWindow ("Stumix", Colour (0xff0e0f0c), DocumentWindow::allButtons)
     {
         setUsingNativeTitleBar (true);
         setContentOwned (new EstudioView (e, roteiro), false);
         setResizable (true, true);
-        setResizeLimits (900, 600, 10000, 10000);
-        centreWithSize (1400, 900);
+
+        // a janela cabe na tela de quem usa (notebook com escala de 125–150% tem pouco espaço)
+        Rectangle<int> area (0, 0, 1400, 900);
+        if (auto* d = Desktop::getInstance().getDisplays().getPrimaryDisplay())
+            area = d->userArea;
+        setResizeLimits (jmin (800, area.getWidth()), jmin (560, area.getHeight()), 10000, 10000);
+
+        const auto estado = arquivoEstado().loadFileAsString();
+        if (roteiro.isNotEmpty() || estado.isEmpty() || ! restoreWindowStateFromString (estado))
+        {
+            const int w = jmin (1400, area.getWidth() - 40), h = jmin (900, area.getHeight() - 40);
+            centreWithSize (w, h);
+            if (area.getWidth() < 1440 || area.getHeight() < 860)
+                setFullScreen (true);   // tela pequena: abre maximizada
+        }
         setVisible (true);
     }
 
-    void closeButtonPressed() override { JUCEApplication::getInstance()->systemRequestedQuit(); }
+    ~JanelaPrincipal() override { guardarEstado(); }
+
+    void closeButtonPressed() override
+    {
+        guardarEstado();
+        JUCEApplication::getInstance()->systemRequestedQuit();
+    }
+
+private:
+    // tamanho, posição e se está maximizada, para abrir do mesmo jeito da próxima vez
+    static File arquivoEstado()
+    {
+        return File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Estudio").getChildFile ("janela.txt");
+    }
+    void guardarEstado()
+    {
+        arquivoEstado().getParentDirectory().createDirectory();
+        arquivoEstado().replaceWithText (getWindowStateAsString());
+    }
 };
 
 class EstudioApp : public JUCEApplication
