@@ -44,23 +44,6 @@ jobs:
           Get-Content autoteste.log -Encoding utf8
           if (-not (Select-String -Path autoteste.log -Pattern "TODOS OS TESTES PASSARAM" -Quiet)) { exit 1 }
 
-      - name: Teste da atualização (baixa e roda o instalador publicado, como o botão faz)
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $url = gh api repos/${{ github.repository }}/releases/latest --jq '.assets[] | select(.name | endswith("Instalador.exe")) | .browser_download_url'
-          Write-Host "instalador: $url"
-          $p = Start-Process "build\EstudioDesktop_artefacts\Release\Stumix.exe" -ArgumentList "--testar-atualizacao=$url" -PassThru
-          if (-not $p.WaitForExit(120000)) { $p.Kill(); Write-Host "tempo esgotado"; exit 1 }
-          Get-Content atualizacao.log -Encoding utf8
-          if (-not (Select-String -Path atualizacao.log -Pattern '"ok": true' -Quiet)) { exit 1 }
-          $alvo = Join-Path $env:LOCALAPPDATA "Programs\Stumix\Stumix.exe"
-          for ($i = 0; $i -lt 60 -and -not (Test-Path $alvo); $i++) { Start-Sleep 2 }
-          Get-Process Stumix -ErrorAction SilentlyContinue | Stop-Process -Force
-          if (-not (Test-Path $alvo)) { Write-Host "o instalador não deixou o app em $alvo"; exit 1 }
-          Write-Host "instalado em $alvo"
-
       - name: Instalador
         shell: pwsh
         run: |
@@ -68,6 +51,34 @@ jobs:
           $v = ([regex]::Match((Get-Content desktop\CMakeLists.txt -Raw), 'VERSION (\d+\.\d+\.\d+)')).Groups[1].Value
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DVersao="$v" /DFonte="$pwd\build\EstudioDesktop_artefacts\Release" /O"$pwd\saida" desktop\instalador\estudio.iss
           Compress-Archive -Path build\EstudioDesktop_artefacts\Release\Stumix.exe -DestinationPath saida\Stumix-portatil.zip
+
+      - name: Teste da atualização pelo botão (troca o próprio .exe, sem instalador)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 1) instala esta versão, como a pessoa faz na primeira vez
+          $i = Start-Process "saida\Stumix-Desktop-Instalador.exe" -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" -PassThru
+          $i.WaitForExit(120000) | Out-Null
+          Start-Sleep 3; Get-Process Stumix -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep 1
+          $alvo = Join-Path $env:LOCALAPPDATA "Programs\Stumix\Stumix.exe"
+          if (-not (Test-Path $alvo)) { Write-Host "instalação inicial falhou"; exit 1 }
+          # 2) pacote publicado e o .exe que ele traz
+          $url = gh api repos/${{ github.repository }}/releases/latest --jq '.assets[] | select(.name | endswith("portatil.zip")) | .browser_download_url'
+          Write-Host "pacote: $url"
+          Invoke-WebRequest $url -OutFile pacote.zip; Expand-Archive pacote.zip -DestinationPath pacote -Force
+          $esperado = (Get-FileHash pacote\Stumix.exe).Hash
+          # 3) o app instalado se atualiza sozinho, como no botão
+          $p = Start-Process $alvo -ArgumentList "--testar-atualizacao=$url" -WorkingDirectory $pwd -PassThru
+          if (-not $p.WaitForExit(120000)) { $p.Kill(); Write-Host "tempo esgotado"; exit 1 }
+          Get-Content atualizacao.log -Encoding utf8
+          if (-not (Select-String -Path atualizacao.log -Pattern '"ok": true' -Quiet)) { exit 1 }
+          Start-Sleep 8
+          $agora = (Get-FileHash $alvo).Hash
+          $rodando = @(Get-Process Stumix -ErrorAction SilentlyContinue).Count
+          Get-Process Stumix -ErrorAction SilentlyContinue | Stop-Process -Force
+          Write-Host "exe trocado: $($agora -eq $esperado) | versão nova aberta: $($rodando -gt 0)"
+          if ($agora -ne $esperado -or $rodando -lt 1) { exit 1 }
 
       - uses: actions/upload-artifact@v4
         with:

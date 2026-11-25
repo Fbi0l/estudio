@@ -43,14 +43,52 @@ namespace Atualizador
         const String tag = json["tag_name"].toString();
         if (! tag.startsWith ("desktop-v")) { r->setProperty ("erro", t ("nenhuma versão publicada ainda")); return var (r); }
         const String versao = tag.fromFirstOccurrenceOf ("desktop-v", false, false);
-        String url;
+        // prefere o pacote portátil: a troca do próprio .exe não passa pelo instalador, que o
+        // Controle Inteligente de Aplicativos do Windows 11 bloqueia (arquivo .tmp sem assinatura)
+        String url, urlInstalador;
         if (auto* assets = json["assets"].getArray())
             for (auto& a : *assets)
-                if (a["name"].toString().endsWith ("Instalador.exe")) url = a["browser_download_url"].toString();
+            {
+                const String nome = a["name"].toString();
+                if (nome.endsWith ("portatil.zip")) url = a["browser_download_url"].toString();
+                if (nome.endsWith ("Instalador.exe")) urlInstalador = a["browser_download_url"].toString();
+            }
+        if (url.isEmpty()) url = urlInstalador;
         r->setProperty ("versao", versao);
         r->setProperty ("url", url);
         r->setProperty ("notas", json["body"].toString());
         r->setProperty ("nova", url.isNotEmpty() && comparar (JUCE_APPLICATION_VERSION_STRING, versao) < 0);
+        return var (r);
+    }
+
+    // Atualização sem instalador: tira o Stumix.exe do pacote, troca o arquivo do app (o Windows
+    // deixa renomear um .exe em uso) e abre a versão nova, que espera esta fechar.
+    static var trocarExecutavel (const File& pacote, DynamicObject* r)
+    {
+        auto falha = [r] (const String& e) { r->setProperty ("ok", false); r->setProperty ("erro", e); return var (r); };
+        ZipFile zip (pacote);
+        const int i = zip.getIndexOfFileName ("Stumix.exe", true);
+        if (i < 0) return falha (t ("o pacote baixado não tem o Stumix.exe"));
+        const File exe = File::getSpecialLocation (File::currentExecutableFile);
+        const File novo = exe.getSiblingFile ("Stumix.novo.exe"), antigo = exe.getSiblingFile ("Stumix.antigo.exe");
+        novo.deleteFile();
+        {
+            std::unique_ptr<InputStream> in (zip.createStreamForEntry (i));
+            FileOutputStream out (novo);
+            if (in == nullptr || ! out.openedOk() || out.writeFromInputStream (*in, -1) < 100000)
+                return falha (t ("não consegui gravar a versão nova na pasta do app"));
+        }
+        antigo.deleteFile();
+        if (! exe.moveFileTo (antigo)) { novo.deleteFile(); return falha (t ("não consegui substituir o app (pasta protegida?)")); }
+        if (! novo.moveFileTo (exe)) { antigo.moveFileTo (exe); return falha (t ("não consegui substituir o app")); }
+        unsigned long codigo = 0;
+        const String args = "--esperar=" + String ((int64) idDoProcesso());
+        if (! lancarInstalador (exe.getFullPathName().toWideCharPointer(), args.toWideCharPointer(), codigo))
+        {
+            exe.deleteFile(); antigo.moveFileTo (exe);   // volta para a versão que funcionava
+            return falha (t ("não consegui abrir a versão nova (código ") + String ((int) codigo) + ")");
+        }
+        r->setProperty ("ok", true);
         return var (r);
     }
 
@@ -59,7 +97,8 @@ namespace Atualizador
         auto* r = new DynamicObject();
         if (! url.startsWith ("https://github.com/Fbi0l/estudio/releases/download/"))
         { r->setProperty ("ok", false); r->setProperty ("erro", t ("endereço inesperado")); return var (r); }
-        auto destino = File::getSpecialLocation (File::tempDirectory).getChildFile ("Stumix-Atualizacao.exe");
+        auto destino = File::getSpecialLocation (File::tempDirectory)
+                           .getChildFile (url.endsWithIgnoreCase (".zip") ? "Stumix-Atualizacao.zip" : "Stumix-Atualizacao.exe");
         destino.deleteFile();
         auto opcoes = URL::InputStreamOptions (URL::ParameterHandling::inAddress)
                           .withExtraHeaders ("User-Agent: Stumix-Desktop").withConnectionTimeoutMs (30000);
@@ -72,6 +111,8 @@ namespace Atualizador
             out.flush();
         }
         if (! ok) { r->setProperty ("ok", false); r->setProperty ("erro", t ("o download não terminou")); return var (r); }
+        if (url.endsWithIgnoreCase (".zip"))
+            return trocarExecutavel (destino, r);
         unsigned long codigo = 0;
         ok = lancarInstalador (destino.getFullPathName().toWideCharPointer(),
                                L"/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS", codigo);
@@ -173,7 +214,7 @@ private:
                 {
                     auto r = Atualizador::instalar (url);
                     done (r);
-                    if ((bool) r["ok"])   // o instalador assume daqui: fecha o app, instala e reabre
+                    if ((bool) r["ok"])   // a versão nova já foi aberta (ou o instalador assume): este app fecha
                         MessageManager::callAsync ([] { JUCEApplication::getInstance()->systemRequestedQuit(); });
                 });
             })
@@ -323,6 +364,10 @@ public:
         engine = std::make_unique<AudioEngine>();
         // --autoteste=roteiro.js: roda a interface com uma placa simulada e um roteiro de cliques
         String roteiro;
+        for (auto& arg : getCommandLineParameterArray())
+            if (arg.startsWith ("--esperar="))   // aberto pela atualização: espera a versão antiga fechar
+                esperarProcesso ((unsigned long) arg.fromFirstOccurrenceOf ("=", false, false).getLargeIntValue(), 15000);
+        File::getSpecialLocation (File::currentExecutableFile).getSiblingFile ("Stumix.antigo.exe").deleteFile();
         for (auto& arg : getCommandLineParameterArray())
             if (arg.startsWith ("--testar-atualizacao="))
             {

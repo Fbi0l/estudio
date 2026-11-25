@@ -38,6 +38,19 @@ bool lancarInstalador (const wchar_t* caminho, const wchar_t* parametros, unsign
     }
     return false;
 }
+
+unsigned long idDoProcesso() { return GetCurrentProcessId(); }
+
+void esperarProcesso (unsigned long pid, int milissegundos)
+{
+    if (HANDLE h = OpenProcess (SYNCHRONIZE, FALSE, pid))
+    {
+        WaitForSingleObject (h, (DWORD) milissegundos);
+        CloseHandle (h);
+    }
+}
 #else
 bool lancarInstalador (const wchar_t*, const wchar_t*, unsigned long& erro) { erro = 0; return false; }
+unsigned long idDoProcesso() { return 0; }
+void esperarProcesso (unsigned long, int) {}
 #endif
