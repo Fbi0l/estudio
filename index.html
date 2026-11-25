@@ -99,7 +99,8 @@ svg.lg{width:24px;height:24px;flex:none}.about-h svg.lg{width:30px;height:30px}
 .list{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .row-i{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;min-height:52px;cursor:pointer}
 .list .row-i+.row-i{border-top:1px solid var(--line)}
-.row-i>span{display:flex;flex-direction:column;font-size:14px}
+.row-i>span{display:flex;flex-direction:column;font-size:14px;flex:1;min-width:0}
+.row-i>button{flex:none}
 .row-i small{color:var(--mute);font-size:12px}
 .row-i small.lat.ok{color:var(--ok)}#natLat.ok{color:var(--ok)}#natLat.mid{color:var(--warn)}#natLat.bad{color:#ff6b62}.row-i small.lat.mid{color:var(--warn)}.row-i small.lat.bad{color:#ff6b62}
 .row-i select{max-width:55%;min-height:36px;font-size:16px}
@@ -1597,7 +1598,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.10.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
+const APP_VERSION='1.10.1',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Stumix',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',

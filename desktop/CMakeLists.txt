@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(EstudioDesktop VERSION 0.5.0 LANGUAGES C CXX)
+project(EstudioDesktop VERSION 0.5.1 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -56,7 +56,7 @@ target_link_libraries(EstudioDesktop PRIVATE EstudioWeb juce::juce_audio_utils j
 
 # Teste do motor sem placa de som (roda no CI e aqui)
 juce_add_console_app(EngineTest PRODUCT_NAME "EngineTest")
-target_sources(EngineTest PRIVATE Source/EngineTest.cpp Source/AudioEngine.cpp Source/Sessao.cpp)
+target_sources(EngineTest PRIVATE Source/EngineTest.cpp Source/AudioEngine.cpp Source/Sessao.cpp Source/Lancador_windows.cpp)
 target_compile_definitions(EngineTest PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_ALSA=1 JUCE_JACK=0 JUCE_PLUGINHOST_VST3=1 JUCE_USE_MP3AUDIOFORMAT=1)
 target_link_libraries(EngineTest PRIVATE juce::juce_audio_utils juce::juce_dsp PUBLIC juce::juce_recommended_config_flags)
 

@@ -1,6 +1,7 @@
 // Stumix Desktop: multipista (faixas, gravação por cima, plugins VST3)
 // Copyright (C) 2026 Fbiol. Licença GPLv3 (ver LICENSE na raiz do repositório).
 #include "Sessao.h"
+#include "Lancador.h"
 #include <optional>
 
 using namespace juce;
@@ -505,6 +506,7 @@ bool Sessao::abrirPlugin (int id, int slot)
     janela->aoFechar = [this, p] { MessageManager::callAsync ([this, p] { janelas.erase (p); }); };
     janela->centreWithSize (janela->getWidth(), janela->getHeight());
     janela->setVisible (true);
+    if (auto* peer = janela->getPeer()) barraEscura (peer->getNativeHandle());
     janelas[p] = std::move (janela);
     return true;
 }

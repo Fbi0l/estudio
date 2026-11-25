@@ -5,6 +5,8 @@
 #endif
 #include <windows.h>
 #include <shellapi.h>
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
 #include <string>
 
 bool lancarInstalador (const wchar_t* caminho, const wchar_t* parametros, unsigned long& erro)
@@ -49,7 +51,18 @@ void esperarProcesso (unsigned long pid, int milissegundos)
         CloseHandle (h);
     }
 }
+void barraEscura (void* janelaNativa)
+{
+    auto h = (HWND) janelaNativa;
+    if (h == nullptr) return;
+    BOOL escuro = TRUE;
+    DwmSetWindowAttribute (h, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &escuro, sizeof (escuro));
+    COLORREF fundo = RGB (0x0e, 0x0f, 0x0c), texto = RGB (0xf2, 0xf2, 0xee);   // só no Windows 11; no 10 fica o escuro padrão
+    DwmSetWindowAttribute (h, 35 /* DWMWA_CAPTION_COLOR */, &fundo, sizeof (fundo));
+    DwmSetWindowAttribute (h, 36 /* DWMWA_TEXT_COLOR */, &texto, sizeof (texto));
+}
 #else
+void barraEscura (void*) {}
 bool lancarInstalador (const wchar_t*, const wchar_t*, unsigned long& erro) { erro = 0; return false; }
 unsigned long idDoProcesso() { return 0; }
 void esperarProcesso (unsigned long, int) {}

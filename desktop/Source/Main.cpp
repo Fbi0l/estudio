@@ -466,6 +466,7 @@ public:
                 setFullScreen (true);   // tela pequena: abre maximizada
         }
         setVisible (true);
+        if (auto* p = getPeer()) barraEscura (p->getNativeHandle());
     }
 
     ~JanelaPrincipal() override { guardarEstado(); }
