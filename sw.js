@@ -1,16 +1,16 @@
 // Service worker do Stumix: guarda o app para funcionar offline.
 // Ao publicar uma versão nova, troque VERSAO para os usuários receberem a atualização.
-const VERSAO = 'estudio-v13';
+const VERSAO = 'estudio-v14';
 const APP = [
   './',
   './index.html',
   './manifest.webmanifest',
   './lame.min.js',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/maskable-512.png',
-  './icons/apple-touch-icon.png',
-  './icons/favicon-32.png'
+  './icons/icon-192-v2.png',
+  './icons/icon-512-v2.png',
+  './icons/maskable-512-v2.png',
+  './icons/apple-touch-icon-v2.png',
+  './icons/favicon-32-v2.png'
 ];
 const FONTES = 'estudio-fontes';
 
