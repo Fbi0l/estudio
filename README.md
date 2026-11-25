@@ -6,7 +6,7 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
-## Versão 1.12.0 — Auditoria: janela sem travar, proteção e acessibilidade (Stumix Desktop 0.7.0)
+## Versão 1.12.0 — Auditoria: janela sem travar, proteção e acessibilidade (Stumix Desktop 0.7.1)
 
 - PC: abrir sessão, importar base e mixar rodam em segundo plano, com aviso de progresso; a janela não trava.
 - PC: funções usadas só pelo teste automático ficam desligadas no uso normal; "abrir link" só aceita https.
