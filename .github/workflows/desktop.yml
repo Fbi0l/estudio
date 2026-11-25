@@ -93,8 +93,9 @@ jobs:
         run: |
           $v = ([regex]::Match((Get-Content desktop\CMakeLists.txt -Raw), 'VERSION (\d+\.\d+\.\d+)')).Groups[1].Value
           "tag=desktop-v$v" >> $env:GITHUB_OUTPUT
-          gh release view "desktop-v$v" --repo "${{ github.repository }}" *> $null
-          if ($LASTEXITCODE -eq 0) { "nova=false" >> $env:GITHUB_OUTPUT } else { "nova=true" >> $env:GITHUB_OUTPUT }
+          # só conta como publicada se não for rascunho (um envio que falhou no meio deixa rascunho)
+          $rascunho = gh release view "desktop-v$v" --repo "${{ github.repository }}" --json isDraft -q .isDraft 2>$null
+          if ($LASTEXITCODE -eq 0 -and $rascunho -eq 'false') { "nova=false" >> $env:GITHUB_OUTPUT } else { "nova=true" >> $env:GITHUB_OUTPUT }
           exit 0
 
       - name: Publicar versão (o botão de atualização do app encontra aqui)
