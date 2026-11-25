@@ -36,6 +36,29 @@
     ok(b.sampleRate === 48000, 'taxa do projeto = taxa do motor (' + b.sampleRate + ')');
     const at = await new Promise(res => { const id = 8e6 + 1; window.__JUCE__.backend.addEventListener('__juce__complete', ({ promiseId, result }) => { if (promiseId === id) res(result) }); window.__JUCE__.backend.emitEvent('__juce__invoke', { name: 'estudioVerificarAtualizacao', params: [], resultId: id }) });
     log('   atualização: versão do app ' + at.atual + ' | publicada ' + (at.versao || '—') + ' | nova: ' + !!at.nova + (at.erro ? ' | ' + at.erro : ''));
+    // ---------- multipista ----------
+    let nId = 8e6 + 100;
+    const chama = (name, ...params) => new Promise(res => { const id = ++nId; window.__JUCE__.backend.addEventListener('__juce__complete', ({ promiseId, result }) => { if (promiseId === id) res(result) }); window.__JUCE__.backend.emitEvent('__juce__invoke', { name, params, resultId: id }) });
+    $('#tabs [data-t=mp]').click(); await espera(1000);
+    ok(!$('#tabs [data-t=mp]').hidden && getComputedStyle($('#mpView')).display !== 'none', 'multipista: aba Faixas aparece no PC');
+    $('#rec').click(); await espera(2300); $('#rec').click(); await espera(1500);
+    let e = await chama('mpEstado');
+    log('   multipista 1: ' + e.faixas.map(f => f.nome + ' ' + f.dur.toFixed(2) + 's').join(', '));
+    ok(e.faixas.length === 1 && e.faixas[0].dur > 1.5 && e.faixas[0].dur < 3, 'multipista: primeira faixa gravada');
+    await chama('mpNova', 1, true);
+    $('#stop').click(); await espera(500);
+    $('#rec').click(); await espera(1300); $('#rec').click(); await espera(1500);
+    e = await chama('mpEstado');
+    log('   multipista 2: ' + e.faixas.map(f => f.nome + ' início ' + f.inicio.toFixed(2) + ' dur ' + f.dur.toFixed(2) + ' entrada ' + f.entrada).join(' | '));
+    ok(e.faixas.length === 2 && e.faixas[1].dur > 0.6 && e.faixas[1].entrada === 1 && Math.abs(e.faixas[1].inicio) < 0.01, 'multipista: segunda faixa gravada por cima, na entrada 2, a partir do início');
+    ok(document.querySelectorAll('#mpPistas .mp-linha').length === 2, 'multipista: duas pistas na tela');
+    const fimMax = Math.max(...e.faixas.map(f => f.inicio + f.dur));
+    $('#mpMixar').click(); await espera(4000);
+    const mix = window.__studio.buf;
+    let pk = 0; if (mix) { const y = mix.getChannelData(0); for (let i = 0; i < y.length; i++) pk = Math.max(pk, Math.abs(y[i])); }
+    log('   mixagem: ' + (mix ? mix.duration.toFixed(2) + ' s, pico ' + pk.toFixed(3) : 'nada') + ' | aba ' + $('#app').dataset.tab);
+    ok(mix && Math.abs(mix.duration - (fimMax + 0.25)) < 0.05 && $('#app').dataset.tab === 'fin', 'multipista: mixagem aberta em Finalizar com a duração da sessão');
+    ok(Math.abs(pk - 0.3) < 0.02, 'multipista: som da primeira faixa na mixagem');
   } catch (e) { log('[FALHA] erro: ' + e.message); falhas++; }
   log(falhas ? 'HOUVE FALHAS' : 'TODOS OS TESTES PASSARAM');
   window.__JUCE__.backend.emitEvent('__juce__invoke', { name: 'estudioSair', params: [], resultId: 9e6 + 99999 });

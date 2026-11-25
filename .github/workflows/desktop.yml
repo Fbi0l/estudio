@@ -30,10 +30,10 @@ jobs:
         run: cmake -S desktop -B build -A x64 -DASIO_SDK_DIR="${{ github.workspace }}/asiosdk"
 
       - name: Compilar
-        run: cmake --build build --config Release --target EstudioDesktop EngineTest --parallel
+        run: cmake --build build --config Release --target EstudioDesktop EngineTest StumixTesteGanho_VST3 --parallel
 
       - name: Teste do motor
-        run: build\EngineTest_artefacts\Release\EngineTest.exe
+        run: build\EngineTest_artefacts\Release\EngineTest.exe build\StumixTesteGanho_artefacts\Release\VST3\StumixTesteGanho.vst3
 
       - name: Teste de ponta a ponta (interface + motor, placa simulada)
         shell: pwsh

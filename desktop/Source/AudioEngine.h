@@ -3,6 +3,7 @@
 #pragma once
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <juce_dsp/juce_dsp.h>
+#include "Sessao.h"
 #include <atomic>
 #include <vector>
 
@@ -26,7 +27,10 @@ public:
     // Retorno no fone: canal 0 = mistura das entradas 1 e 2, 1 = entrada 1, 2 = entrada 2, 3 = estéreo
     void setMonitor (bool ligado, int canal, float ganho);
 
-    void iniciarGravacao();
+    void iniciarGravacao (bool imediato = true);    // false: a multipista liga a captação no bloco certo
+    void tomarGravacao (std::vector<float>& L, std::vector<float>& R);   // encerra e entrega o que foi captado
+    int latenciaAmostras() const;                     // ida e volta da placa (entrada + saída)
+    Sessao sessao;                                    // multipista
     juce::var pararGravacao();                        // { ok, frames, canais, taxa, duracao }
     const juce::MemoryBlock& wav() const              { return wavGravado; }
 

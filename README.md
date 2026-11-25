@@ -6,6 +6,17 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.10.0 — Multipista no PC (Stumix Desktop 0.5.0)
+
+- Aba **Faixas** (só no PC): várias faixas numa linha do tempo, cada uma com volume, pan, mudo e solo.
+- **Gravar por cima**: arme (●) uma ou mais faixas e grave enquanto as outras tocam — a voz por cima da base que acabou de gravar ou de um back track importado (WAV, MP3, FLAC, OGG, AIFF; outra taxa é convertida).
+- **Duas entradas ao mesmo tempo**: cada faixa armada escolhe a entrada 1, a 2 ou as duas em estéreo.
+- **Alinhamento**: a gravação começa no mesmo bloco em que a reprodução começa e o atraso de ida e volta da placa é descontado; há ajuste fino em ms e "mover no tempo" por faixa.
+- **Plugins VST3** por faixa, em cadeia: liga/desliga, janela do plugin, ajustes salvos com a sessão; com "ouvir a entrada pelos plugins", a faixa armada toca ao vivo pelo simulador de amp.
+- **Sessões** salvas sozinhas no computador (WAV 32 bits por faixa + sessao.json).
+- **Mixar e finalizar**: a mixagem (com plugins) é feita fora do tempo real e abre em Finalizar para o volume final e a exportação.
+- Testes: motor (tocar, gravar por cima com atraso simulado, duas entradas, volume/pan, importar com outra taxa, mixagem, sessão, plugin VST3 de teste) e ponta a ponta na interface.
+
 ## Versão 1.9.1 — Ícone da tela inicial
 
 - Arquivos de ícone com nome novo (-v2), para o Android e o PC perceberem a troca.

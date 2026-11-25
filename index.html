@@ -224,11 +224,47 @@ dialog{background:var(--glass-strong);-webkit-backdrop-filter:var(--blur);backdr
 .tabs button.on{background:transparent;border-color:transparent;color:var(--acc)}
 .tabind{position:absolute;left:0;top:0;width:0;height:0;border-radius:999px;background:var(--acc-soft);border:1px solid var(--acc-line);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);pointer-events:none;opacity:0;transition:transform .3s cubic-bezier(.2,.9,.3,1.15),width .3s,height .3s,opacity .2s}
 .tabs button:not(.on):hover{background:rgba(255,255,255,.04)}
+.tabs{gap:2px;padding:6px 8px}.tabs button{padding:0 8px;gap:6px;font-size:13px}
 #rec{background:#241513;border-color:#5a2a28;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .meter{background:rgba(0,0,0,.4)}
 @media(prefers-reduced-motion:reduce){.tabind{transition:none}}
 @media(prefers-reduced-transparency:reduce){.appbar,.tools,.tabs,.transport,dialog{background:var(--panel);-webkit-backdrop-filter:none;backdrop-filter:none}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.appbar,.tools,.tabs,.transport,dialog{background:var(--panel)}}
+
+/* ---------- multipista (PC) ---------- */
+.app[data-tab=mp] #p-mp{display:flex;flex-direction:column;gap:12px}
+.mpv{display:none;position:absolute;inset:0;flex-direction:column}
+.app[data-tab=mp] .mpv{display:flex}
+.app[data-tab=mp] .stage,.app[data-tab=mp] .scrollbar,.app[data-tab=mp] .tools>.grp{display:none}
+.work{position:relative}
+.mp-rolo{flex:1;overflow:auto;position:relative}
+.mp-cont{position:relative;min-width:100%;width:max-content}
+.mp-linha{display:flex;height:86px;border-bottom:1px solid var(--glass-line)}
+.mp-linha.sel{background:rgba(200,241,105,.05)}
+.mp-reg{height:30px;position:sticky;top:0;z-index:3;background:rgba(14,15,12,.92)}
+.mp-h{position:sticky;left:0;z-index:2;flex:none;width:232px;box-sizing:border-box;padding:8px 10px;display:flex;flex-direction:column;gap:6px;background:rgba(20,22,19,.94);border-right:1px solid var(--glass-line)}
+.mp-hreg{flex-direction:row;align-items:baseline;gap:8px;padding:6px 10px;overflow:hidden;white-space:nowrap}.mp-hreg small{color:var(--mute);font-size:11px;overflow:hidden;text-overflow:ellipsis}
+.mp-l1,.mp-l2{display:flex;align-items:center;gap:6px}
+.mp-l1 input{flex:1;min-width:0;background:transparent;border:1px solid transparent;border-radius:8px;color:var(--ink);font:600 13px Manrope,sans-serif;padding:4px 6px}
+.mp-l1 input:focus,.mp-l1 input:hover{border-color:var(--line)}
+.mp-b{min-width:30px;min-height:30px;padding:0 6px;border-radius:8px;font:700 12px Manrope,sans-serif}
+.mp-b[aria-pressed=true]{background:var(--acc-soft);border-color:var(--acc-line);color:var(--acc)}
+.mp-arm[aria-pressed=true]{background:rgba(255,69,58,.18);border-color:#ff453a;color:#ff6b61}
+.mp-l2 input[type=range]{flex:1;min-width:0}
+.mp-l2 small{color:var(--mute);font-size:11px;white-space:nowrap}
+.mp-clip{display:block;cursor:pointer}
+.mp-cab{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);pointer-events:none;z-index:1;box-shadow:0 0 8px rgba(242,242,238,.5)}
+.mp-cab.rec{background:#ff453a;box-shadow:0 0 8px rgba(255,69,58,.6)}
+.mp-vazio{display:none}.mpv.vazia .mp-vazio{display:flex}.mpv.vazia .mp-rolo{display:none}
+.mp-acts{display:flex;gap:8px;flex-wrap:wrap}.mp-acts button{flex:1}
+.mp-bol{color:#ff453a}
+.mp-aj{display:flex;align-items:center;gap:8px}.mp-aj output{min-width:52px;text-align:right;font-variant-numeric:tabular-nums;color:var(--mute);font-size:13px}
+.mp-mov{display:flex;gap:4px}.mp-mov button{min-height:34px;padding:0 8px;font-size:12px}
+.mp-plug{display:flex;align-items:center;gap:8px}.mp-plug span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-perigo{color:#ff6b61}
+.so-nat[hidden]{display:none!important}
+.mp-ferr{display:none}.app[data-tab=mp] .mp-ferr{display:flex;align-items:center;gap:4px}.mp-sep{width:1px;height:24px;background:var(--line);margin:0 6px}
+.mp-arm{font-size:15px;line-height:1}
 
 /* ---------- abertura ---------- */
 #splash{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:radial-gradient(circle at 50% 42%,#1D2414,#0E0F0C 62%);transition:opacity .35s ease,transform .35s ease;cursor:pointer}
@@ -324,6 +360,7 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
  <symbol id="i-proj" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
  <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></symbol>
+  <symbol id="i-faixas" viewBox="0 0 24 24"><path d="M3 6h5m3 0h10M3 12h9m3 0h6M3 18h3m3 0h12"/></symbol>
   <symbol id="i-logo" viewBox="0 0 100 100"><path d="M68 26 C60 17 34 18 33 33 C32 49 67 49 67 65 C67 79 54.1 86.6 42.5 83.5" fill="none" stroke="#C8F169" stroke-width="11" stroke-linecap="round"/><g transform="rotate(15 42.5 83.5)"><rect x="25" y="76.5" width="18.5" height="14" rx="3" fill="#C8F169"/></g></symbol>
 </defs></svg>
 
@@ -343,6 +380,13 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
   </header>
 
   <div class="tools" id="tools" role="toolbar" aria-label="Ferramentas de edição">
+    <div class="mp-ferr">
+      <button data-mp="importar" title="Importar uma base ou back track"><svg class="i"><use href="#i-folder"/></svg><span class="lb">Importar base</span></button>
+      <button data-mp="nova" title="Nova faixa vazia"><svg class="i"><use href="#i-faixas"/></svg><span class="lb">Nova faixa</span></button>
+      <span class="mp-sep"></span>
+      <button data-mpz="0.67" title="Afastar (−)"><svg class="i"><use href="#i-zout"/></svg><span class="lb">Afastar</span></button>
+      <button data-mpz="1.5" title="Aproximar (+)"><svg class="i"><use href="#i-zin"/></svg><span class="lb">Aproximar</span></button>
+    </div>
     <div class="grp"><button id="open" title="Abrir arquivo de áudio"><svg class="i"><use href="#i-folder"/></svg><span class="lb">Abrir</span></button><input type="file" id="file" accept="audio/*,video/*" hidden></div>
     <div class="grp">
       <button id="cut" title="Recortar (Ctrl+X)"><svg class="i"><use href="#i-cut"/></svg><span class="lb">Recortar</span></button>
@@ -374,18 +418,70 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
         <div class="acts"><button class="recb" id="rec2">Gravar</button><button id="open2"><svg class="i"><use href="#i-folder"/></svg>Abrir arquivo</button></div>
       </div>
     </section>
+    <section class="mpv" id="mpView" aria-label="Faixas da sessão">
+      <div class="mp-rolo" id="mpRolo">
+        <div class="mp-cont" id="mpCont">
+          <div class="mp-linha mp-reg"><div class="mp-h mp-hreg"><b id="mpNome">Sessão</b><small id="mpSub">—</small></div><canvas id="mpRegua" aria-label="Régua de tempo: clique para posicionar"></canvas></div>
+          <div id="mpPistas"></div>
+          <div class="mp-cab" id="mpCab" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="empty mp-vazio" id="mpVazio">
+        <div class="big"><svg class="i"><use href="#i-faixas"/></svg></div>
+        <b>Sessão vazia</b>
+        <span>Importe uma base (ou um back track) e grave por cima, ou grave a primeira faixa.</span>
+        <div class="acts"><button class="recb" data-mp="gravar">Gravar</button><button data-mp="importar"><svg class="i"><use href="#i-folder"/></svg>Importar base</button></div>
+      </div>
+    </section>
     <div class="scrollbar"><input type="range" id="scroll" min="0" max="1000" value="0" aria-label="Rolar a forma de onda"></div>
   </main>
 
   <nav class="tabs" id="tabs" role="tablist" aria-label="Painéis">
     <span class="tabind" id="tabind" aria-hidden="true"></span>
     <button role="tab" data-t="rec"><svg class="i"><use href="#i-mic"/></svg><span>Gravar</span></button>
+    <button role="tab" data-t="mp" class="so-nat" hidden><svg class="i"><use href="#i-faixas"/></svg><span>Faixas</span></button>
     <button role="tab" data-t="edit" class="m-only"><svg class="i"><use href="#i-cut"/></svg><span>Editar</span></button>
     <button role="tab" data-t="fx"><svg class="i"><use href="#i-sliders"/></svg><span>Efeitos</span></button>
     <button role="tab" data-t="fin"><svg class="i"><use href="#i-wand"/></svg><span>Finalizar</span></button>
   </nav>
 
   <aside class="side" id="side">
+    <section class="panel" id="p-mp" role="tabpanel" aria-label="Faixas">
+      <div class="card">
+        <h2>Gravar por cima</h2>
+        <p>Arme <b class="mp-bol">●</b> as faixas que vão gravar: a voz por cima da base, ou duas entradas da placa ao mesmo tempo, cada uma na sua faixa. As outras faixas tocam enquanto você grava.</p>
+        <div class="mp-acts"><button class="go" data-mp="importar"><svg class="i"><use href="#i-folder"/></svg>Importar base</button><button data-mp="nova"><svg class="i"><use href="#i-faixas"/></svg>Nova faixa</button></div>
+      </div>
+      <div class="cap">Sessão</div>
+      <div class="list">
+        <label class="row-i"><span>Sessão aberta<small>Fica salva sozinha no computador</small></span><select id="mpSessoes"></select></label>
+        <div class="row-i"><span>Começar outra<small>A sessão atual continua guardada</small></span><button id="mpNovaSessao">Nova sessão</button></div>
+        <div class="row-i"><span>Atraso da placa<small id="mpLatTxt">—</small></span></div>
+        <label class="row-i"><span>Ajuste fino do alinhamento<small>Se a faixa gravada ficar adiantada ou atrasada em relação à base. Vale para as próximas gravações.</small></span><span class="mp-aj"><input type="range" id="mpAjuste" min="-60" max="60" step="1" value="0" aria-label="Ajuste fino em milissegundos"><output id="mpAjusteTxt">0 ms</output></span></label>
+      </div>
+      <div id="mpInsp" hidden style="display:contents">
+        <div class="cap" id="mpInspT">Faixa</div>
+        <div class="list">
+          <label class="row-i"><span>Entrada<small>De onde vem o som quando a faixa está armada</small></span><select id="mpEntrada"><option value="0">Entrada 1</option><option value="1">Entrada 2</option><option value="2">Entradas 1 e 2 (estéreo)</option></select></label>
+          <label class="row-i"><span>Ouvir a entrada pelos plugins<small>Com a faixa armada, você ouve o som já com os plugins (ex.: simulador de amp). Use fone.</small></span><input type="checkbox" class="sw" id="mpMonitor"></label>
+          <label class="row-i"><span>Volume</span><input type="range" id="mpVol" min="0" max="200" step="1" aria-label="Volume da faixa"></label>
+          <label class="row-i"><span>Pan<small id="mpPanTxt">Centro</small></span><input type="range" id="mpPan" min="-100" max="100" step="1" aria-label="Pan da faixa"></label>
+          <div class="row-i"><span>Mover no tempo<small id="mpInicioTxt">—</small></span><span class="mp-mov"><button data-mov="-10">−10 ms</button><button data-mov="-1">−1</button><button data-mov="1">+1</button><button data-mov="10">+10 ms</button></span></div>
+        </div>
+        <div class="cap">Plugins da faixa</div>
+        <div class="list" id="mpPlugs"></div>
+        <div class="list">
+          <label class="row-i"><span>Adicionar plugin<small id="mpBuscaTxt">VST3 instalados no computador</small></span><select id="mpPlugSel"><option value="">Escolha…</option></select></label>
+          <div class="row-i"><span>Não achou o plugin?<small>Procura de novo nas pastas de VST3</small></span><button id="mpBuscar">Procurar plugins</button></div>
+          <div class="row-i"><span>Remover esta faixa</span><button id="mpRemover" class="mp-perigo">Remover</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Mixar</h2>
+        <p>Junta as faixas (com volume, pan e plugins) num áudio só e abre em Finalizar, para deixar no volume certo e exportar.</p>
+        <button class="pri wide" id="mpMixar">Mixar e finalizar</button>
+      </div>
+    </section>
     <section class="panel" id="p-rec" role="tabpanel" aria-label="Gravar">
       <div class="card">
         <h2>Assistente de gravação</h2>
@@ -1031,8 +1127,8 @@ function draw(){
   if(play){const px=t2x(pos());g2.fillStyle='#ff453a';g2.fillRect(Math.round(px)-1,0,2,H)}
 }
 function ui(){
-  const t=play?pos():cursor;$('#clock').firstChild.textContent=rec?fmt(rec.len/AC().sampleRate):fmt(t);
-  $('#selInfo').textContent=sel?`Seleção ${fmt(sel.a)} → ${fmt(sel.b)} · ${fmt(sel.b-sel.a)}`:(buf?'Total '+fmt(buf.duration):'Sem seleção');
+  const t=play?pos():cursor;if(!(NATIVO&&app.dataset.tab==='mp'))$('#clock').firstChild.textContent=rec?fmt(rec.len/AC().sampleRate):fmt(t);
+  if(!(NATIVO&&app.dataset.tab==='mp'))$('#selInfo').textContent=sel?`Seleção ${fmt(sel.a)} → ${fmt(sel.b)} · ${fmt(sel.b-sel.a)}`:(buf?'Total '+fmt(buf.duration):'Sem seleção');
   $('#playIco').setAttribute('d',play?'M6 4h4v16H6zm8 0h4v16h-4z':'M7 4l13 8-13 8z');
   $('#loop').classList.toggle('on',loop);$('#undo').disabled=!hist.length;$('#redo').disabled=!redo.length;
   $('#empty').style.display=buf||rec?'none':'grid';
@@ -1075,7 +1171,8 @@ $('#srcType').addEventListener('change',()=>{srcTouched=true;srcChanged()});$('#
 $('#chan').addEventListener('change',()=>{if(NATIVO)natMonitor();const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
 navigator.mediaDevices?.addEventListener?.('devicechange',listDevs);listDevs();
 $('#mon').addEventListener('change',e=>{if(NATIVO){natMonitor();if(e.target.checked)toast('Retorno direto da placa ligado. Use fone de ouvido.',3000);return}if(e.target.checked)toast(isVoz()?'Use fone de ouvido: em caixa de som dá microfonia. O navegador tem um pequeno atraso no retorno.':'Dica: sua pedaleira ou placa tem saída de fone sem atraso. Prefira ouvir por ela.',5000);const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
-on('#rec',startRec);on('#play',toggle);on('#stop',()=>{stopRec();stopPlay();cursor=sel?sel.a:0;refresh()});on('#loop',()=>{loop=!loop;if(play){const t=pos();stopPlay();cursor=t;startPlay()}ui()});
+const mpAtivo=()=>NATIVO&&app.dataset.tab==='mp';
+on('#rec',()=>mpAtivo()?MP.gravar():startRec());on('#play',()=>mpAtivo()?MP.tocarPausar():toggle());on('#stop',()=>{if(mpAtivo())return MP.parar(true);stopRec();stopPlay();cursor=sel?sel.a:0;refresh()});on('#loop',()=>{loop=!loop;if(play){const t=pos();stopPlay();cursor=t;startPlay()}ui()});
 on('#zin',()=>zoom(.5));on('#zout',()=>zoom(2));on('#zfit',fit);on('#zsel',()=>sel?zoomTo(sel.a-(sel.b-sel.a)*.05,(sel.b-sel.a)*1.1):toast('Selecione um trecho primeiro'));
 $('#scroll').addEventListener('input',e=>{if(buf){view.s=e.target.value/1000*(buf.duration-view.d);draw()}});
 on('#open',()=>$('#file').click());on('#open2',()=>$('#file').click());$('#file').addEventListener('change',e=>{importFile(e.target.files[0]);e.target.value=''});
@@ -1084,6 +1181,7 @@ document.addEventListener('keydown',e=>{
   if(e.target.matches('input[type=text],select')||$('#busy').classList.contains('show')||document.querySelector('dialog[open]'))return;
   const k=e.key.toLowerCase(),m=e.ctrlKey||e.metaKey;
   if(e.target.matches('input[type=range]')&&!m&&k!==' ')return;
+  if(mpAtivo()){if(k===' '){e.preventDefault();MP.tocarPausar()}else if(!m&&k==='r')MP.gravar();else if(k==='home')MP.parar(true);else if(k==='+'||k==='=')MP.zoom(1.5);else if(k==='-')MP.zoom(1/1.5);return}
   if(k===' '){e.preventDefault();toggle()}
   else if(m&&k==='z'){e.preventDefault();e.shiftKey?redoF():undo()}else if(m&&k==='y'){e.preventDefault();redoF()}
   else if(m&&k==='x'){e.preventDefault();cutF()}else if(m&&k==='c'){e.preventDefault();copy()}else if(m&&k==='v'){e.preventDefault();paste()}
@@ -1155,7 +1253,7 @@ if('launchQueue'in window)launchQueue.setConsumer(async p=>{for(const h of p.fil
 if(new URLSearchParams(location.search).get('acao')==='gravar')verd(['Atalho “Gravar agora”: aperte o botão vermelho ou a tecla R para começar.']);
 /* ---------- abas e diálogo ---------- */
 const app=$('#app'),mq=matchMedia('(max-width:760px)');
-function tab(t){if(t==='edit'&&!mq.matches)t='rec';app.dataset.tab=t;document.querySelectorAll('#tabs [data-t]').forEach(b=>{const o=b.dataset.t===t;b.classList.toggle('on',o);b.setAttribute('aria-selected',o)});$('#side').scrollTop=0;tabInd()}
+function tab(t){if(t==='edit'&&!mq.matches)t='rec';app.dataset.tab=t;document.querySelectorAll('#tabs [data-t]').forEach(b=>{const o=b.dataset.t===t;b.classList.toggle('on',o);b.setAttribute('aria-selected',o)});$('#side').scrollTop=0;tabInd();if(t==='mp')MP.atualizar()}
 // pílula de vidro que desliza até a aba ativa
 function tabInd(){const b=$('#tabs .on'),i=$('#tabind');if(!b||!b.offsetWidth){i.style.opacity=0;return}i.style.opacity=1;i.style.width=b.offsetWidth+'px';i.style.height=b.offsetHeight+'px';i.style.transform=`translate(${b.offsetLeft}px,${b.offsetTop}px)`}
 addEventListener('resize',tabInd);addEventListener('load',tabInd);document.fonts&&document.fonts.ready.then(tabInd);
@@ -1222,6 +1320,152 @@ async function natAtualizacao(silencioso){
     else return natAtualizacao(false)}  // um clique só: achou, já baixa e instala
   else if(!silencioso){t.textContent='Você já está na versão mais recente ('+r.atual+'). ✓';b.textContent='Buscar de novo'}
 }
+/* ---------- multipista (só no PC, com o motor nativo) ---------- */
+const MP=(()=>{
+  let est={faixas:[],taxa:48000},selId=0,pxs=40,grav=null,tocando=false,pos=0,plugs=[],ajuste=0,buscaT=null;
+  const picos=new Map(),H=232,ALT=86;
+  try{ajuste=+localStorage.getItem('estudio:mpAjuste')||0}catch(e){}
+  const fim=()=>Math.max(30,...est.faixas.map(f=>f.inicio+f.dur),grav?pos:0)+5;
+  const faixa=id=>est.faixas.find(f=>f.id===id);
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  async function atualizar(){
+    const e=await nat('mpEstado').catch(()=>null);if(!e)return;est=e;
+    if(!faixa(selId))selId=est.faixas.length?est.faixas[0].id:0;
+    for(const f of est.faixas){const k=f.id+':'+f.dur;if(f.dur>0&&!picos.has(k)){picos.set(k,await nat('mpPicos',f.id).catch(()=>[]))}}
+    desenhar();
+  }
+  function desenhar(){
+    $('#mpView').classList.toggle('vazia',!est.faixas.length&&!grav);
+    $('#mpNome').textContent=est.nome||'Sessão';
+    if(app.dataset.tab==='mp')$('#selInfo').textContent=est.faixas.length?'Sessão · '+est.faixas.filter(f=>f.armada).length+' armada(s)':'Sessão vazia';
+    $('#mpSub').textContent=est.faixas.length+(est.faixas.length===1?' faixa':' faixas')+' · '+String(Math.round(est.taxa/100)/10).replace('.',',')+' kHz'+(est.taxaPlaca&&Math.abs(est.taxaPlaca-est.taxa)>1?' · a placa está em outra taxa':'');
+    const ss=$('#mpSessoes');ss.innerHTML=(est.sessoes||[]).map(x=>`<option${x.atual?' selected':''}>${esc(x.nome)}</option>`).join('');
+    $('#mpLatTxt').textContent=(est.latenciaMs||0).toFixed(1).replace('.',',')+' ms (entrada + saída, informado pela placa). É descontado sozinho ao gravar.';
+    $('#mpAjuste').value=ajuste;$('#mpAjusteTxt').textContent=(ajuste>0?'+':'')+ajuste+' ms';
+    const W=Math.ceil(fim()*pxs);
+    $('#mpPistas').innerHTML=est.faixas.map(f=>`<div class="mp-linha${f.id===selId?' sel':''}" data-id="${f.id}">
+      <div class="mp-h">
+        <div class="mp-l1"><input type="text" value="${esc(f.nome)}" data-campo="nome" aria-label="Nome da faixa" spellcheck="false">
+          <button class="mp-b mp-arm" data-tg="armada" aria-pressed="${f.armada}" title="Armar para gravar" aria-label="Armar ${esc(f.nome)} para gravar">●</button>
+          <button class="mp-b" data-tg="mudo" aria-pressed="${f.mudo}" title="Mudo" aria-label="Mudo">M</button>
+          <button class="mp-b" data-tg="solo" aria-pressed="${f.solo}" title="Solo" aria-label="Solo">S</button></div>
+        <div class="mp-l2"><input type="range" min="0" max="200" value="${Math.round(f.volume*100)}" data-campo="volume" aria-label="Volume de ${esc(f.nome)}"><small>${f.armada?['Ent. 1','Ent. 2','Ent. 1+2'][f.entrada]:(f.plugins.length?'FX '+f.plugins.length:(f.canais>1?'estéreo':'mono'))}</small></div>
+      </div><canvas class="mp-clip" width="${W}" height="${ALT}" style="width:${W}px;height:${ALT}px"></canvas></div>`).join('');
+    const rg=$('#mpRegua');rg.width=W;rg.height=30;rg.style.width=W+'px';rg.style.height='30px';regua(rg);
+    document.querySelectorAll('#mpPistas .mp-linha').forEach(l=>onda(l,faixa(+l.dataset.id)));
+    cabeca();inspetor();
+  }
+  function regua(c){
+    const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);g.fillStyle='#A3A6AE';g.strokeStyle='#30342C';g.font='11px Manrope,sans-serif';
+    const passo=pxs>=80?1:pxs>=20?5:pxs>=8?10:30;
+    for(let s=0;s*pxs<c.width;s+=passo){const x=Math.round(s*pxs)+.5;g.beginPath();g.moveTo(x,18);g.lineTo(x,30);g.stroke();g.fillText(fmt(s).slice(0,5),x+3,13)}
+  }
+  function onda(l,f){
+    const c=l.querySelector('canvas'),g=c.getContext('2d'),W=c.width,meio=ALT/2;g.clearRect(0,0,W,ALT);
+    if(!f)return;
+    const x0=f.inicio*pxs,lw=f.dur*pxs;
+    if(f.dur>0){
+      g.fillStyle=f.mudo?'rgba(163,166,174,.08)':'rgba(200,241,105,.09)';g.beginPath();g.roundRect(x0,6,lw,ALT-12,8);g.fill();
+      const p=picos.get(f.id+':'+f.dur)||[],porPx=100/pxs;g.fillStyle=f.mudo?'#5b5e63':'#C8F169';
+      for(let x=Math.max(0,Math.floor(x0));x<Math.min(W,x0+lw);x++){
+        const a=Math.floor((x-x0)*porPx),b=Math.max(a+1,Math.floor((x+1-x0)*porPx));let m=0;
+        for(let i=a;i<b&&i<p.length;i++)if(p[i]>m)m=p[i];
+        const h=Math.max(1,m/1000*(meio-8));g.fillRect(x,meio-h,1,h*2)}
+    }
+    if(grav&&f.armada){   // gravando agora: a onda cresce ao vivo
+      const spp=512/est.taxa,xs=grav.inicio*pxs;g.fillStyle='rgba(255,69,58,.14)';g.fillRect(xs,6,grav.picos.length*spp*pxs,ALT-12);g.fillStyle='#ff6b61';
+      grav.picos.forEach((v,i)=>{const x=xs+i*spp*pxs,h=Math.max(1,Math.min(1,v)*(meio-8));g.fillRect(x,meio-h,Math.max(1,spp*pxs),h*2)})
+    }
+  }
+  function cabeca(){const c=$('#mpCab');c.style.left=(H+pos*pxs)+'px';c.classList.toggle('rec',!!grav)}
+  function inspetor(){
+    const f=faixa(selId);$('#mpInsp').hidden=!f;if(!f)return;
+    $('#mpInspT').textContent='Faixa: '+f.nome;$('#mpEntrada').value=f.entrada;$('#mpMonitor').checked=f.monitorar;
+    $('#mpVol').value=Math.round(f.volume*100);$('#mpPan').value=Math.round(f.pan*100);
+    $('#mpPanTxt').textContent=f.pan===0?'Centro':(Math.abs(Math.round(f.pan*100))+'% '+(f.pan<0?'esquerda':'direita'));
+    $('#mpInicioTxt').textContent=f.dur>0?'Começa em '+fmt(f.inicio)+(f.inicio<0?' (antes do zero)':''):'Ainda sem áudio';
+    $('#mpPlugs').innerHTML=f.plugins.length?f.plugins.map((p,i)=>`<div class="row-i mp-plug"><span>${esc(p.nome)}</span><input type="checkbox" class="sw" data-pl="ligar" data-i="${i}"${p.ligado?' checked':''} aria-label="Ligar ${esc(p.nome)}"><button data-pl="abrir" data-i="${i}">Abrir</button><button data-pl="tirar" data-i="${i}" aria-label="Remover ${esc(p.nome)}">✕</button></div>`).join(''):'<div class="row-i"><span>Nenhum plugin<small>Escolha abaixo: o som da faixa passa pelos plugins na ordem da lista</small></span></div>';
+  }
+  async function listarPlugins(){
+    const r=await nat('mpPlugins').catch(()=>null);if(!r)return;plugs=r.plugins.filter(p=>!p.instrumento).sort((a,b)=>a.nome.localeCompare(b.nome));
+    $('#mpPlugSel').innerHTML='<option value="">Escolha…</option>'+plugs.map(p=>`<option value="${p.indice}">${esc(p.nome)}${p.fabricante?' · '+esc(p.fabricante):''}</option>`).join('');
+    $('#mpBuscaTxt').textContent=r.buscando?'Procurando plugins no computador…':plugs.length+' plugins VST3 encontrados';
+    clearTimeout(buscaT);if(r.buscando)buscaT=setTimeout(listarPlugins,1500);
+  }
+  const ajustar=async(id,p)=>{if(p&&p.nome!=null)p={...p,nome:encodeURIComponent(p.nome)};await nat('mpAjustar',id,p);await atualizar()};
+  async function gravar(){
+    if(grav)return parar();
+    if(!est.faixas.some(f=>f.armada)){const id=await nat('mpNova',0,true);selId=id;await atualizar();toast('Criei uma faixa nova na entrada 1 para gravar',2500)}
+    grav={inicio:pos,picos:[]};await nat('mpGravar',pos);$('#rec').classList.add('live');keepAwake(true);desenhar();
+  }
+  async function parar(voltar){
+    if(grav){
+      grav=null;$('#rec').classList.remove('live');keepAwake(false);
+      const r=await nat('mpParar',ajuste).catch(()=>({}));
+      toast(r.gravadas?(r.gravadas>1?r.gravadas+' faixas gravadas':'Faixa gravada')+' no tempo da base':'Nada foi gravado',2500);
+    }else await nat('mpParar');
+    if(voltar){await nat('mpPosicionar',0);pos=0}
+    await atualizar();
+  }
+  async function tocarPausar(){if(grav)return parar();if(tocando)await nat('mpParar');else await nat('mpTocar',pos)}
+  function nivel(d){
+    if(d.mpPos==null)return;tocando=d.mpTocando;
+    if(tocando||grav){pos=d.mpPos;cabeca();
+      if(app.dataset.tab==='mp'){$('#clock').firstChild.textContent=fmt(pos);
+        const rolo=$('#mpRolo'),x=H+pos*pxs;if(x>rolo.scrollLeft+rolo.clientWidth-40)rolo.scrollLeft=x-H-40}}
+    if(grav&&d.picos){grav.picos.push(...d.picos);document.querySelectorAll('#mpPistas .mp-linha').forEach(l=>{const f=faixa(+l.dataset.id);if(f&&f.armada)onda(l,f)})}
+    $('#play').classList.toggle('on',app.dataset.tab==='mp'&&tocando);
+  }
+  function iniciar(){
+    document.querySelectorAll('.so-nat').forEach(e=>e.hidden=false);tabInd();
+    document.querySelectorAll('[data-mp]').forEach(b=>b.addEventListener('click',async()=>{
+      const a=b.dataset.mp;
+      if(a==='gravar')return gravar();
+      if(a==='nova'){selId=await nat('mpNova',0,false);return atualizar()}
+      if(a==='importar'){const r=await nat('mpImportar');if(typeof r==='string')toast('Não consegui importar: '+r,5000);else if(r)toast('Base importada',2000);return atualizar()}
+    }));
+    document.querySelectorAll('[data-mpz]').forEach(b=>b.addEventListener('click',()=>MP.zoom(+b.dataset.mpz)));
+    const pistas=$('#mpPistas');
+    pistas.addEventListener('click',e=>{
+      const l=e.target.closest('.mp-linha');if(!l)return;const id=+l.dataset.id,f=faixa(id);
+      const tg=e.target.closest('[data-tg]');if(tg){ajustar(id,{[tg.dataset.tg]:tg.getAttribute('aria-pressed')!=='true'});return}
+      if(e.target.matches('canvas')&&!tocando&&!grav){pos=Math.max(0,e.offsetX/pxs);nat('mpPosicionar',pos);cabeca();$('#clock').firstChild.textContent=fmt(pos)}
+      if(selId!==id){selId=id;document.querySelectorAll('#mpPistas .mp-linha').forEach(x=>x.classList.toggle('sel',+x.dataset.id===id));inspetor()}
+    });
+    pistas.addEventListener('change',e=>{const l=e.target.closest('.mp-linha');if(!l)return;const c=e.target.dataset.campo;
+      if(c==='nome')ajustar(+l.dataset.id,{nome:e.target.value.trim()||'Faixa'});
+      if(c==='volume')ajustar(+l.dataset.id,{volume:e.target.value/100})});
+    pistas.addEventListener('input',e=>{const l=e.target.closest('.mp-linha');if(l&&e.target.dataset.campo==='volume')nat('mpAjustar',+l.dataset.id,{volume:e.target.value/100})});
+    $('#mpRegua').addEventListener('click',e=>{if(tocando||grav)return;pos=Math.max(0,e.offsetX/pxs);nat('mpPosicionar',pos);cabeca();$('#clock').firstChild.textContent=fmt(pos)});
+    $('#mpEntrada').addEventListener('change',e=>ajustar(selId,{entrada:+e.target.value}));
+    $('#mpMonitor').addEventListener('change',e=>{ajustar(selId,{monitorar:e.target.checked});if(e.target.checked)toast('Com a faixa armada, você ouve a entrada pelos plugins. Use fone de ouvido.',3500)});
+    $('#mpVol').addEventListener('input',e=>nat('mpAjustar',selId,{volume:e.target.value/100}));$('#mpVol').addEventListener('change',()=>atualizar());
+    $('#mpPan').addEventListener('input',e=>nat('mpAjustar',selId,{pan:e.target.value/100}));$('#mpPan').addEventListener('change',()=>atualizar());
+    document.querySelectorAll('[data-mov]').forEach(b=>b.addEventListener('click',()=>ajustar(selId,{moverMs:+b.dataset.mov})));
+    $('#mpPlugs').addEventListener('click',async e=>{const b=e.target.closest('button[data-pl]');if(!b)return;const i=+b.dataset.i;
+      if(b.dataset.pl==='abrir')nat('mpPluginAbrir',selId,i);
+      if(b.dataset.pl==='tirar'){await nat('mpPluginRemover',selId,i);atualizar()}});
+    $('#mpPlugs').addEventListener('change',e=>{if(e.target.dataset.pl==='ligar')nat('mpPluginLigar',selId,+e.target.dataset.i,e.target.checked).then(atualizar)});
+    $('#mpPlugSel').addEventListener('change',async e=>{const v=e.target.value;e.target.value='';if(v===''||!selId)return;
+      busy(true,'Carregando o plugin…');const r=await nat('mpPluginAdd',selId,+v).catch(x=>x.message);busy(false);
+      if(r!==true)return toast('Não consegui carregar o plugin: '+r,5000);
+      await atualizar();const f=faixa(selId);if(f)nat('mpPluginAbrir',selId,f.plugins.length-1)});
+    $('#mpBuscar').addEventListener('click',async()=>{await nat('mpBuscarPlugins');listarPlugins()});
+    $('#mpRemover').addEventListener('click',async()=>{const f=faixa(selId);if(!f||!confirm('Remover a faixa “'+f.nome+'”? O áudio dela será apagado.'))return;await nat('mpRemover',selId);atualizar()});
+    $('#mpAjuste').addEventListener('input',e=>{ajuste=+e.target.value;$('#mpAjusteTxt').textContent=(ajuste>0?'+':'')+ajuste+' ms';try{localStorage.setItem('estudio:mpAjuste',ajuste)}catch(x){}});
+    $('#mpSessoes').addEventListener('change',async e=>{const r=await nat('mpAbrirSessao',encodeURIComponent(e.target.value));if(r)toast(r,5000);picos.clear();atualizar()});
+    $('#mpNovaSessao').addEventListener('click',async()=>{await nat('mpNovaSessao');picos.clear();pos=0;await atualizar();toast('Sessão nova criada',2000)});
+    $('#mpMixar').addEventListener('click',async()=>{
+      if(grav)return toast('Pare a gravação antes de mixar');
+      busy(true,'Mixando as faixas…');
+      try{const r=await nat('mpExportar');if(!r.ok)return toast(r.erro||'Não consegui mixar',5000);
+        const b=await AC().decodeAudioData(await (await fetch(r.url)).arrayBuffer());
+        await newProject();$('#fname').value='Mixagem '+(est.nome||'');place(b,'Mixagem aberta: ajuste o volume final e exporte');tab('fin')}
+      catch(x){toast('Não consegui trazer a mixagem: '+x.message,6000)}finally{busy(false)}});
+    atualizar();listarPlugins();
+  }
+  return{iniciar,atualizar,gravar,parar,tocarPausar,nivel,zoom:f=>{pxs=Math.min(400,Math.max(4,pxs*f));desenhar()},estado:()=>est};
+})();
 async function natInicia(){
   natVersao=await nat('estudioVersao').catch(()=>'');setTimeout(()=>natAtualizacao(true),6000);
   document.querySelectorAll('.so-web').forEach(e=>e.hidden=true);$('#natRows').hidden=false;
@@ -1234,7 +1478,9 @@ async function natInicia(){
     natLvl=Math.max(d.pico[0]||0,d.pico[1]||0);
     const r=rec;if(r&&r.nat){r.lvl=natLvl;if(d.picos)for(const p of d.picos)r.peaks.push(p);if(r.started)r.len=d.frames}
     if(d.medidas)for(const m of d.medidas)testBloco(m);
+    MP.nivel(d);
   });
+  MP.iniciar();
   ['#natTipo'].forEach(s=>$(s).addEventListener('change',()=>natConfigura(true)));
   ['#natIn','#natOut','#natTaxa','#natBuf'].forEach(s=>$(s).addEventListener('change',()=>natConfigura(false)));
 }
@@ -1351,7 +1597,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.9.1',GUIA_REVISADO_NA_VERSAO='1.6.0';
+const APP_VERSION='1.10.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Stumix',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',

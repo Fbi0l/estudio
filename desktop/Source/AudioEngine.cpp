@@ -132,6 +132,14 @@ void AudioEngine::setMonitor (bool ligado, int canal, float ganho)
 void AudioEngine::audioDeviceAboutToStart (AudioIODevice* d)
 {
     taxaAtual = d->getCurrentSampleRate();
+    sessao.preparar (d->getCurrentSampleRate(), d->getCurrentBufferSizeSamples());
+}
+
+int AudioEngine::latenciaAmostras() const
+{
+    if (auto* d = deviceManager.getCurrentAudioDevice())
+        return d->getInputLatencyInSamples() + d->getOutputLatencyInSamples();
+    return 0;
 }
 
 void AudioEngine::audioDeviceStopped() {}
@@ -146,6 +154,13 @@ void AudioEngine::processar (const float* const* in, int nIn, float* const* out,
 {
     const float* l = nIn > 0 ? in[0] : nullptr;
     const float* r = nIn > 1 ? in[1] : l;
+
+    // multipista: a gravação começa exatamente no bloco em que a reprodução começa
+    if (sessao.pedidoGravar.exchange (false))
+    {
+        sessao.comecarGravacaoNoBloco();
+        captaGrav = true;
+    }
 
     // medidor
     for (int c = 0; c < 2; ++c)
@@ -177,6 +192,9 @@ void AudioEngine::processar (const float* const* in, int nIn, float* const* out,
     {
         for (int c = 0; c < nOut; ++c) if (out[c] != nullptr) FloatVectorOperations::clear (out[c], n);
     }
+
+    // faixas tocando (e entradas armadas pela cadeia de plugins) somam na saída
+    sessao.processar (l, nIn > 1 ? in[1] : nullptr, out, nOut, n);
 
     // fila para a thread de gravação/medição (só copia)
     if ((captaGrav.load() || captaMed.load()) && l != nullptr)
@@ -271,7 +289,7 @@ void AudioEngine::drenar()
 }
 
 //==============================================================================
-void AudioEngine::iniciarGravacao()
+void AudioEngine::iniciarGravacao (bool imediato)
 {
     {
         const ScopedLock sl (trava);
@@ -281,7 +299,17 @@ void AudioEngine::iniciarGravacao()
     }
     frames = 0; descartadas = 0;
     gravandoFlag = true;
-    captaGrav = true;
+    if (imediato) captaGrav = true;
+}
+
+void AudioEngine::tomarGravacao (std::vector<float>& L, std::vector<float>& R)
+{
+    captaGrav = false;
+    drenar();
+    gravandoFlag = false;
+    const ScopedLock sl (trava);
+    L.swap (gravL); R.swap (gravR);
+    gravL.clear(); gravR.clear();
 }
 
 var AudioEngine::pararGravacao()

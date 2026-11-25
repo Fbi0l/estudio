@@ -148,6 +148,13 @@ class EstudioView : public Component, private Timer
 public:
     EstudioView (AudioEngine& e, const String& roteiroTeste) : engine (e), web (opcoes()), roteiro (roteiroTeste)
     {
+        // sessões da multipista (no teste automático, numa pasta temporária)
+        const auto base = roteiroTeste.isNotEmpty()
+            ? File::getSpecialLocation (File::tempDirectory).getChildFile ("Stumix-teste-multipista")
+            : File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Estudio").getChildFile ("multipista");
+        if (roteiroTeste.isNotEmpty()) base.deleteRecursively();
+        engine.sessao.usarPasta (base);
+
         addAndMakeVisible (web);
         web.goToURL (WebBrowserComponent::getResourceProviderRoot());
         startTimerHz (30);
@@ -241,6 +248,123 @@ private:
                 done (true);
                 MessageManager::callAsync ([] { JUCEApplication::getInstance()->systemRequestedQuit(); });
             })
+            // ---------- multipista ----------
+            .withNativeFunction ("mpEstado", [this] (const Array<var>&, auto done)
+            {
+                auto e = engine.sessao.estado();
+                if (auto* o = e.getDynamicObject())
+                {
+                    o->setProperty ("latenciaMs", engine.taxa() > 0 ? 1000.0 * engine.latenciaAmostras() / engine.taxa() : 0.0);
+                    o->setProperty ("taxaPlaca", engine.taxa());
+                    o->setProperty ("sessoes", engine.sessao.listarSessoes());
+                }
+                done (e);
+            })
+            .withNativeFunction ("mpPicos", [this] (const Array<var>& a, auto done) { done (engine.sessao.picos (a.isEmpty() ? 0 : (int) a[0])); })
+            .withNativeFunction ("mpTocar", [this] (const Array<var>& a, auto done) { engine.sessao.tocar (a.isEmpty() ? 0.0 : (double) a[0]); done (true); })
+            .withNativeFunction ("mpPosicionar", [this] (const Array<var>& a, auto done) { engine.sessao.posicionar (a.isEmpty() ? 0.0 : (double) a[0]); done (true); })
+            .withNativeFunction ("mpGravar", [this] (const Array<var>& a, auto done)
+            {
+                engine.sessao.posicionar (a.isEmpty() ? 0.0 : (double) a[0]);
+                engine.iniciarGravacao (false);
+                engine.sessao.pedidoGravar = true;
+                done (true);
+            })
+            .withNativeFunction ("mpParar", [this] (const Array<var>& a, auto done)
+            {
+                // a[0] = ajuste fino do atraso, em ms (positivo puxa a faixa gravada para trás)
+                auto* r = new DynamicObject();
+                engine.sessao.parar();
+                if (engine.gravando())
+                {
+                    std::vector<float> L, R;
+                    engine.tomarGravacao (L, R);
+                    const double ajuste = a.isEmpty() ? 0.0 : (double) a[0];
+                    const int lat = engine.latenciaAmostras() + (int) std::lround (ajuste * engine.taxa() / 1000.0);
+                    r->setProperty ("gravadas", engine.sessao.receberGravacao (L, R, lat));
+                    r->setProperty ("latencia", lat);
+                    engine.sessao.salvar();
+                }
+                done (var (r));
+            })
+            .withNativeFunction ("mpNova", [this] (const Array<var>& a, auto done)
+            {
+                const int id = engine.sessao.novaFaixa ({}, a.size() > 0 ? (int) a[0] : 0, a.size() > 1 && (bool) a[1]);
+                engine.sessao.salvar();
+                done (id);
+            })
+            .withNativeFunction ("mpImportar", [this] (const Array<var>&, auto done)
+            {
+                seletor = std::make_unique<FileChooser> (String::fromUTF8 ("Escolha a base ou o áudio"),
+                                                         File::getSpecialLocation (File::userMusicDirectory),
+                                                         "*.wav;*.mp3;*.flac;*.aif;*.aiff;*.ogg");
+                seletor->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
+                    [this, done] (const FileChooser& fc)
+                    {
+                        const auto f = fc.getResult();
+                        if (! f.existsAsFile()) { done (var()); return; }
+                        const auto erro = engine.sessao.importar (f);
+                        engine.sessao.salvar();
+                        done (erro.isEmpty() ? var (true) : var (erro));
+                    });
+            })
+            .withNativeFunction ("mpImportarArquivo", [this] (const Array<var>& a, auto done)   // teste automático
+            {
+                const auto erro = engine.sessao.importar (File (a.isEmpty() ? String() : a[0].toString()));
+                done (erro.isEmpty() ? var (true) : var (erro));
+            })
+            .withNativeFunction ("mpAjustar", [this] (const Array<var>& a, auto done)
+            {
+                const bool ok = a.size() > 1 && engine.sessao.ajustar ((int) a[0], a[1]);
+                engine.sessao.salvar();
+                done (ok);
+            })
+            .withNativeFunction ("mpRemover", [this] (const Array<var>& a, auto done)
+            {
+                const bool ok = ! a.isEmpty() && engine.sessao.remover ((int) a[0]);
+                engine.sessao.salvar();
+                done (ok);
+            })
+            .withNativeFunction ("mpPlugins", [this] (const Array<var>&, auto done) { done (engine.sessao.listaPlugins()); })
+            .withNativeFunction ("mpBuscarPlugins", [this] (const Array<var>&, auto done) { engine.sessao.buscarPlugins (true); done (true); })
+            .withNativeFunction ("mpPluginAdd", [this] (const Array<var>& a, auto done)
+            {
+                const auto erro = a.size() > 1 ? engine.sessao.adicionarPlugin ((int) a[0], (int) a[1]) : String ("?");
+                engine.sessao.salvar();
+                done (erro.isEmpty() ? var (true) : var (erro));
+            })
+            .withNativeFunction ("mpPluginRemover", [this] (const Array<var>& a, auto done)
+            {
+                const bool ok = a.size() > 1 && engine.sessao.removerPlugin ((int) a[0], (int) a[1]);
+                engine.sessao.salvar();
+                done (ok);
+            })
+            .withNativeFunction ("mpPluginLigar", [this] (const Array<var>& a, auto done)
+            {
+                const bool ok = a.size() > 2 && engine.sessao.ligarPlugin ((int) a[0], (int) a[1], (bool) a[2]);
+                engine.sessao.salvar();
+                done (ok);
+            })
+            .withNativeFunction ("mpPluginAbrir", [this] (const Array<var>& a, auto done)
+            {
+                done (a.size() > 1 && engine.sessao.abrirPlugin ((int) a[0], (int) a[1]));
+            })
+            .withNativeFunction ("mpExportar", [this] (const Array<var>&, auto done)
+            {
+                auto* r = new DynamicObject();
+                double dur = 0;
+                const auto erro = engine.sessao.exportar (arquivoMixagem(), dur);
+                r->setProperty ("ok", erro.isEmpty());
+                r->setProperty ("erro", erro);
+                r->setProperty ("dur", dur);
+                r->setProperty ("url", WebBrowserComponent::getResourceProviderRoot() + "mixagem.wav?n=" + String (++contagem));
+                done (var (r));
+            })
+            .withNativeFunction ("mpAbrirSessao", [this] (const Array<var>& a, auto done)
+            {
+                done (engine.sessao.abrir (a.isEmpty() ? String() : URL::removeEscapeChars (a[0].toString())));
+            })
+            .withNativeFunction ("mpNovaSessao", [this] (const Array<var>&, auto done) { done (engine.sessao.nova()); })
             .withNativeFunction ("estudioAbrirLink", [] (const Array<var>& a, auto done)
             {
                 if (! a.isEmpty()) URL (a[0].toString()).launchInDefaultBrowser();
@@ -252,6 +376,15 @@ private:
     {
         auto caminho = url.upToFirstOccurrenceOf ("?", false, false).trimCharactersAtStart ("/");
         if (caminho.isEmpty()) caminho = "index.html";
+
+        if (caminho == "mixagem.wav")
+        {
+            MemoryBlock m;
+            arquivoMixagem().loadFileAsData (m);
+            std::vector<std::byte> d ((size_t) m.getSize());
+            if (m.getSize() > 0) std::memcpy (d.data(), m.getData(), m.getSize());
+            return WebBrowserComponent::Resource { std::move (d), "audio/wav" };
+        }
 
         if (caminho == "gravacao.wav")
         {
@@ -292,12 +425,16 @@ private:
         o->setProperty ("frames", engine.framesGravados());
         auto picos = engine.pegarPicosNovos();
         if (! picos.isEmpty()) o->setProperty ("picos", picos);
+        o->setProperty ("mpPos", engine.sessao.posicao());
+        o->setProperty ("mpTocando", engine.sessao.tocando());
         auto medidas = engine.pegarMedidas();
         if (! medidas.isEmpty()) o->setProperty ("medidas", medidas);
         web.emitEventIfBrowserIsVisible ("estudioNivel", var (o));
     }
 
     int contagem = 0;
+    std::unique_ptr<FileChooser> seletor;
+    static File arquivoMixagem() { return File::getSpecialLocation (File::tempDirectory).getChildFile ("Stumix-mixagem.wav"); }
     String roteiro;
     std::unique_ptr<PlacaDeTeste> placaTeste;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EstudioView)
