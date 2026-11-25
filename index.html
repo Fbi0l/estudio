@@ -466,7 +466,7 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
           <label class="row-i"><span>Ouvir a entrada pelos plugins<small>Com a faixa armada, você ouve o som já com os plugins (ex.: simulador de amp). Use fone.</small></span><input type="checkbox" class="sw" id="mpMonitor"></label>
           <label class="row-i"><span>Volume</span><input type="range" id="mpVol" min="0" max="200" step="1" aria-label="Volume da faixa"></label>
           <label class="row-i"><span>Pan<small id="mpPanTxt">Centro</small></span><input type="range" id="mpPan" min="-100" max="100" step="1" aria-label="Pan da faixa"></label>
-          <div class="row-i"><span>Mover no tempo<small id="mpInicioTxt">—</small></span><span class="mp-mov"><button data-mov="-10">−10 ms</button><button data-mov="-1">−1</button><button data-mov="1">+1</button><button data-mov="10">+10 ms</button></span></div>
+          <div class="row-i"><span>Mover no tempo (ms)<small id="mpInicioTxt">—</small></span><span class="mp-mov"><button data-mov="-10" aria-label="Mover 10 ms para trás">−10</button><button data-mov="-1" aria-label="Mover 1 ms para trás">−1</button><button data-mov="1" aria-label="Mover 1 ms para frente">+1</button><button data-mov="10" aria-label="Mover 10 ms para frente">+10</button></span></div>
         </div>
         <div class="cap">Plugins da faixa</div>
         <div class="list" id="mpPlugs"></div>
