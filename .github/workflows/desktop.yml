@@ -44,6 +44,23 @@ jobs:
           Get-Content autoteste.log -Encoding utf8
           if (-not (Select-String -Path autoteste.log -Pattern "TODOS OS TESTES PASSARAM" -Quiet)) { exit 1 }
 
+      - name: Teste da atualização (baixa e roda o instalador publicado, como o botão faz)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $url = gh api repos/${{ github.repository }}/releases/latest --jq '.assets[] | select(.name | endswith("Instalador.exe")) | .browser_download_url'
+          Write-Host "instalador: $url"
+          $p = Start-Process "build\EstudioDesktop_artefacts\Release\Stumix.exe" -ArgumentList "--testar-atualizacao=$url" -PassThru
+          if (-not $p.WaitForExit(120000)) { $p.Kill(); Write-Host "tempo esgotado"; exit 1 }
+          Get-Content atualizacao.log -Encoding utf8
+          if (-not (Select-String -Path atualizacao.log -Pattern '"ok": true' -Quiet)) { exit 1 }
+          $alvo = Join-Path $env:LOCALAPPDATA "Programs\Stumix\Stumix.exe"
+          for ($i = 0; $i -lt 60 -and -not (Test-Path $alvo); $i++) { Start-Sleep 2 }
+          Get-Process Stumix -ErrorAction SilentlyContinue | Stop-Process -Force
+          if (-not (Test-Path $alvo)) { Write-Host "o instalador não deixou o app em $alvo"; exit 1 }
+          Write-Host "instalado em $alvo"
+
       - name: Instalador
         shell: pwsh
         run: |

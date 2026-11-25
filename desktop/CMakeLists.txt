@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(EstudioDesktop VERSION 0.3.0 LANGUAGES C CXX)
+project(EstudioDesktop VERSION 0.3.1 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -43,7 +43,7 @@ juce_add_gui_app(EstudioDesktop
   NEEDS_WEB_BROWSER TRUE
   ${WV2})
 
-target_sources(EstudioDesktop PRIVATE Source/Main.cpp Source/AudioEngine.cpp)
+target_sources(EstudioDesktop PRIVATE Source/Main.cpp Source/AudioEngine.cpp Source/Lancador_windows.cpp)
 target_compile_definitions(EstudioDesktop PRIVATE ${ESTUDIO_DEFS}
   JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:EstudioDesktop,JUCE_PRODUCT_NAME>"
   JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:EstudioDesktop,JUCE_VERSION>")

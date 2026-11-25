@@ -4,6 +4,7 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "AudioEngine.h"
 #include "BinaryData.h"
+#include "Lancador.h"
 
 using namespace juce;
 using Opcoes = WebBrowserComponent::Options;
@@ -13,6 +14,9 @@ using Opcoes = WebBrowserComponent::Options;
     e o executa em modo silencioso; o instalador fecha o app, troca os arquivos e o reabre. */
 namespace Atualizador
 {
+    // textos com acento: sempre como UTF-8 (sem isso a interface mostra "nÃ£o")
+    static String t (const char* s) { return String::fromUTF8 (s); }
+
     static const char* api = "https://api.github.com/repos/Fbi0l/estudio/releases/latest";
 
     static int comparar (const String& a, const String& b)   // -1, 0, 1 (versões x.y.z)
@@ -34,10 +38,10 @@ namespace Atualizador
                           .withExtraHeaders ("User-Agent: Stumix-Desktop\r\nAccept: application/vnd.github+json")
                           .withConnectionTimeoutMs (15000);
         std::unique_ptr<InputStream> in (URL (api).createInputStream (opcoes));
-        if (in == nullptr) { r->setProperty ("erro", "sem conexão com o GitHub"); return var (r); }
+        if (in == nullptr) { r->setProperty ("erro", t ("sem conexão com o GitHub")); return var (r); }
         auto json = JSON::parse (in->readEntireStreamAsString());
         const String tag = json["tag_name"].toString();
-        if (! tag.startsWith ("desktop-v")) { r->setProperty ("erro", "nenhuma versão publicada ainda"); return var (r); }
+        if (! tag.startsWith ("desktop-v")) { r->setProperty ("erro", t ("nenhuma versão publicada ainda")); return var (r); }
         const String versao = tag.fromFirstOccurrenceOf ("desktop-v", false, false);
         String url;
         if (auto* assets = json["assets"].getArray())
@@ -54,7 +58,7 @@ namespace Atualizador
     {
         auto* r = new DynamicObject();
         if (! url.startsWith ("https://github.com/Fbi0l/estudio/releases/download/"))
-        { r->setProperty ("ok", false); r->setProperty ("erro", "endereço inesperado"); return var (r); }
+        { r->setProperty ("ok", false); r->setProperty ("erro", t ("endereço inesperado")); return var (r); }
         auto destino = File::getSpecialLocation (File::tempDirectory).getChildFile ("Stumix-Atualizacao.exe");
         destino.deleteFile();
         auto opcoes = URL::InputStreamOptions (URL::ParameterHandling::inAddress)
@@ -67,12 +71,14 @@ namespace Atualizador
             ok = out.openedOk() && out.writeFromInputStream (*in, -1) > 100000;
             out.flush();
         }
-        if (! ok) { r->setProperty ("ok", false); r->setProperty ("erro", "o download não terminou"); return var (r); }
-       #if JUCE_WINDOWS
-        ok = destino.startAsProcess ("/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS");
-       #endif
+        if (! ok) { r->setProperty ("ok", false); r->setProperty ("erro", t ("o download não terminou")); return var (r); }
+        unsigned long codigo = 0;
+        ok = lancarInstalador (destino.getFullPathName().toWideCharPointer(),
+                               L"/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS", codigo);
         r->setProperty ("ok", ok);
-        if (! ok) r->setProperty ("erro", "não consegui abrir o instalador");
+        if (! ok)
+            r->setProperty ("erro", codigo == 1223 ? t ("a instalação foi cancelada")
+                                                   : t ("não consegui abrir o instalador (código ") + String ((int) codigo) + ")");
         return var (r);
     }
 }
@@ -286,6 +292,15 @@ public:
         engine = std::make_unique<AudioEngine>();
         // --autoteste=roteiro.js: roda a interface com uma placa simulada e um roteiro de cliques
         String roteiro;
+        for (auto& arg : getCommandLineParameterArray())
+            if (arg.startsWith ("--testar-atualizacao="))
+            {
+                // só para o teste do Windows: baixa e roda o instalador de verdade, anota o resultado e sai
+                auto res = Atualizador::instalar (arg.fromFirstOccurrenceOf ("=", false, false).unquoted());
+                File::getCurrentWorkingDirectory().getChildFile ("atualizacao.log").replaceWithText (JSON::toString (res, true));
+                quit();
+                return;
+            }
         for (auto& arg : getCommandLineParameterArray())
             if (arg.startsWith ("--autoteste="))
                 roteiro = File (arg.fromFirstOccurrenceOf ("=", false, false).unquoted()).loadFileAsString();
