@@ -265,7 +265,8 @@ dialog{background:var(--glass-strong);-webkit-backdrop-filter:var(--blur);backdr
 .mp-mov{display:flex;gap:4px}.mp-mov button{min-height:34px;padding:0 8px;font-size:12px}
 .mp-plug{display:flex;align-items:center;gap:8px}.mp-plug span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mp-perigo{color:#ff6b61}
-.so-nat[hidden]{display:none!important}
+.so-nat[hidden],.so-pc-web[hidden]{display:none!important}
+.btn-lk{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:12px;border:1px solid var(--acc-line);background:var(--acc-soft);color:var(--acc);font-weight:700;text-decoration:none;flex:none}.btn-lk:hover{background:rgba(200,241,105,.2)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .mp-tit{display:none}.app[data-tab=mp] #fname,.app[data-tab=mp] #sub{display:none}.app[data-tab=mp] .mp-tit{display:block}
 #mpTitulo{font-size:17px;padding:2px 0}#mpTitSub{color:var(--mute);font-size:12px}
@@ -525,7 +526,7 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
         <label class="row-i"><span>Novo áudio<small>Onde a gravação entra</small></span><select id="place"><option value="replace">Substitui tudo</option><option value="insert" selected>No cursor</option><option value="end">No final</option><option value="punch">Regrava a seleção</option></select></label>
       </div>
       <p class="keys"><span class="kb">Atalhos: <kbd>Espaço</kbd> tocar · <kbd>R</kbd> gravar · <kbd>L</kbd> repetir · <kbd>Ctrl+Z</kbd> desfazer · <kbd>Ctrl+X/C/V</kbd> · <kbd>Delete</kbd> · <kbd>Ctrl+A</kbd> · <kbd>+</kbd>/<kbd>−</kbd> zoom · <kbd>Ctrl</kbd>+roda dá zoom · <kbd>Shift</kbd>+clique estende a seleção.<br></span>Tudo roda no seu aparelho; nada é enviado para a internet.</p>
-      <p class="rodape">© 2026 Fbiol · Versão <span class="appver"></span> · <button class="link" type="button" data-sobre>Sobre o app</button> · <button class="link" type="button" data-guia>Como usar</button></p>
+      <p class="rodape">© 2026 Fbiol · Versão <span class="appver"></span> · <button class="link" type="button" data-sobre>Sobre o app</button> · <button class="link" type="button" data-guia>Como usar</button><span class="so-pc-web" hidden> · <a href="baixar/" target="_blank" rel="noopener">Baixar para Windows</a></span></p>
     </section>
 
     <section class="panel" id="p-fx" role="tabpanel" aria-label="Efeitos">
@@ -652,6 +653,7 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
     <div class="list">
       <div class="row-i"><span>Atualizações<small id="updTxt">Procura e instala a versão mais nova</small></span><button id="updBtn" class="go">Buscar atualização</button></div>
       <div class="row-i" id="instRow" hidden><span>Instalar como app<small>Ícone próprio, janela própria e funciona offline</small></span><button id="install2">Instalar</button></div>
+      <div class="row-i so-pc-web" hidden><span>Stumix para Windows<small>Motor de áudio próprio, multipista e plugins VST3</small></span><a class="btn-lk" href="baixar/" target="_blank" rel="noopener">Baixar</a></div>
       <div class="row-i" id="iconeRow" hidden><span>Ícone da tela inicial<small id="iconeTxt"></small></span></div>
       <div class="row-i"><span>Modo<small id="modeTxt">—</small></span></div>
       <div class="row-i"><span>Como usar o app<small>Guia passo a passo de todas as funções</small></span><button type="button" data-guia>Abrir guia</button></div>
@@ -1249,6 +1251,7 @@ $('#aboutDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.curr
 let installEv=null,installed=false;
 const appMode=matchMedia('(display-mode: standalone), (display-mode: window-controls-overlay), (display-mode: minimal-ui), (display-mode: fullscreen)');
 const isApp=()=>appMode.matches||navigator.standalone===true;
+if(!NATIVO&&/Windows/i.test(navigator.userAgent))document.querySelectorAll('.so-pc-web').forEach(e=>e.hidden=false);
 // o ícone da tela inicial não muda com a atualização: explica como trocar em cada sistema
 {const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  if(isApp()&&!NATIVO){$('#iconeRow').hidden=false;$('#iconeTxt').textContent=ios
@@ -1621,7 +1624,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.12.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
+const APP_VERSION='1.13.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Stumix',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',

@@ -1,6 +1,6 @@
 // Service worker do Stumix: guarda o app para funcionar offline.
 // Ao publicar uma versão nova, troque VERSAO para os usuários receberem a atualização.
-const VERSAO = 'estudio-v19';
+const VERSAO = 'estudio-v20';
 const APP = [
   './',
   './index.html',
@@ -37,7 +37,9 @@ self.addEventListener('fetch', e => {
   if (url.origin !== self.location.origin) return;
 
   // Página: tenta a rede (pega versão nova), mas não espera mais que 1,2 s: com rede lenta abre a cópia guardada
-  if (req.mode === 'navigate') {
+  // só a página do app usa a cópia guardada; outras páginas do site (ex.: /baixar/) vão direto à rede
+  const ehApp = url.pathname.endsWith('/estudio/') || url.pathname.endsWith('/estudio/index.html');
+  if (req.mode === 'navigate' && ehApp) {
     const rede = fetch(req).then(r => { if (r.ok) { const cp = r.clone(); caches.open(VERSAO).then(c => c.put('./index.html', cp)); } return r; });
     e.respondWith(new Promise(resolve => {
       let feito = false;

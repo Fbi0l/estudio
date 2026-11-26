@@ -6,6 +6,12 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.13.0 — Página de download para Windows
+
+- Nova página https://fbi0l.github.io/estudio/baixar/ com o botão "Baixar para Windows" (sempre a última versão), a versão portátil e o que fazer nos avisos do Windows.
+- No navegador do computador com Windows, o app mostra "Baixar" em ⓘ e um link no rodapé.
+- O app instalado no celular não guarda mais outras páginas do site como se fossem a tela do app.
+
 ## Versão 1.12.0 — Auditoria: janela sem travar, proteção e acessibilidade (Stumix Desktop 0.7.1)
 
 - PC: abrir sessão, importar base e mixar rodam em segundo plano, com aviso de progresso; a janela não trava.
