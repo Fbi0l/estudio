@@ -6,6 +6,16 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.14.0 — Várias faixas no celular (Stumix Desktop 0.7.2)
+
+- A aba **Faixas** agora funciona no celular e no navegador: importe uma base ou back track, grave por cima, grave outras faixas e mixe. Tudo fica salvo no aparelho.
+- A gravação começa na mesma amostra em que a base começa a tocar, e o atraso do aparelho é cortado do começo para a faixa ficar no tempo.
+- Botão **Medir** (Faixas → Sessão): o alto-falante toca 6 estalos, o microfone escuta e o app descobre o atraso real do aparelho.
+- "Ouvir a entrada no fone" por faixa armada.
+- No celular, as faixas mostram nome e botões ● M S; volume e pan ficam no painel da faixa.
+- Ao parar uma gravação, o cursor volta para onde ela começou, pronto para ouvir.
+- PC: o botão tocar da aba Faixas funciona mesmo sem áudio aberto em Gravar.
+
 ## Versão 1.13.0 — Página de download para Windows
 
 - Nova página https://fbi0l.github.io/estudio/baixar/ com o botão "Baixar para Windows" (sempre a última versão), a versão portátil e o que fazer nos avisos do Windows.

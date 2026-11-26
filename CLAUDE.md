@@ -8,11 +8,12 @@ App de gravação, edição e finalização de áudio. PWA em https://fbi0l.gith
 - Português do Brasil, explicações simples.
 
 ## Pendências
-Ficam nas Issues do GitHub. Página de download pronta em baixar/ (issue #1 fechada). Próximas: multipista no celular, guia e "Sobre" com a aba Faixas.
+Ficam nas Issues do GitHub. Página de download pronta em baixar/ (issue #1 fechada). Multipista no celular pronta (1.14.0, motor `MPW` no index.html com as mesmas funções `mp*` do PC; `mpc()` escolhe o motor). Próxima: guia e "Sobre" com a aba Faixas.
 
 ## Visual
 Tema "palco": fundo `#0E0F0C`, superfície `#16181A`, destaque verde-limão `#C8F169`, vermelho só na gravação, vidro nas barras (`--glass*` em `:root` do index.html). Fontes em `fonts/` (Manrope, JetBrains Mono, Unbounded só "stumix"). Logo: S de cabo de guitarra com plugue reto inclinado 15°.
 
 ## Testes
 - Motor do PC: `EngineTest` (com o plugin VST3 de teste `StumixTesteGanho`); interface ponta a ponta: `desktop/autoteste.js`. Ambos rodam no Windows a cada envio.
+- Faixas no navegador: `/home/claude/t/mpweb.py` (fluxo) e `mploop.py` (cabo de retorno falso de 80 ms: mede o atraso e confere que a faixa gravada cai em cima da base, 0 ms de diferença).
 - Erro conhecido: texto JS→nativo perde acento no Linux; nomes vão com `encodeURIComponent` e o C++ usa `URL::removeEscapeChars`; textos com acento no C++ sempre via `String::fromUTF8`.

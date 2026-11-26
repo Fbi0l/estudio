@@ -258,14 +258,15 @@ dialog{background:var(--glass-strong);-webkit-backdrop-filter:var(--blur);backdr
 .mp-clip{display:block;cursor:pointer}
 .mp-cab{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);pointer-events:none;z-index:1;box-shadow:0 0 8px rgba(242,242,238,.5)}
 .mp-cab.rec{background:#ff453a;box-shadow:0 0 8px rgba(255,69,58,.6)}
-.mp-vazio{display:none}.mpv.vazia .mp-vazio{display:flex}.mpv.vazia .mp-rolo{display:none}
+.mp-vazio{display:none}.mpv.vazia .mp-vazio{display:grid}.mpv.vazia .mp-rolo{display:none}
 .mp-acts{display:flex;gap:8px;flex-wrap:wrap}.mp-acts button{flex:1}
 .mp-bol{color:#ff453a}
 .mp-aj{display:flex;align-items:center;gap:8px}.mp-aj output{min-width:52px;text-align:right;font-variant-numeric:tabular-nums;color:var(--mute);font-size:13px}
 .mp-mov{display:flex;gap:4px}.mp-mov button{min-height:34px;padding:0 8px;font-size:12px}
 .mp-plug{display:flex;align-items:center;gap:8px}.mp-plug span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mp-perigo{color:#ff6b61}
-.so-nat[hidden],.so-pc-web[hidden]{display:none!important}
+@media(max-width:600px){.mp-h{width:150px;padding:6px 8px;gap:4px}.mp-h .mp-l2+.mp-l2{display:none}.mp-l2 input[type=range]{display:none}.mp-hreg small{display:none}.mp-l1 input{font-size:12px;padding:3px 4px}.mp-b{min-width:28px;min-height:28px;padding:0 4px}.mp-l1{gap:3px}}
+.so-nat[hidden],.so-pc-web[hidden],.mp-pc[hidden]{display:none!important}
 .btn-lk{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:12px;border:1px solid var(--acc-line);background:var(--acc-soft);color:var(--acc);font-weight:700;text-decoration:none;flex:none}.btn-lk:hover{background:rgba(200,241,105,.2)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .mp-tit{display:none}.app[data-tab=mp] #fname,.app[data-tab=mp] #sub{display:none}.app[data-tab=mp] .mp-tit{display:block}
@@ -454,7 +455,7 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
   <nav aria-label="Painéis" style="display:contents"><div class="tabs" id="tabs" role="tablist" aria-label="Painéis">
     <span class="tabind" id="tabind" aria-hidden="true"></span>
     <button role="tab" data-t="rec"><svg class="i"><use href="#i-mic"/></svg><span>Gravar</span></button>
-    <button role="tab" data-t="mp" class="so-nat" hidden><svg class="i"><use href="#i-faixas"/></svg><span>Faixas</span></button>
+    <button role="tab" data-t="mp"><svg class="i"><use href="#i-faixas"/></svg><span>Faixas</span></button>
     <button role="tab" data-t="edit" class="m-only"><svg class="i"><use href="#i-cut"/></svg><span>Editar</span></button>
     <button role="tab" data-t="fx"><svg class="i"><use href="#i-sliders"/></svg><span>Efeitos</span></button>
     <button role="tab" data-t="fin"><svg class="i"><use href="#i-wand"/></svg><span>Finalizar</span></button>
@@ -469,25 +470,25 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
       </div>
       <div class="cap">Sessão</div>
       <div class="list">
-        <label class="row-i"><span>Sessão aberta<small>Fica salva sozinha no computador</small></span><select id="mpSessoes"></select></label>
+        <label class="row-i"><span>Sessão aberta<small id="mpOnde">Fica salva sozinha no computador</small></span><select id="mpSessoes"></select></label>
         <div class="row-i"><span>Começar outra<small>A sessão atual continua guardada</small></span><button id="mpNovaSessao">Nova sessão</button></div>
-        <div class="row-i"><span>Atraso da placa<small id="mpLatTxt">—</small></span></div>
+        <div class="row-i"><span><span id="mpLatT">Atraso da placa</span><small id="mpLatTxt">—</small></span><button id="mpMedir" hidden>Medir</button></div>
         <label class="row-i"><span>Ajuste fino do alinhamento<small>Se a faixa gravada ficar adiantada ou atrasada em relação à base. Vale para as próximas gravações.</small></span><span class="mp-aj"><input type="range" id="mpAjuste" min="-60" max="60" step="1" value="0" aria-label="Ajuste fino em milissegundos"><output id="mpAjusteTxt">0 ms</output></span></label>
       </div>
       <div id="mpInsp" hidden style="display:contents">
         <div class="cap" id="mpInspT">Faixa</div>
         <div class="list">
-          <label class="row-i"><span>Entrada<small>De onde vem o som quando a faixa está armada</small></span><select id="mpEntrada"><option value="0">Entrada 1</option><option value="1">Entrada 2</option><option value="2">Entradas 1 e 2 (estéreo)</option></select></label>
-          <label class="row-i"><span>Ouvir a entrada pelos plugins<small>Com a faixa armada, você ouve o som já com os plugins (ex.: simulador de amp). Use fone.</small></span><input type="checkbox" class="sw" id="mpMonitor"></label>
+          <label class="row-i"><span>Entrada<small id="mpEntS">De onde vem o som quando a faixa está armada</small></span><select id="mpEntrada"><option value="0">Entrada 1</option><option value="1">Entrada 2</option><option value="2">Entradas 1 e 2 (estéreo)</option></select></label>
+          <label class="row-i"><span id="mpMonT">Ouvir a entrada pelos plugins<small id="mpMonS">Com a faixa armada, você ouve o som já com os plugins (ex.: simulador de amp). Use fone.</small></span><input type="checkbox" class="sw" id="mpMonitor"></label>
           <label class="row-i"><span>Volume</span><input type="range" id="mpVol" min="0" max="200" step="1" aria-label="Volume da faixa"></label>
           <label class="row-i"><span>Pan<small id="mpPanTxt">Centro</small></span><input type="range" id="mpPan" min="-100" max="100" step="1" aria-label="Pan da faixa"></label>
           <div class="row-i"><span>Mover no tempo (ms)<small id="mpInicioTxt">—</small></span><span class="mp-mov"><button data-mov="-10" aria-label="Mover 10 ms para trás">−10</button><button data-mov="-1" aria-label="Mover 1 ms para trás">−1</button><button data-mov="1" aria-label="Mover 1 ms para frente">+1</button><button data-mov="10" aria-label="Mover 10 ms para frente">+10</button></span></div>
         </div>
-        <div class="cap">Plugins da faixa</div>
-        <div class="list" id="mpPlugs"></div>
+        <div class="cap mp-pc">Plugins da faixa</div>
+        <div class="list mp-pc" id="mpPlugs"></div>
         <div class="list">
-          <label class="row-i"><span>Adicionar plugin<small id="mpBuscaTxt">VST3 instalados no computador</small></span><select id="mpPlugSel"><option value="">Escolha…</option></select></label>
-          <div class="row-i"><span>Não achou o plugin?<small>Procura de novo nas pastas de VST3</small></span><button id="mpBuscar">Procurar plugins</button></div>
+          <label class="row-i mp-pc"><span>Adicionar plugin<small id="mpBuscaTxt">VST3 instalados no computador</small></span><select id="mpPlugSel"><option value="">Escolha…</option></select></label>
+          <div class="row-i mp-pc"><span>Não achou o plugin?<small>Procura de novo nas pastas de VST3</small></span><button id="mpBuscar">Procurar plugins</button></div>
           <div class="row-i"><span>Remover esta faixa</span><button id="mpRemover" class="mp-perigo">Remover</button></div>
         </div>
       </div>
@@ -1143,14 +1144,14 @@ function draw(){
   if(play){const px=t2x(pos());g2.fillStyle='#ff453a';g2.fillRect(Math.round(px)-1,0,2,H)}
 }
 function ui(){
-  const t=play?pos():cursor;if(!(NATIVO&&app.dataset.tab==='mp'))$('#clock').firstChild.textContent=rec?fmt(rec.len/AC().sampleRate):fmt(t);
-  if(!(NATIVO&&app.dataset.tab==='mp'))$('#selInfo').textContent=sel?`Seleção ${fmt(sel.a)} → ${fmt(sel.b)} · ${fmt(sel.b-sel.a)}`:(buf?'Total '+fmt(buf.duration):'Sem seleção');
+  const t=play?pos():cursor;if(app.dataset.tab!=='mp')$('#clock').firstChild.textContent=rec?fmt(rec.len/AC().sampleRate):fmt(t);
+  if(app.dataset.tab!=='mp')$('#selInfo').textContent=sel?`Seleção ${fmt(sel.a)} → ${fmt(sel.b)} · ${fmt(sel.b-sel.a)}`:(buf?'Total '+fmt(buf.duration):'Sem seleção');
   $('#playIco').setAttribute('d',play?'M6 4h4v16H6zm8 0h4v16h-4z':'M7 4l13 8-13 8z');
   $('#loop').classList.toggle('on',loop);$('#undo').disabled=!hist.length;$('#redo').disabled=!redo.length;
   $('#empty').style.display=buf||rec?'none':'grid';
   const hb=!!buf,hs=!!sel&&!rec;
   ['#cut','#copy','#del','#trim','#mute','#zsel'].forEach(i=>$(i).disabled=!hs);$('#paste').disabled=!clip||!!rec;
-  ['#addsil','#selall','#zin','#zout','#zfit','#play','#stop'].forEach(i=>$(i).disabled=!hb&&!rec);$('#play').disabled=!hb||!!rec;
+  ['#addsil','#selall','#zin','#zout','#zfit','#play','#stop'].forEach(i=>$(i).disabled=!hb&&!rec);$('#play').disabled=!hb||!!rec;if(app.dataset.tab==='mp'&&!rec){$('#play').disabled=false;$('#stop').disabled=false}
   $('#sub').textContent=rec?(rec.armed?'Prepare-se…':'● Gravando'):hb?fmt(buf.duration)+' · '+(buf.sampleRate/1000).toLocaleString('pt-BR')+' kHz · '+(buf.numberOfChannels>1?'estéreo':'mono')+(saveLbl?' · '+saveLbl:''):'Nenhum áudio ainda';
   $('.scrollbar').style.visibility=hb?'visible':'hidden';const sc=$('#scroll');sc.disabled=!buf||view.d>=buf.duration;if(buf&&buf.duration>view.d)sc.value=Math.round(view.s/(buf.duration-view.d)*1000);
 }
@@ -1187,7 +1188,7 @@ $('#srcType').addEventListener('change',()=>{srcTouched=true;srcChanged()});$('#
 $('#chan').addEventListener('change',()=>{if(NATIVO)natMonitor();const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
 navigator.mediaDevices?.addEventListener?.('devicechange',listDevs);listDevs();
 $('#mon').addEventListener('change',e=>{if(NATIVO){natMonitor();if(e.target.checked)toast('Retorno direto da placa ligado. Use fone de ouvido.',3000);return}if(e.target.checked)toast(isVoz()?'Use fone de ouvido: em caixa de som dá microfonia. O navegador tem um pequeno atraso no retorno.':'Dica: sua pedaleira ou placa tem saída de fone sem atraso. Prefira ouvir por ela.',5000);const s=rec||test;if(s){unmonitor(s);s.mon=monitor(s)}});
-const mpAtivo=()=>NATIVO&&app.dataset.tab==='mp';
+const mpAtivo=()=>app.dataset.tab==='mp';
 on('#rec',()=>mpAtivo()?MP.gravar():startRec());on('#play',()=>mpAtivo()?MP.tocarPausar():toggle());on('#stop',()=>{if(mpAtivo())return MP.parar(true);stopRec();stopPlay();cursor=sel?sel.a:0;refresh()});on('#loop',()=>{loop=!loop;if(play){const t=pos();stopPlay();cursor=t;startPlay()}ui()});
 on('#zin',()=>zoom(.5));on('#zout',()=>zoom(2));on('#zfit',fit);on('#zsel',()=>sel?zoomTo(sel.a-(sel.b-sel.a)*.05,(sel.b-sel.a)*1.1):toast('Selecione um trecho primeiro'));
 $('#scroll').addEventListener('input',e=>{if(buf){view.s=e.target.value/1000*(buf.duration-view.d);draw()}});
@@ -1270,7 +1271,7 @@ if('launchQueue'in window)launchQueue.setConsumer(async p=>{for(const h of p.fil
 if(new URLSearchParams(location.search).get('acao')==='gravar')verd(['Atalho “Gravar agora”: aperte o botão vermelho ou a tecla R para começar.']);
 /* ---------- abas e diálogo ---------- */
 const app=$('#app'),mq=matchMedia('(max-width:760px)');
-function tab(t){if(t==='edit'&&!mq.matches)t='rec';app.dataset.tab=t;document.querySelectorAll('#tabs [data-t]').forEach(b=>{const o=b.dataset.t===t;b.classList.toggle('on',o);b.setAttribute('aria-selected',o)});$('#side').scrollTop=0;tabInd();const ex=$('#expOpen');ex.querySelector('span').textContent=t==='mp'?'Mixar':'Exportar';ex.title=t==='mp'?'Mixar as faixas e finalizar':'Exportar';if(t==='mp')MP.atualizar()}
+function tab(t){if(t==='edit'&&!mq.matches)t='rec';app.dataset.tab=t;document.querySelectorAll('#tabs [data-t]').forEach(b=>{const o=b.dataset.t===t;b.classList.toggle('on',o);b.setAttribute('aria-selected',o)});$('#side').scrollTop=0;tabInd();const ex=$('#expOpen');ex.querySelector('span').textContent=t==='mp'?'Mixar':'Exportar';ex.title=t==='mp'?'Mixar as faixas e finalizar':'Exportar';if(t==='mp'){MP.abrir();MP.atualizar()}ui()}
 // pílula de vidro que desliza até a aba ativa
 function tabInd(){const b=$('#tabs .on'),i=$('#tabind');if(!b||!b.offsetWidth){i.style.opacity=0;return}i.style.opacity=1;i.style.width=b.offsetWidth+'px';i.style.height=b.offsetHeight+'px';i.style.transform=`translate(${b.offsetLeft}px,${b.offsetTop}px)`}
 addEventListener('resize',tabInd);addEventListener('load',tabInd);document.fonts&&document.fonts.ready.then(tabInd);
@@ -1338,17 +1339,194 @@ async function natAtualizacao(silencioso){
   else if(!silencioso){t.textContent='Você já está na versão mais recente ('+r.atual+'). ✓';b.textContent='Buscar de novo'}
 }
 /* ---------- multipista (só no PC, com o motor nativo) ---------- */
+/* ---------- multipista no navegador (celular e computador sem o app) ----------
+   Mesmas funções do motor do PC (mpEstado, mpGravar...), feitas com Web Audio.
+   As faixas ficam no aparelho (IndexedDB "stumix-faixas"). A gravação começa na mesma
+   amostra em que a base começa a tocar; o atraso do aparelho é cortado do começo. */
+const MPCAP_SRC=`class MpCap extends AudioWorkletProcessor{
+  constructor(){super();this.de=Infinity;this.on=true;this.t=4096;this.n=0;this.b=[new Float32Array(4096),new Float32Array(4096)];
+    this.port.onmessage=e=>{const d=e.data;if(d&&d.de!=null)this.de=d.de;
+      else if(d==='flush'){this.port.postMessage({last:true,chs:[this.b[0].slice(0,this.n),this.b[1].slice(0,this.n)]});this.n=0;this.de=Infinity}
+      else if(d==='stop')this.on=false}}
+  process(inp){if(!this.on)return false;const i=inp[0],len=128;
+    if(currentFrame+len<=this.de)return true;
+    for(let k=Math.max(0,this.de-currentFrame);k<len;k++){
+      for(let c=0;c<2;c++){const s=i&&i.length?i[Math.min(c,i.length-1)]:null;this.b[c][this.n]=s?s[k]:0}
+      if(++this.n===this.t){this.port.postMessage({chs:this.b},[this.b[0].buffer,this.b[1].buffer]);this.b=[new Float32Array(this.t),new Float32Array(this.t)];this.n=0}}
+    return true}}
+registerProcessor('stumix-mpcap',MpCap);`;
+const MPW=(()=>{
+  const db=new Promise((ok,no)=>{try{const r=indexedDB.open('stumix-faixas',1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('sessoes',{keyPath:'id'});d.createObjectStore('audio')};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}});
+  db.catch(()=>{});
+  const rq=r=>new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+  const st=async(s,m)=>(await db).transaction(s,m||'readonly').objectStore(s);
+  let ses=null,pronto=null,toc=null,grv=null,posP=0,loop=0,capMod=null,latEntrada=null,persistiu=false;
+  const bufs=new Map(),picosC=new Map();
+  const C=()=>AC();
+  const chave=id=>ses.id+'/'+id;
+  const audivel=f=>{const solo=ses.faixas.some(x=>x.solo);return bufs.has(f.id)&&(solo?f.solo:!f.mudo)};
+  const fimSes=()=>Math.max(0,...ses.faixas.filter(f=>bufs.has(f.id)).map(f=>f.inicio+bufs.get(f.id).duration));
+  async function salvarSes(){try{await rq((await st('sessoes','readwrite')).put(JSON.parse(JSON.stringify(ses))));localStorage.setItem('estudio:mpSessao',ses.id)}catch(e){console.warn('sessão',e)}}
+  async function salvarAudio(id){const b=bufs.get(id);
+    try{if(b)await rq((await st('audio','readwrite')).put({sr:b.sampleRate,chs:Array.from({length:b.numberOfChannels},(_,c)=>b.getChannelData(c))},chave(id)));
+      else await rq((await st('audio','readwrite')).delete(chave(id)));
+      if(!persistiu){persistiu=true;navigator.storage?.persist?.().catch(()=>{})}}
+    catch(e){toast('Não consegui salvar a faixa no aparelho: '+e.message,6000)}}
+  async function abrirSes(s){
+    ses=s;bufs.clear();picosC.clear();posP=0;
+    for(const f of ses.faixas){const a=await rq((await st('audio')).get(chave(f.id))).catch(()=>null);
+      if(a&&a.chs&&a.chs.length){const b=C().createBuffer(a.chs.length,Math.max(1,a.chs[0].length),a.sr);a.chs.forEach((d,c)=>b.copyToChannel(d,c));bufs.set(f.id,b)}}
+    await salvarSes();
+  }
+  const novaSes=async nome=>abrirSes({id:'s'+Date.now().toString(36),nome,prox:1,criada:Date.now(),faixas:[]});
+  function carregar(){return pronto||(pronto=(async()=>{
+    let id=null;try{id=localStorage.getItem('estudio:mpSessao')}catch(e){}
+    const s=id?await rq((await st('sessoes')).get(id)).catch(()=>null):null;
+    if(s)await abrirSes(s);else{const todas=await rq((await st('sessoes')).getAll()).catch(()=>[]);if(todas.length)await abrirSes(todas.sort((a,b)=>b.criada-a.criada)[0]);else await novaSes('Sessão 1')}
+  })())}
+  function latMs(){
+    let m=null;try{m=localStorage.getItem('estudio:mpLatMedida')}catch(e){}
+    if(m!=null&&m!=='')return{ms:+m,medida:true};
+    const c=C();return{ms:((c.baseLatency||0)+(c.outputLatency||0)+(latEntrada??.01))*1000,medida:false};
+  }
+  function picos(id){const k=id+':'+(bufs.get(id)?.length||0);if(picosC.has(k))return picosC.get(k);
+    const b=bufs.get(id);if(!b)return[];const passo=Math.max(1,Math.round(b.sampleRate/100)),n=b.length,o=new Array(Math.ceil(n/passo)).fill(0);
+    for(let c=0;c<b.numberOfChannels;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++){const v=d[i]<0?-d[i]:d[i],j=(i/passo)|0;if(v>o[j])o[j]=v}}
+    const r=o.map(v=>Math.round(Math.min(1,v)*1000));picosC.set(k,r);return r}
+  /* monta as faixas num contexto (tocar ao vivo ou mixar offline) */
+  function montar(c,dest,p,t0,semArmadas){
+    const nos=new Map();
+    for(const f of ses.faixas){if(!audivel(f)||(semArmadas&&f.armada))continue;const b=bufs.get(f.id),off=p-f.inicio;if(off>=b.duration)continue;
+      const s=c.createBufferSource();s.buffer=b;const g=c.createGain();g.gain.value=f.volume;let ult=g;
+      if(c.createStereoPanner){const pn=c.createStereoPanner();pn.pan.value=f.pan;g.connect(pn);ult=pn;nos.set(f.id,{s,g,pn})}else nos.set(f.id,{s,g});
+      s.connect(g);ult.connect(dest);
+      if(off<0)s.start(t0-off,0);else s.start(t0,off)}
+    return nos}
+  function tick(){
+    loop=0;const p=posAtual();let novos=null;
+    if(grv&&grv.novos.length){novos=grv.novos;grv.novos=[]}
+    if(toc&&!grv&&p>fimSes()+.3){pararToque();posP=fimSes()}
+    MP.nivel({mpPos:posAtual(),mpTocando:!!toc,picos:novos});
+    if(toc||grv)loop=requestAnimationFrame(tick)}
+  const posAtual=()=>toc?Math.max(toc.p0,toc.p0+(C().currentTime-toc.t0)):posP;
+  function pararToque(){if(!toc)return;for(const n of toc.nos.values())try{n.s.stop()}catch(e){}try{toc.mestre.disconnect()}catch(e){}posP=posAtual();toc=null}
+  function tocar(p,t0,semArmadas){
+    const c=C();c.resume();if(typeof stopPlay==='function')stopPlay();pararToque();
+    const mestre=c.createGain();mestre.connect(c.destination);t0=t0??c.currentTime+.06;
+    toc={t0,p0:p,mestre,nos:montar(c,mestre,p,t0,semArmadas)};if(!loop)loop=requestAnimationFrame(tick)}
+  function monitorar(c,src){ // retorno no fone das faixas armadas com "ouvir a entrada"
+    const fs=ses.faixas.filter(f=>f.armada&&f.monitorar);if(!fs.length)return[];
+    const sp=c.createChannelSplitter(2),nos=[sp];src.connect(sp);
+    for(const f of fs){const m=c.createChannelMerger(2),g=c.createGain();g.gain.value=Math.min(1,f.volume);
+      if(f.entrada===2){sp.connect(m,0,0);sp.connect(m,1,1)}else{const ch=f.entrada;sp.connect(m,ch,0);sp.connect(m,ch,1)}
+      m.connect(g);g.connect(c.destination);nos.push(m,g)}
+    return nos}
+  async function abrirCaptura(){
+    const c=C();if(!c.audioWorklet)throw new Error('Este navegador não grava em várias faixas. Atualize o Chrome ou o Safari.');
+    if(!capMod)capMod=c.audioWorklet.addModule(URL.createObjectURL(new Blob([MPCAP_SRC],{type:'text/javascript'})));
+    try{await capMod}catch(e){capMod=null;throw new Error('Não consegui preparar a gravação: '+e.message)}
+    const stream=await openMic(),tr=stream.getAudioTracks()[0],cfg=tr.getSettings();if(typeof cfg.latency==='number')latEntrada=cfg.latency;
+    const src=c.createMediaStreamSource(stream),node=new AudioWorkletNode(c,'stumix-mpcap',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],channelCount:2,channelCountMode:'explicit',channelInterpretation:'speakers'});
+    const z=c.createGain();z.gain.value=0;src.connect(node);node.connect(z);z.connect(c.destination);
+    const cap={stream,src,node,z,chs:[[],[]],n:0,fim:null,canais:Math.min(2,cfg.channelCount||1)};
+    node.port.onmessage=e=>{const d=e.data;if(d.chs[0].length){cap.chs[0].push(d.chs[0]);cap.chs[1].push(d.chs[1]);cap.n+=d.chs[0].length;cap.aoPedaco?.(d.chs)}if(d.last&&cap.fim)cap.fim()};
+    await new Promise(r=>setTimeout(r,250));   // o microfone leva um instante para começar a mandar som
+    return cap}
+  async function fecharCaptura(cap){
+    await new Promise(r=>{cap.fim=r;cap.node.port.postMessage('flush');setTimeout(r,500)});
+    cap.node.port.postMessage('stop');(cap.mon||[]).forEach(n=>{try{n.disconnect()}catch(e){}});
+    try{cap.src.disconnect();cap.node.disconnect();cap.z.disconnect()}catch(e){}cap.stream.getTracks().forEach(t=>t.stop());
+    const junta=k=>{const o=new Float32Array(cap.n);let off=0;for(const d of cap.chs[k]){o.set(d.subarray(0,Math.min(d.length,cap.n-off)),off);off+=d.length}return o};
+    return[junta(0),junta(1)]}
+  async function gravar(p){
+    if(grv)return;if(!ses.faixas.some(f=>f.armada))throw new Error('Arme uma faixa para gravar');
+    const cap=await abrirCaptura(),c=C();cap.mon=monitorar(c,cap.src);
+    const t0=c.currentTime+.12;grv={cap,p0:p,novos:[],acc:0,pk:0};
+    cap.aoPedaco=chs=>{const g=grv;if(!g)return;const L=chs[0],R=chs[1],dois=cap.canais>1;
+      for(let i=0;i<L.length;i++){let v=L[i]<0?-L[i]:L[i];if(dois){const w=R[i]<0?-R[i]:R[i];if(w>v)v=w}if(v>g.pk)g.pk=v;if(++g.acc===512){g.novos.push(g.pk);g.acc=0;g.pk=0}}};
+    cap.node.port.postMessage({de:Math.round(t0*c.sampleRate)});
+    tocar(p,t0,true)}
+  async function parar(ajusteMs){
+    if(!grv){pararToque();return{}}
+    const g=grv;grv=null;pararToque();const[L,R]=await fecharCaptura(g.cap),sr=C().sampleRate;
+    const corte=Math.max(0,Math.round((latMs().ms+(+ajusteMs||0))*sr/1000)),qtd=L.length-corte;let gravadas=0;
+    if(qtd>0)for(const f of ses.faixas){if(!f.armada)continue;
+      const est=f.entrada===2,b=C().createBuffer(est?2:1,qtd,sr);
+      b.copyToChannel((f.entrada===1?R:L).subarray(corte),0);if(est)b.copyToChannel(R.subarray(corte),1);
+      bufs.set(f.id,b);f.inicio=g.p0;f.armada=false;await salvarAudio(f.id);gravadas++}
+    await salvarSes();posP=g.p0;return{gravadas,latencia:corte}}
+  /* mede o atraso real: o alto-falante toca estalos e o microfone escuta */
+  async function medir(){
+    if(grv||toc)throw new Error('Pare antes de medir');
+    const cap=await abrirCaptura(),c=C(),sr=c.sampleRate,t0=c.currentTime+.15,N=6,int=.5;
+    cap.node.port.postMessage({de:Math.round(t0*sr)});
+    const clk=c.createBuffer(1,Math.round(sr*.003),sr),d=clk.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(i%2?-1:1)*.9*(1-i/d.length);
+    for(let k=0;k<N;k++){const s=c.createBufferSource();s.buffer=clk;s.connect(c.destination);s.start(t0+.4+k*int)}
+    await new Promise(r=>setTimeout(r,(.55+N*int+.4)*1000));
+    const[L]=await fecharCaptura(cap);
+    let ruido=0;for(let i=0;i<Math.min(L.length,Math.round(.35*sr));i++){const v=Math.abs(L[i]);if(v>ruido)ruido=v}
+    const atrasos=[];
+    for(let k=0;k<N;k++){const a=Math.round((.4+k*int)*sr),b=Math.min(L.length,a+Math.round(.4*sr));let mx=0;
+      for(let i=a;i<b;i++){const v=Math.abs(L[i]);if(v>mx)mx=v}
+      if(mx<Math.max(.02,ruido*4))continue;
+      for(let i=a;i<b;i++)if(Math.abs(L[i])>=mx*.5){atrasos.push((i-a)/sr*1000);break}}
+    if(atrasos.length<3)throw new Error('Não escutei os estalos. Tire o fone, suba o volume e meça num lugar silencioso.');
+    atrasos.sort((x,y)=>x-y);const ms=Math.round(atrasos[atrasos.length>>1]*10)/10;
+    try{localStorage.setItem('estudio:mpLatMedida',ms)}catch(e){}return ms}
+  async function exportar(){
+    const fim=fimSes();if(!fim)return{ok:false,erro:'Não há áudio nas faixas para mixar'};
+    const sr=C().sampleRate,oc=new OfflineAudioContext(2,Math.ceil(fim*sr),sr);montar(oc,oc.destination,0,0,false);
+    return{ok:true,buffer:await oc.startRendering()}}
+  function importar(){return new Promise(res=>{
+    const i=document.createElement('input');i.type='file';i.accept='audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac';
+    i.addEventListener('cancel',()=>res(null));
+    i.addEventListener('change',async()=>{const f=i.files[0];if(!f)return res(null);
+      busy(true,'Abrindo a base…');
+      try{const b=await C().decodeAudioData(await f.arrayBuffer());const id=ses.prox++;
+        ses.faixas.push(faixaNova(id,f.name.replace(/\.[^.]+$/,'').slice(0,40)||'Base',0,false));bufs.set(id,b);await salvarAudio(id);await salvarSes();res(true)}
+      catch(e){res('o arquivo não é um áudio que o aparelho consiga abrir')}finally{busy(false)}});
+    i.click()})}
+  const faixaNova=(id,nome,entrada,armada)=>({id,nome:nome||'Faixa '+id,armada:!!armada,mudo:false,solo:false,volume:1,pan:0,entrada:entrada|0,monitorar:false,inicio:0,plugins:[]});
+  const funcs={
+    async mpEstado(){await carregar();const l=latMs(),todas=await rq((await st('sessoes')).getAll()).catch(()=>[ses]);
+      return{nome:ses.nome,taxa:C().sampleRate,latenciaMs:l.ms,latMedida:l.medida,web:true,tocando:!!toc,
+        sessoes:todas.sort((a,b)=>a.criada-b.criada).map(s=>({nome:s.nome,atual:s.id===ses.id})),
+        faixas:ses.faixas.map(f=>{const b=bufs.get(f.id);return{...f,dur:b?b.duration:0,canais:b?b.numberOfChannels:(f.entrada===2?2:1)}})}},
+    async mpPicos(id){await carregar();return picos(id)},
+    async mpNova(entrada,armada){await carregar();const id=ses.prox++;ses.faixas.push(faixaNova(id,'',entrada,armada));await salvarSes();return id},
+    async mpAjustar(id,p){await carregar();const f=ses.faixas.find(x=>x.id===id);if(!f||!p)return;
+      if(p.nome!=null)p={...p,nome:decodeURIComponent(p.nome)};
+      const moveu=p.moverMs!=null;if(moveu){f.inicio+=p.moverMs/1000}
+      const somMudou=('mudo'in p&&p.mudo!==f.mudo)||('solo'in p&&p.solo!==f.solo);
+      for(const k of['nome','armada','mudo','solo','volume','pan','entrada','monitorar'])if(k in p)f[k]=p[k];
+      const n=toc&&toc.nos.get(id);if(n){if('volume'in p)n.g.gain.setTargetAtTime(f.volume,C().currentTime,.01);if('pan'in p&&n.pn)n.pn.pan.setTargetAtTime(f.pan,C().currentTime,.01)}
+      if(toc&&!grv&&(somMudou||moveu))tocar(posAtual());
+      clearTimeout(funcs._t);funcs._t=setTimeout(salvarSes,400)},
+    async mpRemover(id){await carregar();ses.faixas=ses.faixas.filter(f=>f.id!==id);bufs.delete(id);await salvarAudio(id);await salvarSes()},
+    async mpTocar(p){await carregar();tocar(p)},
+    async mpGravar(p){await carregar();await gravar(p)},
+    mpParar:a=>parar(a),
+    async mpPosicionar(p){posP=Math.max(0,p);if(toc)tocar(posP)},
+    mpImportar:async()=>{await carregar();return importar()},
+    mpExportar:async()=>{await carregar();return exportar()},
+    mpMedir:()=>medir(),
+    async mpAbrirSessao(nome){nome=decodeURIComponent(nome);pararToque();const s=(await rq((await st('sessoes')).getAll())).find(x=>x.nome===nome);if(!s)return'Sessão não encontrada';await abrirSes(s)},
+    async mpNovaSessao(){await carregar();pararToque();const n=(await rq((await st('sessoes')).getAll())).length+1;await novaSes('Sessão '+n)},
+  };
+  return{chamar:(n,...a)=>funcs[n]?Promise.resolve().then(()=>funcs[n](...a)):Promise.resolve(null),gravando:()=>!!grv,audioDaFaixa:id=>bufs.get(id)};
+})();
+const mpc=(n,...a)=>NATIVO?nat(n,...a):MPW.chamar(n,...a);
 const MP=(()=>{
-  let est={faixas:[],taxa:48000},selId=0,pxs=40,grav=null,tocando=false,pos=0,plugs=[],ajuste=0,buscaT=null;
-  const picos=new Map(),H=232,ALT=86;
+  let est={faixas:[],taxa:48000},iniciado=false,selId=0,pxs=40,grav=null,tocando=false,pos=0,plugs=[],ajuste=0,buscaT=null;
+  const picos=new Map(),ALT=86,estreito=matchMedia('(max-width:600px)');let H=estreito.matches?150:232;estreito.addEventListener?.('change',()=>{H=estreito.matches?150:232;if(iniciado)desenhar()});
   try{ajuste=+localStorage.getItem('estudio:mpAjuste')||0}catch(e){}
   const fim=()=>Math.max(30,...est.faixas.map(f=>f.inicio+f.dur),grav?pos:0)+5;
   const faixa=id=>est.faixas.find(f=>f.id===id);
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   async function atualizar(){
-    const e=await nat('mpEstado').catch(()=>null);if(!e)return;est=e;
+    const e=await mpc('mpEstado').catch(()=>null);if(!e)return;est=e;
     if(!faixa(selId))selId=est.faixas.length?est.faixas[0].id:0;
-    for(const f of est.faixas){const k=f.id+':'+f.dur;if(f.dur>0&&!picos.has(k)){picos.set(k,await nat('mpPicos',f.id).catch(()=>[]))}}
+    for(const f of est.faixas){const k=f.id+':'+f.dur;if(f.dur>0&&!picos.has(k)){picos.set(k,await mpc('mpPicos',f.id).catch(()=>[]))}}
     desenhar();
   }
   function desenhar(){
@@ -1357,12 +1535,12 @@ const MP=(()=>{
     if(app.dataset.tab==='mp')$('#selInfo').textContent=est.faixas.length?'Sessão · '+est.faixas.filter(f=>f.armada).length+' armada(s)':'Sessão vazia';
     $('#mpSub').textContent=est.faixas.length+(est.faixas.length===1?' faixa':' faixas')+' · '+String(Math.round(est.taxa/100)/10).replace('.',',')+' kHz'+(est.taxaPlaca&&Math.abs(est.taxaPlaca-est.taxa)>1?' · a placa está em outra taxa':'');
     const ss=$('#mpSessoes');ss.innerHTML=(est.sessoes||[]).map(x=>`<option${x.atual?' selected':''}>${esc(x.nome)}</option>`).join('');
-    $('#mpLatTxt').textContent=(est.latenciaMs||0).toFixed(1).replace('.',',')+' ms (entrada + saída, informado pela placa). É descontado sozinho ao gravar.';
+    $('#mpLatTxt').textContent=(est.latenciaMs||0).toFixed(1).replace('.',',')+' ms'+(est.web?(est.latMedida?' (medido neste aparelho).':' (estimado: toque em Medir para acertar).'):' (entrada + saída, informado pela placa).')+' É descontado sozinho ao gravar.';
     $('#mpAjuste').value=ajuste;$('#mpAjusteTxt').textContent=(ajuste>0?'+':'')+ajuste+' ms';
     const W=Math.ceil(fim()*pxs);
     $('#mpPistas').innerHTML=est.faixas.map(f=>`<div class="mp-linha${f.id===selId?' sel':''}" data-id="${f.id}" tabindex="0" aria-label="Faixa ${esc(f.nome)}${f.armada?', armada':''}${f.mudo?', muda':''}">
       <div class="mp-h">
-        <div class="mp-l1"><input type="text" value="${esc(f.nome)}" data-campo="nome" aria-label="Nome da faixa" spellcheck="false">
+        <div class="mp-l1"><input type="text" value="${esc(f.nome)}" data-campo="nome" aria-label="Nome da faixa" spellcheck="false">${H<200?'</div><div class="mp-l2">':''}
           <button class="mp-b mp-arm" data-tg="armada" aria-pressed="${f.armada}" title="Armar para gravar" aria-label="Armar ${esc(f.nome)} para gravar">●</button>
           <button class="mp-b" data-tg="mudo" aria-pressed="${f.mudo}" title="Mudo" aria-label="Mudo">M</button>
           <button class="mp-b" data-tg="solo" aria-pressed="${f.solo}" title="Solo" aria-label="Solo">S</button></div>
@@ -1404,27 +1582,27 @@ const MP=(()=>{
     $('#mpPlugs').innerHTML=f.plugins.length?f.plugins.map((p,i)=>`<div class="row-i mp-plug"><span>${esc(p.nome)}</span><input type="checkbox" class="sw" data-pl="ligar" data-i="${i}"${p.ligado?' checked':''} aria-label="Ligar ${esc(p.nome)}"><button data-pl="abrir" data-i="${i}">Abrir</button><button data-pl="tirar" data-i="${i}" aria-label="Remover ${esc(p.nome)}">✕</button></div>`).join(''):'<div class="row-i"><span>Nenhum plugin<small>Escolha abaixo: o som da faixa passa pelos plugins na ordem da lista</small></span></div>';
   }
   async function listarPlugins(){
-    const r=await nat('mpPlugins').catch(()=>null);if(!r)return;plugs=r.plugins.filter(p=>!p.instrumento).sort((a,b)=>a.nome.localeCompare(b.nome));
+    const r=await mpc('mpPlugins').catch(()=>null);if(!r)return;plugs=r.plugins.filter(p=>!p.instrumento).sort((a,b)=>a.nome.localeCompare(b.nome));
     $('#mpPlugSel').innerHTML='<option value="">Escolha…</option>'+plugs.map(p=>`<option value="${p.indice}">${esc(p.nome)}${p.fabricante?' · '+esc(p.fabricante):''}</option>`).join('');
     $('#mpBuscaTxt').textContent=r.buscando?'Procurando plugins no computador…':plugs.length+' plugins VST3 encontrados';
     clearTimeout(buscaT);if(r.buscando)buscaT=setTimeout(listarPlugins,1500);
   }
-  const ajustar=async(id,p)=>{if(p&&p.nome!=null)p={...p,nome:encodeURIComponent(p.nome)};await nat('mpAjustar',id,p);await atualizar()};
+  const ajustar=async(id,p)=>{if(p&&p.nome!=null)p={...p,nome:encodeURIComponent(p.nome)};await mpc('mpAjustar',id,p);await atualizar()};
   async function gravar(){
     if(grav)return parar();
-    if(!est.faixas.some(f=>f.armada)){const id=await nat('mpNova',0,true);selId=id;await atualizar();toast('Criei uma faixa nova na entrada 1 para gravar',2500)}
-    grav={inicio:pos,picos:[]};await nat('mpGravar',pos);$('#rec').classList.add('live');keepAwake(true);desenhar();
+    if(!est.faixas.some(f=>f.armada)){const id=await mpc('mpNova',0,true);selId=id;await atualizar();toast('Criei uma faixa nova na entrada 1 para gravar',2500)}
+    grav={inicio:pos,picos:[]};try{await mpc('mpGravar',pos)}catch(e){grav=null;desenhar();return toast(e.message,5000)}$('#rec').classList.add('live');keepAwake(true);desenhar();
   }
   async function parar(voltar){
     if(grav){
-      grav=null;$('#rec').classList.remove('live');keepAwake(false);
-      const r=await nat('mpParar',ajuste).catch(()=>({}));
-      toast(r.gravadas?(r.gravadas>1?r.gravadas+' faixas gravadas':'Faixa gravada')+' no tempo da base':'Nada foi gravado',2500);
-    }else await nat('mpParar');
-    if(voltar){await nat('mpPosicionar',0);pos=0}
+      const ini=grav.inicio;grav=null;$('#rec').classList.remove('live');keepAwake(false);
+      const r=await mpc('mpParar',ajuste).catch(()=>({}));
+      toast(r.gravadas?(r.gravadas>1?r.gravadas+' faixas gravadas':'Faixa gravada')+' no tempo da base':'Nada foi gravado',2500);pos=ini;await mpc('mpPosicionar',pos);cabeca();
+    }else await mpc('mpParar');
+    if(voltar){await mpc('mpPosicionar',0);pos=0}
     await atualizar();
   }
-  async function tocarPausar(){if(grav)return parar();if(tocando)await nat('mpParar');else await nat('mpTocar',pos)}
+  async function tocarPausar(){if(grav)return parar();if(tocando)await mpc('mpParar');else await mpc('mpTocar',pos)}
   function nivel(d){
     if(d.mpPos==null)return;tocando=d.mpTocando;
     if(tocando||grav){pos=d.mpPos;cabeca();
@@ -1434,59 +1612,69 @@ const MP=(()=>{
     $('#play').classList.toggle('on',app.dataset.tab==='mp'&&tocando);
   }
   function iniciar(){
-    document.querySelectorAll('.so-nat').forEach(e=>e.hidden=false);tabInd();
+    iniciado=true;if(!NATIVO)webTextos();
     document.querySelectorAll('[data-mp]').forEach(b=>b.addEventListener('click',async()=>{
       const a=b.dataset.mp;
       if(a==='gravar')return gravar();
-      if(a==='nova'){selId=await nat('mpNova',0,false);return atualizar()}
-      if(a==='importar'){const r=await nat('mpImportar');if(typeof r==='string')toast('Não consegui importar: '+r,5000);else if(r)toast('Base importada',2000);return atualizar()}
+      if(a==='nova'){selId=await mpc('mpNova',0,false);return atualizar()}
+      if(a==='importar'){const r=await mpc('mpImportar');if(typeof r==='string')toast('Não consegui importar: '+r,5000);else if(r)toast('Base importada',2000);return atualizar()}
     }));
     document.querySelectorAll('[data-mpz]').forEach(b=>b.addEventListener('click',()=>MP.zoom(+b.dataset.mpz)));
     const pistas=$('#mpPistas');
     pistas.addEventListener('click',e=>{
       const l=e.target.closest('.mp-linha');if(!l)return;const id=+l.dataset.id,f=faixa(id);
       const tg=e.target.closest('[data-tg]');if(tg){ajustar(id,{[tg.dataset.tg]:tg.getAttribute('aria-pressed')!=='true'});return}
-      if(e.target.matches('canvas')&&!tocando&&!grav){pos=Math.max(0,e.offsetX/pxs);nat('mpPosicionar',pos);cabeca();$('#clock').firstChild.textContent=fmt(pos)}
+      if(e.target.matches('canvas')&&!tocando&&!grav){pos=Math.max(0,e.offsetX/pxs);mpc('mpPosicionar',pos);cabeca();$('#clock').firstChild.textContent=fmt(pos)}
       if(selId!==id){selId=id;document.querySelectorAll('#mpPistas .mp-linha').forEach(x=>x.classList.toggle('sel',+x.dataset.id===id));inspetor()}
     });
     pistas.addEventListener('change',e=>{const l=e.target.closest('.mp-linha');if(!l)return;const c=e.target.dataset.campo;
       if(c==='nome')ajustar(+l.dataset.id,{nome:e.target.value.trim()||'Faixa'});
       if(c==='volume')ajustar(+l.dataset.id,{volume:e.target.value/100})});
-    pistas.addEventListener('input',e=>{const l=e.target.closest('.mp-linha');if(l&&e.target.dataset.campo==='volume')nat('mpAjustar',+l.dataset.id,{volume:e.target.value/100})});
-    $('#mpRegua').addEventListener('click',e=>{if(tocando||grav)return;pos=Math.max(0,e.offsetX/pxs);nat('mpPosicionar',pos);cabeca();$('#clock').firstChild.textContent=fmt(pos)});
+    pistas.addEventListener('input',e=>{const l=e.target.closest('.mp-linha');if(l&&e.target.dataset.campo==='volume')mpc('mpAjustar',+l.dataset.id,{volume:e.target.value/100})});
+    $('#mpRegua').addEventListener('click',e=>{if(tocando||grav)return;pos=Math.max(0,e.offsetX/pxs);mpc('mpPosicionar',pos);cabeca();$('#clock').firstChild.textContent=fmt(pos)});
     $('#mpEntrada').addEventListener('change',e=>ajustar(selId,{entrada:+e.target.value}));
     $('#mpMonitor').addEventListener('change',e=>{ajustar(selId,{monitorar:e.target.checked});if(e.target.checked)toast('Com a faixa armada, você ouve a entrada pelos plugins. Use fone de ouvido.',3500)});
-    $('#mpVol').addEventListener('input',e=>nat('mpAjustar',selId,{volume:e.target.value/100}));$('#mpVol').addEventListener('change',()=>atualizar());
-    $('#mpPan').addEventListener('input',e=>nat('mpAjustar',selId,{pan:e.target.value/100}));$('#mpPan').addEventListener('change',()=>atualizar());
+    $('#mpVol').addEventListener('input',e=>mpc('mpAjustar',selId,{volume:e.target.value/100}));$('#mpVol').addEventListener('change',()=>atualizar());
+    $('#mpPan').addEventListener('input',e=>mpc('mpAjustar',selId,{pan:e.target.value/100}));$('#mpPan').addEventListener('change',()=>atualizar());
     document.querySelectorAll('[data-mov]').forEach(b=>b.addEventListener('click',()=>ajustar(selId,{moverMs:+b.dataset.mov})));
     $('#mpPlugs').addEventListener('click',async e=>{const b=e.target.closest('button[data-pl]');if(!b)return;const i=+b.dataset.i;
-      if(b.dataset.pl==='abrir')nat('mpPluginAbrir',selId,i);
-      if(b.dataset.pl==='tirar'){await nat('mpPluginRemover',selId,i);atualizar()}});
-    $('#mpPlugs').addEventListener('change',e=>{if(e.target.dataset.pl==='ligar')nat('mpPluginLigar',selId,+e.target.dataset.i,e.target.checked).then(atualizar)});
+      if(b.dataset.pl==='abrir')mpc('mpPluginAbrir',selId,i);
+      if(b.dataset.pl==='tirar'){await mpc('mpPluginRemover',selId,i);atualizar()}});
+    $('#mpPlugs').addEventListener('change',e=>{if(e.target.dataset.pl==='ligar')mpc('mpPluginLigar',selId,+e.target.dataset.i,e.target.checked).then(atualizar)});
     $('#mpPlugSel').addEventListener('change',async e=>{const v=e.target.value;e.target.value='';if(v===''||!selId)return;
-      busy(true,'Carregando o plugin…');const r=await nat('mpPluginAdd',selId,+v).catch(x=>x.message);busy(false);
+      busy(true,'Carregando o plugin…');const r=await mpc('mpPluginAdd',selId,+v).catch(x=>x.message);busy(false);
       if(r!==true)return toast('Não consegui carregar o plugin: '+r,5000);
-      await atualizar();const f=faixa(selId);if(f)nat('mpPluginAbrir',selId,f.plugins.length-1)});
-    $('#mpBuscar').addEventListener('click',async()=>{await nat('mpBuscarPlugins');listarPlugins()});
-    $('#mpRemover').addEventListener('click',async()=>{const f=faixa(selId);if(!f||!confirm('Remover a faixa “'+f.nome+'”? O áudio dela será apagado.'))return;await nat('mpRemover',selId);atualizar()});
+      await atualizar();const f=faixa(selId);if(f)mpc('mpPluginAbrir',selId,f.plugins.length-1)});
+    $('#mpBuscar').addEventListener('click',async()=>{await mpc('mpBuscarPlugins');listarPlugins()});
+    $('#mpRemover').addEventListener('click',async()=>{const f=faixa(selId);if(!f||!confirm('Remover a faixa “'+f.nome+'”? O áudio dela será apagado.'))return;await mpc('mpRemover',selId);atualizar()});
     $('#mpAjuste').addEventListener('input',e=>{ajuste=+e.target.value;$('#mpAjusteTxt').textContent=(ajuste>0?'+':'')+ajuste+' ms';try{localStorage.setItem('estudio:mpAjuste',ajuste)}catch(x){}});
-    $('#mpSessoes').addEventListener('change',async e=>{const r=await nat('mpAbrirSessao',encodeURIComponent(e.target.value));if(r)toast(r,5000);picos.clear();atualizar()});
-    $('#mpNovaSessao').addEventListener('click',async()=>{await nat('mpNovaSessao');picos.clear();pos=0;await atualizar();toast('Sessão nova criada',2000)});
+    $('#mpSessoes').addEventListener('change',async e=>{const r=await mpc('mpAbrirSessao',encodeURIComponent(e.target.value));if(r)toast(r,5000);picos.clear();atualizar()});
+    $('#mpNovaSessao').addEventListener('click',async()=>{await mpc('mpNovaSessao');picos.clear();pos=0;await atualizar();toast('Sessão nova criada',2000)});
     // teclado: setas para cima/baixo escolhem a faixa; para os lados movem o cursor (Shift: 5 s)
     pistas.addEventListener('keydown',e=>{const l=e.target.closest('.mp-linha');if(!l||e.target!==l)return;
       const ls=[...document.querySelectorAll('#mpPistas .mp-linha')],i=ls.indexOf(l);
       if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const n=ls[Math.max(0,Math.min(ls.length-1,i+(e.key==='ArrowDown'?1:-1)))];selId=+n.dataset.id;ls.forEach(x=>x.classList.toggle('sel',x===n));n.focus();inspetor()}
-      else if((e.key==='ArrowRight'||e.key==='ArrowLeft')&&!tocando&&!grav){e.preventDefault();pos=Math.max(0,pos+(e.key==='ArrowRight'?1:-1)*(e.shiftKey?5:1));nat('mpPosicionar',pos);cabeca();$('#clock').firstChild.textContent=fmt(pos)}});
+      else if((e.key==='ArrowRight'||e.key==='ArrowLeft')&&!tocando&&!grav){e.preventDefault();pos=Math.max(0,pos+(e.key==='ArrowRight'?1:-1)*(e.shiftKey?5:1));mpc('mpPosicionar',pos);cabeca();$('#clock').firstChild.textContent=fmt(pos)}});
     $('#mpMixar').addEventListener('click',async()=>{
       if(grav)return toast('Pare a gravação antes de mixar');
       busy(true,'Mixando as faixas…');
-      try{const r=await nat('mpExportar');if(!r.ok)return toast(r.erro||'Não consegui mixar',5000);
-        const b=await AC().decodeAudioData(await (await fetch(r.url)).arrayBuffer());
+      try{const r=await mpc('mpExportar');if(!r.ok)return toast(r.erro||'Não consegui mixar',5000);
+        const b=r.buffer||await AC().decodeAudioData(await (await fetch(r.url)).arrayBuffer());
         await newProject();$('#fname').value='Mixagem '+(est.nome||'');place(b,'Mixagem aberta: ajuste o volume final e exporte');tab('fin')}
       catch(x){toast('Não consegui trazer a mixagem: '+x.message,6000)}finally{busy(false)}});
     atualizar();listarPlugins();
   }
-  return{iniciar,atualizar,gravar,parar,tocarPausar,nivel,zoom:f=>{pxs=Math.min(400,Math.max(4,pxs*f));desenhar()},estado:()=>est};
+  function webTextos(){
+    $('#mpOnde').textContent='Fica salva sozinha neste aparelho';$('#mpLatT').textContent='Atraso do aparelho';$('#mpMedir').hidden=false;
+    $('#mpMonT').firstChild.textContent='Ouvir a entrada no fone';$('#mpMonS').textContent='Com a faixa armada, você ouve o que está gravando. Só com fone com fio: no Bluetooth o atraso é grande.';
+    $('#mpEntS').textContent='Num microfone comum as duas entradas são iguais; com placa de áudio no USB, cada uma é um canal';
+    document.querySelectorAll('.mp-pc').forEach(e=>e.hidden=true);
+    $('#mpMedir').addEventListener('click',async()=>{busy(true,'Medindo: o alto-falante vai estalar 6 vezes…');
+      try{const ms=await mpc('mpMedir');toast('Atraso medido: '+String(ms).replace('.',',')+' ms. As próximas gravações já entram no tempo.',4500)}
+      catch(e){toast(e.message,6000)}finally{busy(false);atualizar()}});
+  }
+  const abrir=()=>{if(!iniciado)iniciar()};
+  return{iniciar,abrir,atualizar,gravar,parar,tocarPausar,nivel,zoom:f=>{pxs=Math.min(400,Math.max(4,pxs*f));desenhar()},estado:()=>est};
 })();
 async function natInicia(){
   natVersao=await nat('estudioVersao').catch(()=>'');setTimeout(()=>natAtualizacao(true),6000);
@@ -1624,7 +1812,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.13.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
+const APP_VERSION='1.14.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Stumix',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',
@@ -1678,7 +1866,7 @@ document.querySelectorAll('.appver').forEach(e=>e.textContent=APP_VERSION);
 // primeiro acesso: o guia abre sozinho uma vez
 (()=>{let v=null;try{v=localStorage.getItem('estudio:guiaVisto')}catch(e){}if(!v)window.SPLASH.then(()=>setTimeout(abrirGuia,200))})();
 if(NATIVO)natInicia().catch(e=>{console.warn(e);natLibera&&natLibera();toast('Não consegui falar com o motor de áudio.')});
-window.__studio={pickChannels,setDevs:d=>{devs=d;gear()},get buf(){return buf},set sel(v){sel=v},master,process,lufs,exportF,wav,place:b=>place(b,'teste'),presets,fx};
+window.__studio={pickChannels,setDevs:d=>{devs=d;gear()},get buf(){return buf},set sel(v){sel=v},master,process,lufs,exportF,wav,place:b=>place(b,'teste'),presets,fx,MP,MPW,get tab(){return app.dataset.tab}};
 refresh();measure();requestAnimationFrame(frame);
 }
 </script>
