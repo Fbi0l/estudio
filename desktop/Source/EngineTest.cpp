@@ -6,6 +6,45 @@ using namespace juce;
 static int falhas = 0;
 static void confere (bool ok, const char* oque) { std::printf ("%s %s\n", ok ? "[ok]   " : "[FALHA]", oque); if (! ok) ++falhas; }
 
+// placa falsa que pode "desconectar" (para testar a volta automática da pedaleira)
+struct PlacaFalsa : AudioIODevice
+{
+    PlacaFalsa (const String& n, const String& t) : AudioIODevice (n, t) {}
+    StringArray getOutputChannelNames() override { return { "1", "2" }; }
+    StringArray getInputChannelNames() override  { return { "1", "2" }; }
+    Array<double> getAvailableSampleRates() override { return { 48000.0 }; }
+    Array<int> getAvailableBufferSizes() override { return { 256 }; }
+    int getDefaultBufferSize() override { return 256; }
+    String open (const BigInteger& i, const BigInteger& o, double, int) override { ins = i; outs = o; aberta = true; return {}; }
+    void close() override { stop(); aberta = false; }
+    bool isOpen() override { return aberta; }
+    void start (AudioIODeviceCallback* c) override { cb = c; if (cb) cb->audioDeviceAboutToStart (this); }
+    void stop() override { if (cb) cb->audioDeviceStopped(); cb = nullptr; }
+    bool isPlaying() override { return cb != nullptr; }
+    String getLastError() override { return {}; }
+    int getCurrentBufferSizeSamples() override { return 256; }
+    double getCurrentSampleRate() override { return 48000.0; }
+    int getCurrentBitDepth() override { return 24; }
+    BigInteger getActiveOutputChannels() const override { return outs; }
+    BigInteger getActiveInputChannels() const override { return ins; }
+    int getOutputLatencyInSamples() override { return 0; }
+    int getInputLatencyInSamples() override { return 0; }
+    BigInteger ins, outs; bool aberta = false; AudioIODeviceCallback* cb = nullptr;
+};
+struct TipoFalso : AudioIODeviceType
+{
+    TipoFalso() : AudioIODeviceType ("Falso") {}
+    StringArray nomes { "Interno", "Pedaleira" };
+    void scanForDevices() override {}
+    StringArray getDeviceNames (bool) const override { return nomes; }
+    int getDefaultDeviceIndex (bool) const override { return 0; }
+    int getIndexOfDevice (AudioIODevice* d, bool) const override { return d ? nomes.indexOf (d->getName()) : -1; }
+    bool hasSeparateInputsAndOutputs() const override { return true; }
+    AudioIODevice* createDevice (const String& o, const String& i) override
+    { const auto n = i.isNotEmpty() ? i : o; return nomes.contains (n) ? new PlacaFalsa (n, "Falso") : nullptr; }
+    void mudou() { callDeviceChangeListeners(); }
+};
+
 int main (int argc, char** argv)
 {
     ScopedJuceInitialiser_GUI init;  // só para o sistema de mensagens; não abre placa
@@ -243,6 +282,31 @@ int main (int argc, char** argv)
     }
     else std::printf ("        (sem plugin de teste: pulando o teste de VST3)\n");
     pasta.deleteRecursively();
+    std::printf ("\n-- placa que desconecta --\n");
+    {
+        AudioEngine p;
+        auto* tipo = new TipoFalso();
+        p.deviceManager.addAudioDeviceType (std::unique_ptr<AudioIODeviceType> (tipo));
+        auto cfg = File::getSpecialLocation (File::tempDirectory).getChildFile ("stumix-teste-placa").getChildFile ("placa.xml");
+        cfg.getParentDirectory().deleteRecursively();
+        p.iniciar (cfg);
+        auto* o = new DynamicObject(); o->setProperty ("tipo", "Falso"); o->setProperty ("entrada", "Pedaleira"); o->setProperty ("saida", "Interno");
+        confere (p.configurar (var (o)).isEmpty(), "escolhe a pedaleira");
+        p.deviceManager.dispatchPendingMessages();
+        String nome; p.pegarEventoPlaca (nome);
+        confere (p.deviceManager.getAudioDeviceSetup().inputDeviceName == "Pedaleira", "pedaleira aberta");
+        p.iniciarGravacao();
+        tipo->nomes = { "Interno" }; tipo->mudou(); p.deviceManager.dispatchPendingMessages();
+        confere (p.pegarEventoPlaca (nome) == "caiu" && nome == "Pedaleira", "avisa que a pedaleira caiu");
+        confere (p.caiuDuranteGravacao(), "percebe que caiu no meio da gravação");
+        std::vector<float> L, R; p.tomarGravacao (L, R);
+        tipo->nomes = { "Interno", "Pedaleira" }; tipo->mudou(); p.deviceManager.dispatchPendingMessages(); p.deviceManager.dispatchPendingMessages();
+        confere (p.deviceManager.getAudioDeviceSetup().inputDeviceName == "Pedaleira", "volta para a pedaleira sozinho");
+        confere (p.pegarEventoPlaca (nome) == "voltou", "avisa que a pedaleira voltou");
+        confere (cfg.getSiblingFile ("placa.log").loadFileAsString().contains ("placa sumiu"), "registra no placa.log");
+        cfg.getParentDirectory().deleteRecursively();
+    }
+
     std::printf ("\n%s\n", falhas == 0 ? "TODOS OS TESTES PASSARAM" : "HOUVE FALHAS");
     return falhas == 0 ? 0 : 1;
 }

@@ -472,6 +472,16 @@ private:
         o->setProperty ("mpTocando", engine.sessao.tocando());
         auto medidas = engine.pegarMedidas();
         if (! medidas.isEmpty()) o->setProperty ("medidas", medidas);
+        String nomePlaca;
+        const auto ev = engine.pegarEventoPlaca (nomePlaca);
+        const bool caiuGravando = engine.caiuDuranteGravacao();
+        if (ev.isNotEmpty() || caiuGravando)
+        {
+            auto* p = new DynamicObject();
+            p->setProperty ("evento", ev.isNotEmpty() ? ev : String ("caiu"));
+            p->setProperty ("nome", nomePlaca);
+            o->setProperty ("placa", var (p));
+        }
         web.emitEventIfBrowserIsVisible ("estudioNivel", var (o));
     }
 

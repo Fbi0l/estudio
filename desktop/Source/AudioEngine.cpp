@@ -14,6 +14,7 @@ AudioEngine::AudioEngine() : Thread ("Estudio-gravacao")
 
 AudioEngine::~AudioEngine()
 {
+    deviceManager.removeChangeListener (this);
     deviceManager.removeAudioCallback (this);
     deviceManager.closeAudioDevice();
     stopThread (2000);
@@ -30,7 +31,79 @@ void AudioEngine::iniciar (const File& configSalva)
     tiposProcurados.insert (deviceManager.getCurrentAudioDeviceType());   // o initialise já procurou o driver atual
     if (erro.isNotEmpty())
         DBG ("Erro ao abrir o áudio: " << erro);
+
+    // a placa escolhida é a da configuração salva, mesmo que ela não esteja ligada agora
+    tipoDesejado = deviceManager.getCurrentAudioDeviceType();
+    desejado = deviceManager.getAudioDeviceSetup();
+    if (salvo != nullptr)
+    {
+        tipoDesejado = salvo->getStringAttribute ("deviceType", tipoDesejado);
+        desejado.inputDeviceName  = salvo->getStringAttribute ("audioInputDeviceName", desejado.inputDeviceName);
+        desejado.outputDeviceName = salvo->getStringAttribute ("audioOutputDeviceName", desejado.outputDeviceName);
+        desejado.sampleRate = salvo->getDoubleAttribute ("audioDeviceRate", desejado.sampleRate);
+        desejado.bufferSize = salvo->getIntAttribute ("audioDeviceBufferSize", desejado.bufferSize);
+        fora = ! configRestaurada;
+        if (fora) registrar ("placa escolhida não abriu ao iniciar: " + desejado.inputDeviceName + " / " + erro);
+    }
+    temDesejado = true;
+    deviceManager.addChangeListener (this);
     deviceManager.addAudioCallback (this);
+}
+
+void AudioEngine::registrar (const String& texto)
+{
+    if (arquivoConfig == File()) return;
+    auto log = arquivoConfig.getSiblingFile ("placa.log");
+    if (log.getSize() > 200000) log.deleteFile();
+    log.appendText (Time::getCurrentTime().formatted ("%Y-%m-%d %H:%M:%S  ") + texto + "\n", false, false, "\r\n");
+}
+
+String AudioEngine::pegarEventoPlaca (String& nome)
+{
+    const ScopedLock sl (travaEvento);
+    nome = desejado.inputDeviceName.isNotEmpty() ? desejado.inputDeviceName : desejado.outputDeviceName;
+    auto e = eventoPlaca; eventoPlaca.clear(); return e;
+}
+
+void AudioEngine::changeListenerCallback (ChangeBroadcaster*)
+{
+    if (! temDesejado) return;
+    const auto agora = deviceManager.getAudioDeviceSetup();
+    const bool igual = deviceManager.getCurrentAudioDeviceType() == tipoDesejado
+                    && agora.inputDeviceName == desejado.inputDeviceName
+                    && agora.outputDeviceName == desejado.outputDeviceName
+                    && deviceManager.getCurrentAudioDevice() != nullptr;
+    if (igual)
+    {
+        if (fora) { fora = false; registrar ("placa voltou: " + desejado.inputDeviceName); const ScopedLock sl (travaEvento); eventoPlaca = "voltou"; }
+        return;
+    }
+
+    // a placa escolhida está na lista de novo? volta para ela
+    for (auto* t : deviceManager.getAvailableDeviceTypes())
+    {
+        if (t->getTypeName() != tipoDesejado) continue;
+        const auto ent = t->getDeviceNames (true), sai = t->getDeviceNames (false);
+        const bool tem = (desejado.inputDeviceName.isEmpty() || ent.contains (desejado.inputDeviceName))
+                      && (desejado.outputDeviceName.isEmpty() || sai.contains (desejado.outputDeviceName));
+        if (tem)
+        {
+            if (deviceManager.getCurrentAudioDeviceType() != tipoDesejado)
+                deviceManager.setCurrentAudioDeviceType (tipoDesejado, true);
+            auto s = desejado;
+            s.useDefaultInputChannels = false; s.inputChannels.clear(); s.inputChannels.setRange (0, 2, true);
+            s.useDefaultOutputChannels = true;
+            const auto erro = deviceManager.setAudioDeviceSetup (s, true);   // gera outra mensagem: cai no "igual" acima
+            if (erro.isNotEmpty()) registrar ("não consegui reabrir " + desejado.inputDeviceName + ": " + erro);
+            return;
+        }
+    }
+    if (! fora)
+    {
+        fora = true;
+        registrar ("placa sumiu: " + desejado.inputDeviceName + " (agora: " + agora.inputDeviceName + ")");
+        const ScopedLock sl (travaEvento); eventoPlaca = "caiu";
+    }
 }
 
 //==============================================================================
@@ -132,6 +205,12 @@ String AudioEngine::configurar (const var& cfg)
     setup.inputChannels.setRange (0, 2, true);
     setup.useDefaultOutputChannels = true;
     const auto erro = deviceManager.setAudioDeviceSetup (setup, true);
+    if (erro.isEmpty())
+    {
+        tipoDesejado = deviceManager.getCurrentAudioDeviceType();
+        desejado = deviceManager.getAudioDeviceSetup();
+        temDesejado = true; fora = false;
+    }
     if (erro.isEmpty() && arquivoConfig != File())
         if (auto xml = deviceManager.createStateXml())
         {
@@ -162,7 +241,10 @@ int AudioEngine::latenciaAmostras() const
     return 0;
 }
 
-void AudioEngine::audioDeviceStopped() {}
+void AudioEngine::audioDeviceStopped()
+{
+    if (gravandoFlag.load()) caiuGravando = true;   // a placa parou no meio da gravação
+}
 
 void AudioEngine::audioDeviceIOCallbackWithContext (const float* const* in, int nIn, float* const* out,
                                                     int nOut, int n, const AudioIODeviceCallbackContext&)

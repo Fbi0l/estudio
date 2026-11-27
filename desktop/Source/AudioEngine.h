@@ -12,7 +12,7 @@
     consumido por uma thread própria, que grava, mede e calcula os picos para a tela.
     A thread de áudio só copia amostras e faz o retorno direto no fone: nada de
     alocação nem de espera ali dentro. */
-class AudioEngine : public juce::AudioIODeviceCallback, private juce::Thread
+class AudioEngine : public juce::AudioIODeviceCallback, private juce::Thread, private juce::ChangeListener
 {
 public:
     AudioEngine();
@@ -45,6 +45,12 @@ public:
     juce::Array<juce::var> pegarPicosNovos();         // picos de 512 amostras desde a última chamada
     juce::Array<juce::var> pegarMedidas();            // blocos de 50 ms do teste: {rms, pico, zeros, n}
 
+    // Placa que desconecta (ex.: pedaleira USB que cai por um instante): o Windows passa para o
+    // microfone padrão; o motor guarda a placa escolhida e volta para ela sozinho quando reaparece.
+    // Devolve "caiu", "voltou" ou "" (uma vez por acontecimento) e o nome da placa escolhida.
+    juce::String pegarEventoPlaca (juce::String& nome);
+    bool caiuDuranteGravacao()                        { return caiuGravando.exchange (false); }
+
     // Usado pelo teste automático, sem placa
     void processar (const float* const* in, int nIn, float* const* out, int nOut, int n);
     double taxa() const                               { return taxaAtual.load(); }
@@ -58,6 +64,8 @@ public:
     void audioDeviceStopped() override;
 
 private:
+    void changeListenerCallback (juce::ChangeBroadcaster*) override;
+    void registrar (const juce::String& texto);
     void run() override;
     void drenar();
     void montarWav();
@@ -91,5 +99,8 @@ private:
     juce::File arquivoConfig;
     bool configRestaurada = false;
     std::set<juce::String> tiposProcurados;
+    juce::String tipoDesejado; juce::AudioDeviceManager::AudioDeviceSetup desejado; bool temDesejado = false;
+    bool fora = false; juce::String eventoPlaca; juce::CriticalSection travaEvento;
+    std::atomic<bool> caiuGravando { false };
     juce::AudioBuffer<float> tmp { 2, 4096 };
 };

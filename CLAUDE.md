@@ -16,4 +16,5 @@ Tema "palco": fundo `#0E0F0C`, superfície `#16181A`, destaque verde-limão `#C8
 ## Testes
 - Motor do PC: `EngineTest` (com o plugin VST3 de teste `StumixTesteGanho`); interface ponta a ponta: `desktop/autoteste.js`. Ambos rodam no Windows a cada envio.
 - Faixas no navegador: `/home/claude/t/mpweb.py` (fluxo) e `mploop.py` (cabo de retorno falso de 80 ms: mede o atraso e confere que a faixa gravada cai em cima da base, 0 ms de diferença).
+- Placa que desconecta: teste "placa que desconecta" no EngineTest (placa falsa `TipoFalso`); `mp_mock.py` confere o aviso e a parada da gravação.
 - Erro conhecido: texto JS→nativo perde acento no Linux; nomes vão com `encodeURIComponent` e o C++ usa `URL::removeEscapeChars`; textos com acento no C++ sempre via `String::fromUTF8`.

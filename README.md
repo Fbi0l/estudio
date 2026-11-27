@@ -6,6 +6,12 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.14.1 — Pedaleira que desconecta (Stumix Desktop 0.7.3)
+
+- Se a placa ou pedaleira USB desconectar por um instante (visto com a M-Vave Tank Mini), o Stumix para a gravação guardando o que já foi gravado, avisa, e volta para ela sozinho quando ela reaparece. Antes, o Windows passava para o microfone do notebook e era preciso escolher a pedaleira de novo.
+- Se a pedaleira escolhida não estiver ligada ao abrir o app, ele também passa para ela assim que for conectada.
+- Os eventos da placa ficam registrados em `placa.log`, junto do `placa.xml`, para diagnóstico.
+
 ## Versão 1.14.0 — Várias faixas no celular (Stumix Desktop 0.7.2)
 
 - A aba **Faixas** agora funciona no celular e no navegador: importe uma base ou back track, grave por cima, grave outras faixas e mixe. Tudo fica salvo no aparelho.

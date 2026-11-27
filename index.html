@@ -1310,6 +1310,18 @@ async function natAtualiza(){
   devs=[{kind:'audioinput',deviceId:'default',label:e.entrada||''},{kind:'audiooutput',deviceId:'default',label:e.saida||''}];gear();
   $('#monSub').className='';$('#monSub').textContent=e.aberto?`Direto da placa, sem efeitos · ~${ms} ms`:'—';
 }
+/* placa que desconecta no meio (ex.: pedaleira USB): para a gravação guardando o que já foi
+   gravado e avisa; o motor volta para ela sozinho quando ela reaparece */
+let natPlacaFora=false;
+async function natPlaca(p){
+  const nome=p.nome||'A placa';
+  if(p.evento==='voltou'){natPlacaFora=false;toast(nome+' voltou. Pode gravar de novo.',4000);natAtualiza();return}
+  if(natPlacaFora&&!rec&&!MP.gravando())return;natPlacaFora=true;
+  const gravava=!!rec||MP.gravando();
+  if(MP.gravando())await MP.parar();else if(rec)await stopRec();
+  toast(nome+' desconectou'+(gravava?'. Guardei o que foi gravado até aqui.':'.')+' Assim que ela voltar, o Stumix reconecta sozinho. Se demorar, confira o cabo USB.',8000);
+  natAtualiza();
+}
 async function natConfigura(mudouTipo){
   const cfg={tipoIdx:+$('#natTipo').value};
   if(!mudouTipo){cfg.entradaIdx=+$('#natIn').value;cfg.saidaIdx=+$('#natOut').value;cfg.taxa=+$('#natTaxa').value;cfg.buffer=+$('#natBuf').value}
@@ -1674,7 +1686,7 @@ const MP=(()=>{
       catch(e){toast(e.message,6000)}finally{busy(false);atualizar()}});
   }
   const abrir=()=>{if(!iniciado)iniciar()};
-  return{iniciar,abrir,atualizar,gravar,parar,tocarPausar,nivel,zoom:f=>{pxs=Math.min(400,Math.max(4,pxs*f));desenhar()},estado:()=>est};
+  return{iniciar,abrir,atualizar,gravar,parar,gravando:()=>!!grav,tocarPausar,nivel,zoom:f=>{pxs=Math.min(400,Math.max(4,pxs*f));desenhar()},estado:()=>est};
 })();
 async function natInicia(){
   natVersao=await nat('estudioVersao').catch(()=>'');setTimeout(()=>natAtualizacao(true),6000);
@@ -1692,6 +1704,7 @@ async function natInicia(){
     const r=rec;if(r&&r.nat){r.lvl=natLvl;if(d.picos)for(const p of d.picos)r.peaks.push(p);if(r.started)r.len=d.frames}
     if(d.medidas)for(const m of d.medidas)testBloco(m);
     MP.nivel(d);
+    if(d.placa)natPlaca(d.placa);
   });
   MP.iniciar();
   window.__JUCE__.backend.addEventListener('mpOcupado',t=>{t?busy(true,t):busy(false)});
@@ -1812,7 +1825,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.14.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
+const APP_VERSION='1.14.1',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Stumix',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',
