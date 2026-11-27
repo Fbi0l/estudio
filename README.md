@@ -6,6 +6,12 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.15.0 — Efeitos em cada faixa (Stumix Desktop 0.8.0)
+
+- Novo botão **Editar com efeitos** no painel da faixa (aba Faixas): a faixa abre em Editar e Efeitos, você usa volume, EQ, compressor, redução de ruído, eco, reverb e cortes, e toca em **Devolver à faixa**. Ela volta para a sessão no mesmo lugar da linha do tempo, com o mesmo volume, pan e plugins.
+- Se a duração mudar (por exemplo, um corte no começo), o app avisa antes de devolver, porque a faixa pode sair do tempo da base.
+- **Descartar** mantém a faixa original. Funciona no PC e no celular.
+
 ## Versão 1.14.1 — Pedaleira que desconecta (Stumix Desktop 0.7.3)
 
 - Se a placa ou pedaleira USB desconectar por um instante (visto com a M-Vave Tank Mini), o Stumix para a gravação guardando o que já foi gravado, avisa, e volta para ela sozinho quando ela reaparece. Antes, o Windows passava para o microfone do notebook e era preciso escolher a pedaleira de novo.

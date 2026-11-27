@@ -221,6 +221,30 @@ int main (int argc, char** argv)
         auto* lista = est["faixas"].getArray();
         const double dur = lista ? (double) (*lista)[lista->size() - 1]["dur"] : 0;
         confere (std::abs (dur - 1.0) < 0.001, "importar: 44,1 kHz convertido para a taxa da sessão (mesma duração)");
+
+        // editar com efeitos: a faixa sai como WAV e volta editada, no mesmo lugar
+        const int idImp = lista ? (int) (*lista)[lista->size() - 1]["id"] : -1;
+        s.ajustar (idImp, JSON::parse ("{\"moverMs\":250}"));
+        const auto saiu = pasta.getChildFile ("faixa-saiu.wav");
+        confere (s.salvarFaixa (idImp, saiu).isEmpty() && saiu.existsAsFile(), "editar faixa: WAV da faixa criado");
+        std::unique_ptr<AudioFormatReader> fr (wav.createReaderFor (saiu.createInputStream().release(), true));
+        AudioBuffer<float> ed (1, 48000);
+        if (fr != nullptr) fr->read (&ed, 0, 48000, 0, true, false);
+        fr.reset();
+        ed.applyGain (0.5f);   // o "efeito"
+        const auto volta = pasta.getChildFile ("faixa-volta.wav");
+        {
+            std::unique_ptr<FileOutputStream> fv (volta.createOutputStream());
+            std::unique_ptr<AudioFormatWriter> wv (w2.createWriterFor (fv.get(), 48000, 1, 24, {}, 0));
+            fv.release(); wv->writeFromAudioSampleBuffer (ed, 0, 48000);
+        }
+        confere (s.substituir (idImp, volta).isEmpty(), "editar faixa: áudio editado devolvido");
+        auto est2 = s.estado(); auto* l2 = est2["faixas"].getArray(); var fv2;
+        if (l2) for (auto& x : *l2) if ((int) x["id"] == idImp) fv2 = x;
+        confere (std::abs ((double) fv2["inicio"] - 0.25) < 0.001, "editar faixa: continua no mesmo lugar da linha do tempo");
+        float pk = 0; if (auto* pa = s.picos (idImp).getArray()) for (auto& v : *pa) pk = jmax (pk, (float) (int) v);
+        confere (std::abs (pk / 1000.0f - 0.15f) < 0.01f, "editar faixa: o som que voltou é o editado (metade do volume)");
+        s.ajustar (idImp, JSON::parse ("{\"moverMs\":-250}"));
     }
 
     // mixagem fora do tempo real

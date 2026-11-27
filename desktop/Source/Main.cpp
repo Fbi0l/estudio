@@ -385,6 +385,43 @@ private:
             {
                 done (a.size() > 1 && engine.sessao.abrirPlugin ((int) a[0], (int) a[1]));
             })
+            .withNativeFunction ("mpFaixaWav", [this] (const Array<var>& a, auto done)   // leva a faixa para Editar/Efeitos
+            {
+                const int id = a.isEmpty() ? -1 : (int) a[0];
+                const String url = WebBrowserComponent::getResourceProviderRoot() + "faixa.wav?n=" + String (++contagem);
+                trabalho.addJob ([this, id, url, done]
+                {
+                    const auto erro = engine.sessao.salvarFaixa (id, arquivoFaixa());
+                    auto* r = new DynamicObject();
+                    r->setProperty ("ok", erro.isEmpty());
+                    r->setProperty ("erro", erro);
+                    r->setProperty ("url", url);
+                    done (var (r));
+                });
+            })
+            .withNativeFunction ("mpReceber", [this] (const Array<var>& a, auto done)   // pedaço em base64 do WAV editado
+            {
+                if (a.size() > 1 && (bool) a[1]) recebido.reset();
+                MemoryOutputStream mos (recebido, true);
+                const bool ok = a.size() > 0 && Base64::convertFromBase64 (mos, a[0].toString());
+                done (ok);
+            })
+            .withNativeFunction ("mpSubstituir", [this] (const Array<var>& a, auto done)  // devolve o áudio editado à faixa
+            {
+                const int id = a.isEmpty() ? -1 : (int) a[0];
+                ocupado (String::fromUTF8 ("Devolvendo à faixa…"));
+                trabalho.addJob ([this, id, done]
+                {
+                    const auto tmp = arquivoFaixa().getSiblingFile ("Stumix-faixa-editada.wav");
+                    String erro;
+                    if (! tmp.replaceWithData (recebido.getData(), recebido.getSize())) erro = String::fromUTF8 ("não consegui gravar o arquivo temporário");
+                    else erro = engine.sessao.substituir (id, tmp);
+                    tmp.deleteFile(); recebido.reset();
+                    if (erro.isEmpty()) engine.sessao.salvar();
+                    MessageManager::callAsync ([this] { ocupado ({}); web.emitEventIfBrowserIsVisible ("mpMudou", var()); });
+                    done (erro.isEmpty() ? var (true) : var (erro));
+                });
+            })
             .withNativeFunction ("mpExportar", [this] (const Array<var>&, auto done)
             {
                 const String url = WebBrowserComponent::getResourceProviderRoot() + "mixagem.wav?n=" + String (++contagem);
@@ -423,6 +460,15 @@ private:
         {
             MemoryBlock m;
             arquivoMixagem().loadFileAsData (m);
+            std::vector<std::byte> d ((size_t) m.getSize());
+            if (m.getSize() > 0) std::memcpy (d.data(), m.getData(), m.getSize());
+            return WebBrowserComponent::Resource { std::move (d), "audio/wav" };
+        }
+
+        if (caminho == "faixa.wav")
+        {
+            MemoryBlock m;
+            arquivoFaixa().loadFileAsData (m);
             std::vector<std::byte> d ((size_t) m.getSize());
             if (m.getSize() > 0) std::memcpy (d.data(), m.getData(), m.getSize());
             return WebBrowserComponent::Resource { std::move (d), "audio/wav" };
@@ -513,6 +559,8 @@ private:
         });
     }
     static File arquivoMixagem() { return File::getSpecialLocation (File::tempDirectory).getChildFile ("Stumix-mixagem.wav"); }
+    static File arquivoFaixa()   { return File::getSpecialLocation (File::tempDirectory).getChildFile ("Stumix-faixa.wav"); }
+    MemoryBlock recebido;        // WAV editado chegando em pedaços
     String roteiro;
     std::unique_ptr<PlacaDeTeste> placaTeste;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EstudioView)

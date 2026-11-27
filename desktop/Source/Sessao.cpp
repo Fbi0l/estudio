@@ -208,7 +208,7 @@ void Sessao::colocarAudio (int id, AudioBuffer<float>&& audio, int64 inicio)
     }
 }
 
-String Sessao::importar (const File& arquivo)
+String Sessao::lerArquivo (const File& arquivo, AudioBuffer<float>& audio) const
 {
     AudioFormatManager fm;
     fm.registerBasicFormats();
@@ -220,7 +220,6 @@ String Sessao::importar (const File& arquivo)
     AudioBuffer<float> orig (canais, (int) r->lengthInSamples);
     r->read (&orig, 0, (int) r->lengthInSamples, 0, true, canais > 1);
 
-    AudioBuffer<float> audio;
     if (std::abs (r->sampleRate - taxa) < 0.5)
         audio = std::move (orig);
     else
@@ -235,6 +234,14 @@ String Sessao::importar (const File& arquivo)
             interp.process (razao, orig.getReadPointer (c), audio.getWritePointer (c), saida);
         }
     }
+    return {};
+}
+
+String Sessao::importar (const File& arquivo)
+{
+    AudioBuffer<float> audio;
+    const auto erro = lerArquivo (arquivo, audio);
+    if (erro.isNotEmpty()) return erro;
 
     const int id = novaFaixa (arquivo.getFileNameWithoutExtension(), 0, false);
     {
@@ -247,6 +254,36 @@ String Sessao::importar (const File& arquivo)
             calcularPicos (*f);
         }
     }
+    return {};
+}
+
+String Sessao::substituir (int id, const File& arquivo)
+{
+    AudioBuffer<float> audio;
+    const auto erro = lerArquivo (arquivo, audio);
+    if (erro.isNotEmpty()) return erro;
+    const ScopedLock sl (trava);
+    auto* f = achar (id);
+    if (f == nullptr) return t ("a faixa não existe mais nesta sessão");
+    f->audio = std::move (audio);
+    gravarWav (*f);
+    calcularPicos (*f);
+    return {};
+}
+
+String Sessao::salvarFaixa (int id, const File& destino)
+{
+    const ScopedLock sl (trava);
+    auto* f = achar (id);
+    if (f == nullptr || f->audio.getNumSamples() == 0) return t ("a faixa está vazia");
+    destino.deleteFile();
+    std::unique_ptr<FileOutputStream> s (destino.createOutputStream());
+    if (s == nullptr) return t ("não consegui criar o arquivo temporário");
+    WavAudioFormat wav;
+    std::unique_ptr<AudioFormatWriter> w (wav.createWriterFor (s.get(), taxa, (unsigned) f->audio.getNumChannels(), 32, {}, 0));
+    if (w == nullptr) return t ("não consegui criar o arquivo temporário");
+    s.release();
+    w->writeFromAudioSampleBuffer (f->audio, 0, f->audio.getNumSamples());
     return {};
 }
 

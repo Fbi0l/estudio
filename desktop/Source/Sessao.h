@@ -59,6 +59,8 @@ public:
     // ---- faixas ----
     int novaFaixa (const juce::String& nome, int entrada, bool armada);
     juce::String importar (const juce::File& arquivo);  // erro ou vazio
+    juce::String substituir (int id, const juce::File& arquivo);   // troca o áudio da faixa (mantém posição, volume, plugins)
+    juce::String salvarFaixa (int id, const juce::File& destino);  // WAV 32 bits do áudio cru da faixa
     bool remover (int id);
     bool ajustar (int id, const juce::var& props);       // volume, pan, mudo, solo, armada, entrada, monitorar, nome, moverMs
     juce::var estado() const;
@@ -96,6 +98,7 @@ public:
 
 private:
     void prepararFaixa (Faixa&);
+    juce::String lerArquivo (const juce::File&, juce::AudioBuffer<float>&) const;   // lê e converte para a taxa da sessão
     void calcularPicos (Faixa&) const;
     void gravarWav (Faixa&);
     Faixa* achar (int id) const;

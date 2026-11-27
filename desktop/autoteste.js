@@ -59,6 +59,19 @@
     log('   mixagem: ' + (mix ? mix.duration.toFixed(2) + ' s, pico ' + pk.toFixed(3) : 'nada') + ' | aba ' + $('#app').dataset.tab);
     ok(mix && Math.abs(mix.duration - (fimMax + 0.25)) < 0.05 && $('#app').dataset.tab === 'fin', 'multipista: mixagem aberta em Finalizar com a duração da sessão');
     ok(Math.abs(pk - 0.3) < 0.02, 'multipista: som da primeira faixa na mixagem');
+    // editar com efeitos: a faixa vai para o editor e volta (pela ponte, em pedaços base64)
+    $('#tabs [data-t=mp]').click(); await espera(800);
+    const id1 = e.faixas[0].id;
+    document.querySelector('#mpPistas .mp-linha[data-id="' + id1 + '"]').click(); await espera(300);
+    $('#mpEditar').click(); await espera(2500);
+    const ed = window.__studio.buf;
+    ok(ed && $('#app').dataset.tab === 'fx' && !$('#devBar').hidden && Math.abs(ed.duration - e.faixas[0].dur) < 0.01, 'editar faixa: abriu em Efeitos com a duração da faixa');
+    if (ed) for (let c = 0; c < ed.numberOfChannels; c++) { const d = ed.getChannelData(c); for (let i = 0; i < d.length; i++) d[i] *= 0.5; }
+    $('#devOk').click(); await espera(4000);
+    const pc = await chama('mpPicos', id1); const pmax = Math.max(0, ...pc) / 1000;
+    e = await chama('mpEstado');
+    log('   faixa devolvida: pico ' + pmax.toFixed(3) + ' | início ' + e.faixas[0].inicio.toFixed(3) + ' | aba ' + $('#app').dataset.tab);
+    ok(Math.abs(pmax - 0.15) < 0.01 && Math.abs(e.faixas[0].inicio) < 0.001 && $('#app').dataset.tab === 'mp', 'editar faixa: devolvida editada, no mesmo lugar');
   } catch (e) { log('[FALHA] erro: ' + e.message); falhas++; }
   log(falhas ? 'HOUVE FALHAS' : 'TODOS OS TESTES PASSARAM');
   window.__JUCE__.backend.emitEvent('__juce__invoke', { name: 'estudioSair', params: [], resultId: 9e6 + 99999 });
