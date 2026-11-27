@@ -243,6 +243,7 @@ int main (int argc, char** argv)
         if (l2) for (auto& x : *l2) if ((int) x["id"] == idImp) fv2 = x;
         confere (std::abs ((double) fv2["inicio"] - 0.25) < 0.001, "editar faixa: continua no mesmo lugar da linha do tempo");
         float pk = 0; if (auto* pa = s.picos (idImp).getArray()) for (auto& v : *pa) pk = jmax (pk, (float) (int) v);
+        std::printf ("        pico devolvido %.3f (editado no arquivo %.3f, picos %d)\n", pk / 1000.0f, ed.getMagnitude (0, 0, 48000), s.picos (idImp).getArray() ? s.picos (idImp).getArray()->size() : -1);
         confere (std::abs (pk / 1000.0f - 0.15f) < 0.01f, "editar faixa: o som que voltou é o editado (metade do volume)");
         s.ajustar (idImp, JSON::parse ("{\"moverMs\":-250}"));
     }
