@@ -238,24 +238,12 @@ int main (int argc, char** argv)
             std::unique_ptr<AudioFormatWriter> wv (w2.createWriterFor (fv.get(), 48000, 1, 24, {}, 0));
             fv.release(); wv->writeFromAudioSampleBuffer (ed, 0, 48000);
         }
-        {
-            std::unique_ptr<AudioFormatReader> rv (wav.createReaderFor (volta.createInputStream().release(), true));
-            AudioBuffer<float> chk (1, 48000); if (rv) rv->read (&chk, 0, 48000, 0, true, false);
-            std::printf ("        arquivo devolvido: %s, %lld amostras, pico %.3f, %lld bytes\n", rv ? "abre" : "NAO abre", rv ? (long long) rv->lengthInSamples : -1LL, chk.getMagnitude (0, 0, 48000), (long long) volta.getSize());
-        }
         confere (s.substituir (idImp, volta).isEmpty(), "editar faixa: áudio editado devolvido");
-        {
-            const auto de2 = pasta.getChildFile ("faixa-de-novo.wav");
-            s.salvarFaixa (idImp, de2);
-            std::unique_ptr<AudioFormatReader> r2 (wav.createReaderFor (de2.createInputStream().release(), true));
-            AudioBuffer<float> chk (1, 48000); if (r2) r2->read (&chk, 0, 48000, 0, true, false);
-            std::printf ("        faixa depois de devolver: pico %.3f\n", chk.getMagnitude (0, 0, 48000));
-        }
         auto est2 = s.estado(); auto* l2 = est2["faixas"].getArray(); var fv2;
         if (l2) for (auto& x : *l2) if ((int) x["id"] == idImp) fv2 = x;
         confere (std::abs ((double) fv2["inicio"] - 0.25) < 0.001, "editar faixa: continua no mesmo lugar da linha do tempo");
-        float pk = 0; if (auto* pa = s.picos (idImp).getArray()) for (auto& v : *pa) pk = jmax (pk, (float) (int) v);
-        std::printf ("        pico devolvido %.3f (editado no arquivo %.3f, picos %d)\n", pk / 1000.0f, ed.getMagnitude (0, 0, 48000), s.picos (idImp).getArray() ? s.picos (idImp).getArray()->size() : -1);
+        float pk = 0; const var pv = s.picos (idImp);   // guarda o var: o array de um temporário some no fim da linha
+        if (auto* pa = pv.getArray()) for (auto& v : *pa) pk = jmax (pk, (float) (int) v);
         confere (std::abs (pk / 1000.0f - 0.15f) < 0.01f, "editar faixa: o som que voltou é o editado (metade do volume)");
         s.ajustar (idImp, JSON::parse ("{\"moverMs\":-250}"));
     }
