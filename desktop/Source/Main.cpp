@@ -44,6 +44,7 @@ namespace Atualizador
     {
         auto* r = new DynamicObject();
         r->setProperty ("atual", JUCE_APPLICATION_VERSION_STRING);
+        if (empacotadoNaLoja()) { r->setProperty ("loja", true); return var (r); }   // a Store atualiza
         auto opcoes = URL::InputStreamOptions (URL::ParameterHandling::inAddress)
                           .withExtraHeaders ("User-Agent: Stumix-Desktop\r\nAccept: application/vnd.github+json")
                           .withConnectionTimeoutMs (15000);
@@ -234,6 +235,7 @@ private:
             .withNativeFunction ("estudioMedirInicio", [this] (const Array<var>&, auto done) { engine.iniciarMedicao(); done (true); })
             .withNativeFunction ("estudioMedirFim", [this] (const Array<var>&, auto done) { done (engine.pararMedicao()); })
             .withNativeFunction ("estudioVersao", [] (const Array<var>&, auto done) { done (String (JUCE_APPLICATION_VERSION_STRING)); })
+            .withNativeFunction ("estudioLoja", [] (const Array<var>&, auto done) { done (empacotadoNaLoja()); })
             .withNativeFunction ("estudioVerificarAtualizacao", [] (const Array<var>&, auto done)
             {
                 Thread::launch ([done] { done (Atualizador::verificar()); });
@@ -632,7 +634,7 @@ public:
         for (auto& arg : getCommandLineParameterArray())
             if (arg.startsWith ("--esperar="))   // aberto pela atualização: espera a versão antiga fechar
                 esperarProcesso ((unsigned long) arg.fromFirstOccurrenceOf ("=", false, false).getLargeIntValue(), 15000);
-        File::getSpecialLocation (File::currentExecutableFile).getSiblingFile ("Stumix.antigo.exe").deleteFile();
+        if (! empacotadoNaLoja()) File::getSpecialLocation (File::currentExecutableFile).getSiblingFile ("Stumix.antigo.exe").deleteFile();
         for (auto& arg : getCommandLineParameterArray())
             if (arg.startsWith ("--testar-atualizacao="))
             {

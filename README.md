@@ -6,6 +6,13 @@ No ar em https://fbi0l.github.io/estudio/ (GitHub Pages). Como publicar e instal
 
 **Toda versão nova:** suba `APP_VERSION` e `GUIA_REVISADO_NA_VERSAO` no `index.html`, a `VERSAO` do `sw.js` (para os apps instalados receberem a atualização), revise os passos do guia e registre aqui.
 
+## Versão 1.15.1 — Preparação para a Microsoft Store (Stumix Desktop 0.8.1)
+
+- O Controle Inteligente de Aplicativos do Windows 11 bloqueia versões novas do Stumix por não terem assinatura digital. A solução é publicar na Microsoft Store, que assina o app.
+- O workflow agora monta também o pacote MSIX da Store (`desktop/msix/`), instala uma cópia de teste e confere que abre.
+- Instalado pela Store, o app esconde o botão de atualizar (quem atualiza é a Store).
+- Nova página de privacidade: https://fbi0l.github.io/estudio/privacidade/
+
 ## Versão 1.15.0 — Efeitos em cada faixa (Stumix Desktop 0.8.0)
 
 - Novo botão **Editar com efeitos** no painel da faixa (aba Faixas): a faixa abre em Editar e Efeitos, você usa volume, EQ, compressor, redução de ruído, eco, reverb e cortes, e toca em **Devolver à faixa**. Ela volta para a sessão no mesmo lugar da linha do tempo, com o mesmo volume, pan e plugins.

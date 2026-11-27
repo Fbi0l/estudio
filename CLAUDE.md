@@ -10,6 +10,9 @@ App de gravação, edição e finalização de áudio. PWA em https://fbi0l.gith
 ## Pendências
 Ficam nas Issues do GitHub. Página de download pronta em baixar/ (issue #1 fechada). Multipista no celular pronta (1.14.0, motor `MPW` no index.html com as mesmas funções `mp*` do PC; `mpc()` escolhe o motor). Efeitos por faixa pela opção A ("Editar com efeitos" → Devolver à faixa; nativo: `mpFaixaWav`, `mpReceber` em pedaços base64, `mpSubstituir`). Próximas: guia e "Sobre" com a aba Faixas; opção B (efeitos ao vivo por faixa) se o Fabio pedir.
 
+## Microsoft Store
+O Controle Inteligente de Aplicativos bloqueia cada .exe novo sem assinatura. Caminho escolhido (27/11/2026): Microsoft Store (MSIX, a Microsoft assina). Pacote em `desktop/msix/` (manifesto com `$NOME$`, `$PUBLISHER$`, `$PUBLISHER_NOME$`, `$VERSAO$`), montado no workflow com as variáveis do repositório `LOJA_NOME`, `LOJA_PUBLISHER`, `LOJA_PUBLISHER_NOME` (vêm de Partner Center → Identidade do produto). Artefato `Stumix-Loja-MSIX`. `empacotadoNaLoja()` desliga o atualizador próprio. Privacidade: `privacidade/`.
+
 ## Visual
 Tema "palco": fundo `#0E0F0C`, superfície `#16181A`, destaque verde-limão `#C8F169`, vermelho só na gravação, vidro nas barras (`--glass*` em `:root` do index.html). Fontes em `fonts/` (Manrope, JetBrains Mono, Unbounded só "stumix"). Logo: S de cabo de guitarra com plugue reto inclinado 15°.
 

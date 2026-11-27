@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <shellapi.h>
 #include <dwmapi.h>
+#include <appmodel.h>
 #pragma comment(lib, "dwmapi.lib")
 #include <string>
 
@@ -61,7 +62,13 @@ void barraEscura (void* janelaNativa)
     DwmSetWindowAttribute (h, 35 /* DWMWA_CAPTION_COLOR */, &fundo, sizeof (fundo));
     DwmSetWindowAttribute (h, 36 /* DWMWA_TEXT_COLOR */, &texto, sizeof (texto));
 }
+bool empacotadoNaLoja()
+{
+    UINT32 n = 0;
+    return GetCurrentPackageFullName (&n, nullptr) != APPMODEL_ERROR_NO_PACKAGE;
+}
 #else
+bool empacotadoNaLoja() { return false; }
 void barraEscura (void*) {}
 bool lancarInstalador (const wchar_t*, const wchar_t*, unsigned long& erro) { erro = 0; return false; }
 unsigned long idDoProcesso() { return 0; }

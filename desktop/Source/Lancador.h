@@ -10,3 +10,6 @@ void esperarProcesso (unsigned long pid, int milissegundos);
 
 // Barra de título escura (Windows 10/11), na cor do app, em vez da barra branca do tema claro.
 void barraEscura (void* janelaNativa);
+
+// Instalado pela Microsoft Store (pacote MSIX): quem atualiza é a Store, não o botão do app.
+bool empacotadoNaLoja();

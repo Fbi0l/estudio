@@ -535,7 +535,7 @@ window.SPLASH=new Promise(fim=>{const el=document.getElementById('splash');
         <label class="row-i"><span>Novo áudio<small>Onde a gravação entra</small></span><select id="place"><option value="replace">Substitui tudo</option><option value="insert" selected>No cursor</option><option value="end">No final</option><option value="punch">Regrava a seleção</option></select></label>
       </div>
       <p class="keys"><span class="kb">Atalhos: <kbd>Espaço</kbd> tocar · <kbd>R</kbd> gravar · <kbd>L</kbd> repetir · <kbd>Ctrl+Z</kbd> desfazer · <kbd>Ctrl+X/C/V</kbd> · <kbd>Delete</kbd> · <kbd>Ctrl+A</kbd> · <kbd>+</kbd>/<kbd>−</kbd> zoom · <kbd>Ctrl</kbd>+roda dá zoom · <kbd>Shift</kbd>+clique estende a seleção.<br></span>Tudo roda no seu aparelho; nada é enviado para a internet.</p>
-      <p class="rodape">© 2026 Fbiol · Versão <span class="appver"></span> · <button class="link" type="button" data-sobre>Sobre o app</button> · <button class="link" type="button" data-guia>Como usar</button><span class="so-pc-web" hidden> · <a href="baixar/" target="_blank" rel="noopener">Baixar para Windows</a></span></p>
+      <p class="rodape">© 2026 Fbiol · Versão <span class="appver"></span> · <button class="link" type="button" data-sobre>Sobre o app</button> · <button class="link" type="button" data-guia>Como usar</button> · <a href="privacidade/" target="_blank" rel="noopener">Privacidade</a><span class="so-pc-web" hidden> · <a href="baixar/" target="_blank" rel="noopener">Baixar para Windows</a></span></p>
     </section>
 
     <section class="panel" id="p-fx" role="tabpanel" aria-label="Efeitos">
@@ -1352,6 +1352,7 @@ async function natAtualizacao(silencioso){
   if(!silencioso){b.disabled=true;b.textContent='Procurando…';t.textContent='Verificando se há versão nova…'}
   const r=await nat('estudioVerificarAtualizacao').catch(()=>({erro:'falha'}));
   if(!silencioso)b.disabled=false;
+  if(r.loja)return;
   if(r.erro){if(!silencioso){t.textContent='Não consegui verificar agora ('+r.erro+'). Tente de novo.';b.textContent='Tentar de novo'}return}
   if(r.nova){natNova=r;$('#aboutBtn').classList.add('upd');t.textContent=`Versão ${r.versao} disponível (você tem a ${r.atual}). Seus projetos continuam salvos.`;b.textContent='Atualizar agora';
     if(silencioso)toast('Há uma versão nova do Stumix. Toque em ⓘ para atualizar.',5000);
@@ -1734,7 +1735,9 @@ const MP=(()=>{
   return{iniciar,abrir,atualizar,gravar,parar,gravando:()=>!!grav,editando:()=>editando,fimEdicao:()=>{if(editando){editando=null;barraEdicao()}},tocarPausar,nivel,zoom:f=>{pxs=Math.min(400,Math.max(4,pxs*f));desenhar()},estado:()=>est};
 })();
 async function natInicia(){
-  natVersao=await nat('estudioVersao').catch(()=>'');setTimeout(()=>natAtualizacao(true),6000);
+  natVersao=await nat('estudioVersao').catch(()=>'');
+  if(await nat('estudioLoja').catch(()=>false)){$('#updBtn').hidden=true;$('#updTxt').textContent='Instalado pela Microsoft Store: as versões novas chegam sozinhas pela Store'}
+  else setTimeout(()=>natAtualizacao(true),6000);
   document.querySelectorAll('.so-web').forEach(e=>e.hidden=true);$('#natRows').hidden=false;
   let salvo=null;try{salvo=JSON.parse(localStorage.getItem('estudio:natcfg')||'null')}catch(e){}
   natTipos=await nat('estudioListar').catch(()=>[]);
@@ -1871,7 +1874,7 @@ window.addEventListener('pagehide',()=>{saveNow()});
 
 /* ---------- versão, guia de uso e Sobre o app ---------- */
 // Toda versão nova: suba APP_VERSION e a VERSAO do sw.js, revise os passos do guia e o histórico no README.
-const APP_VERSION='1.15.0',GUIA_REVISADO_NA_VERSAO='1.6.0';
+const APP_VERSION='1.15.1',GUIA_REVISADO_NA_VERSAO='1.6.0';
 const PASSOS_GUIA=[
  {icone:'✦',titulo:'Bem-vindo ao Stumix',
   texto:'Aqui você grava, edita e finaliza áudio: locução, podcast, voz ou instrumento. O app orienta cada etapa e diz com franqueza quando algo precisa de ajuste.',

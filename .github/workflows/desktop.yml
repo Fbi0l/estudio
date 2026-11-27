@@ -80,6 +80,53 @@ jobs:
           Write-Host "exe trocado: $($agora -eq $esperado) | versão nova aberta: $($rodando -gt 0)"
           if ($agora -ne $esperado -or $rodando -lt 1) { exit 1 }
 
+      - name: Pacote da Microsoft Store (MSIX) e teste instalando
+        shell: pwsh
+        env:
+          # identidade do Partner Center (Configurações do repositório → Variables); sem elas, sai um pacote de teste
+          LOJA_NOME: ${{ vars.LOJA_NOME }}
+          LOJA_PUBLISHER: ${{ vars.LOJA_PUBLISHER }}
+          LOJA_PUBLISHER_NOME: ${{ vars.LOJA_PUBLISHER_NOME }}
+        run: |
+          $v = ([regex]::Match((Get-Content desktop\CMakeLists.txt -Raw), 'VERSION (\d+\.\d+\.\d+)')).Groups[1].Value + '.0'
+          $nome = if ($env:LOJA_NOME) { $env:LOJA_NOME } else { 'StumixTeste.Stumix' }
+          $pub  = if ($env:LOJA_PUBLISHER) { $env:LOJA_PUBLISHER } else { 'CN=StumixTeste' }
+          $pubN = if ($env:LOJA_PUBLISHER_NOME) { $env:LOJA_PUBLISHER_NOME } else { 'Stumix (teste)' }
+          Write-Host "pacote $nome $v | $pub | $pubN"
+          $kit = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\10.*\x64\makeappx.exe" | Sort-Object FullName -Descending | Select-Object -First 1).DirectoryName
+          New-Item msix, loja -ItemType Directory -Force | Out-Null
+          Copy-Item build\EstudioDesktop_artefacts\Release\Stumix.exe msix\
+          Copy-Item desktop\msix\Assets msix\Assets -Recurse
+          (Get-Content desktop\msix\AppxManifest.xml -Raw).Replace('$NOME$', $nome).Replace('$PUBLISHER$', $pub).Replace('$PUBLISHER_NOME$', $pubN).Replace('$VERSAO$', $v) | Set-Content msix\AppxManifest.xml -Encoding utf8
+          & "$kit\makepri.exe" createconfig /cf priconfig.xml /dq pt-BR /o | Out-Null
+          & "$kit\makepri.exe" new /pr msix /cf priconfig.xml /of msix\resources.pri /o | Out-Null
+          if ($LASTEXITCODE -ne 0) { Write-Host "makepri falhou"; exit 1 }
+          & "$kit\makeappx.exe" pack /d msix /p loja\Stumix-Loja.msix /o
+          if ($LASTEXITCODE -ne 0) { Write-Host "makeappx falhou"; exit 1 }
+          # teste: assina uma cópia com certificado de teste, instala como a Store instalaria e abre
+          $cert = New-SelfSignedCertificate -Type Custom -Subject $pub -KeyUsage DigitalSignature -FriendlyName "Stumix teste" -CertStoreLocation Cert:\CurrentUser\My -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+          Copy-Item loja\Stumix-Loja.msix teste.msix
+          & "$kit\signtool.exe" sign /fd SHA256 /sha1 $cert.Thumbprint teste.msix
+          Export-Certificate -Cert $cert -FilePath teste.cer | Out-Null
+          Import-Certificate -FilePath teste.cer -CertStoreLocation Cert:\LocalMachine\TrustedPeople | Out-Null
+          Add-AppxPackage teste.msix
+          $pkg = Get-AppxPackage -Name $nome
+          if (-not $pkg) { Write-Host "pacote não instalou"; exit 1 }
+          Get-Process Stumix -ErrorAction SilentlyContinue | Stop-Process -Force
+          Start-Process "shell:AppsFolder\$($pkg.PackageFamilyName)!Stumix"
+          Start-Sleep 15
+          $rodando = @(Get-Process Stumix -ErrorAction SilentlyContinue)
+          $caminho = if ($rodando.Count) { $rodando[0].Path } else { '' }
+          Write-Host "aberto pela Store: $($rodando.Count -gt 0) | $caminho"
+          $rodando | Stop-Process -Force
+          Remove-AppxPackage $pkg.PackageFullName
+          if ($rodando.Count -lt 1 -or $caminho -notlike '*WindowsApps*') { exit 1 }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Stumix-Loja-MSIX
+          path: loja/Stumix-Loja.msix
+
       - uses: actions/upload-artifact@v4
         with:
           name: Stumix-Desktop-Windows
