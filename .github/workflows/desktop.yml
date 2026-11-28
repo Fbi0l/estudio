@@ -83,15 +83,15 @@ jobs:
       - name: Pacote da Microsoft Store (MSIX) e teste instalando
         shell: pwsh
         env:
-          # identidade do Partner Center (Configurações do repositório → Variables); sem elas, sai um pacote de teste
+          # identidade do Partner Center (Stumix, ID da Store 9PJLLBLQ8NPM); as variáveis do repositório, se existirem, têm prioridade
           LOJA_NOME: ${{ vars.LOJA_NOME }}
           LOJA_PUBLISHER: ${{ vars.LOJA_PUBLISHER }}
           LOJA_PUBLISHER_NOME: ${{ vars.LOJA_PUBLISHER_NOME }}
         run: |
           $v = ([regex]::Match((Get-Content desktop\CMakeLists.txt -Raw), 'VERSION (\d+\.\d+\.\d+)')).Groups[1].Value + '.0'
-          $nome = if ($env:LOJA_NOME) { $env:LOJA_NOME } else { 'StumixTeste.Stumix' }
-          $pub  = if ($env:LOJA_PUBLISHER) { $env:LOJA_PUBLISHER } else { 'CN=StumixTeste' }
-          $pubN = if ($env:LOJA_PUBLISHER_NOME) { $env:LOJA_PUBLISHER_NOME } else { 'Stumix (teste)' }
+          $nome = if ($env:LOJA_NOME) { $env:LOJA_NOME } else { 'Fbiol.Stumix' }
+          $pub  = if ($env:LOJA_PUBLISHER) { $env:LOJA_PUBLISHER } else { 'CN=872D8B92-C539-4F8E-A65C-504859F62737' }
+          $pubN = if ($env:LOJA_PUBLISHER_NOME) { $env:LOJA_PUBLISHER_NOME } else { 'Fbiol' }
           Write-Host "pacote $nome $v | $pub | $pubN"
           $kit = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\10.*\x64\makeappx.exe" | Sort-Object FullName -Descending | Select-Object -First 1).DirectoryName
           New-Item msix, loja -ItemType Directory -Force | Out-Null
